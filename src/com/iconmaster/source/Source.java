@@ -7,6 +7,7 @@ import com.iconmaster.source.tokenize.Tokenizer;
 import com.iconmaster.source.xml.ElementXML;
 import com.iconmaster.source.xml.XMLHelper;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.w3c.dom.Document;
@@ -18,19 +19,23 @@ import org.w3c.dom.Document;
 public class Source {
 
 	public static void main(String[] args) {
-		ArrayList<Element> a = null;
-		try {
-			a = Tokenizer.tokenize("2,-3,-4,5");
-			//System.out.println(a);
-			a = Parser.parse(a);
-			//System.out.println(a);
-		} catch (SourceException ex) {
-			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
+		Scanner kbd = new Scanner(System.in);
+		while (true) {
+			ArrayList<Element> a = null;
+			try {
+				System.out.print("Enter an expression: ");
+				String input = kbd.next();
+				a = Tokenizer.tokenize(input);
+				a = Parser.parse(a);
+			} catch (SourceException ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
+			}
+
+			System.out.println(a);
+			Document doc = XMLHelper.blankDoc();
+			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
+			System.out.println(XMLHelper.toString(doc));
 		}
-		
-		Document doc = XMLHelper.blankDoc();
-		ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
-		System.out.println(XMLHelper.toString(doc));
 	}
 	
 }

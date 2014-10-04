@@ -46,6 +46,28 @@ public enum Rule implements IElementType {
 		e1.dataType = e2;
 		return new RuleResult(e1,3);
 	}),
+		CHAIN("C", new com.iconmaster.source.element.ISpecialRule() {
+		@Override
+		public RuleResult match(ArrayList<Element> a, int i) {
+			if (i+3>a.size() || !(a.get(i+1)).args[0].equals(".")) {
+				return null;
+			}
+			Element e1 = a.get(i);
+			Element e2 = a.get(i+2);
+			
+			ArrayList ea;
+			if (e1.type==Rule.CHAIN && e1.args[0] instanceof ArrayList) {
+				ea = (ArrayList) e1.args[0];
+			} else {
+				ea = new ArrayList();
+				ea.add(e1);
+			}
+			ea.add(e2);
+			Element res = new Element(Range.from(e1.range, e2.range),Rule.CHAIN);
+			res.args[0] = ea;
+			return new RuleResult(res,3);
+		}
+	}),
 	MUL(null,"a@0'*'a@1"),
 	DIV(null,"a@0'/'a@1"),
 	ADD(null,"a@0'+'a@1"),
@@ -62,7 +84,7 @@ public enum Rule implements IElementType {
 	TUPLE("T", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
-			if (i+2>a.size() || !(a.get(i+1)).args[0].equals(",")) {
+			if (i+3>a.size() || !(a.get(i+1)).args[0].equals(",")) {
 				return null;
 			}
 			Element e1 = a.get(i);
