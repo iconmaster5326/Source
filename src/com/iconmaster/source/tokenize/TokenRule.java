@@ -9,12 +9,12 @@ import com.iconmaster.source.element.IElementType;
 public enum TokenRule implements IElementType {
 	SPACE(" ","[\\s]+"),
 	COMMENT(null,"\\/\\/[^\n]*\n"),
-	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum)\\b"),
+	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|this|extends)\\b"),
 	WORD("w","[\\w\\?&&[^\\d]][\\w\\?]*"),
 	NUMBER("n","[\\d\\.]+"),
 	STRING("s","\"[^\"]*\""),
 	SEP(";",";+"),
-	DIRECTIVE(null,"@[\\S]*"),
+	DIRECTIVE("r","@[\\S]*"),
 	SYMBOL("y","([\\Q+-*/=<>~!&|%^\\E]+|\\(|\\)|\\[|\\]|\\{|\\}|,)");
 	
 	public final String match;

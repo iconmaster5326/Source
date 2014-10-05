@@ -27,6 +27,7 @@ public enum Rule implements IElementType {
 		e.directives.add(dir.string());
 		return new RuleResult(null,1);
 	}),
+	GLOBAL_DIR(null,"r0"),
 	RECURSE(null,(a,i)->{ //parse the stuff in parens too!
 		if (a.get(i).args[9]==null && a.get(i).type instanceof CompoundTokenRule) {
 			a.get(i).args[0] = Parser.parse((ArrayList<Element>)a.get(i).args[0]);
@@ -46,7 +47,8 @@ public enum Rule implements IElementType {
 		e1.dataType = e2;
 		return new RuleResult(e1,3);
 	}),
-		CHAIN("C", new com.iconmaster.source.element.ISpecialRule() {
+	EXTEND("E","a@0'extends'a@1"),
+	CHAIN("C", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
 			if (i+3>a.size() || !(a.get(i+1)).args[0].equals(".")) {
@@ -68,6 +70,8 @@ public enum Rule implements IElementType {
 			return new RuleResult(res,3);
 		}
 	}),
+	TRUE(null,"'true'?!"),
+	FALSE(null,"'false'?!"),
 	NOT(null,"'not'a@0"),
 	BIT_NOT(null,"'!'a@0"),
 	POW(null,"a@0'^'a@1"),
@@ -132,9 +136,11 @@ public enum Rule implements IElementType {
 	RETURN_NULL(null,"'return'!"),
 	BREAK(null,"'break'!"),
 	PACKAGE(null,"'package'!t0"),
-	IMPORT(null,"'import'!t0"),
+	IMPORT(null,"'import'!t0?"),
 	FUNC(null,"'function'!F01?c2"),
-	STRUCT(null,"'struct'!w0c1"),
+	ITERATOR(null,"'iterator'!w0?c1"),
+	STRUCT(null,"'struct'!w@0c1"),
+	STRUCT_EXT(null,"'struct'!E02c1"),
 	ENUM(null,"'enum'!w0c1"),
 	SEP(null,(a,i)->{
 		if (a.get(i).type != TokenRule.SEP) {
