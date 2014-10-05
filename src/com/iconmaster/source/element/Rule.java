@@ -68,10 +68,14 @@ public enum Rule implements IElementType {
 			return new RuleResult(res,3);
 		}
 	}),
+	NOT(null,"'not'a@0"),
+	BIT_NOT(null,"'!'a@0"),
+	POW(null,"a@0'^'a@1"),
+	NEG("_","'-'a@0"),
 	MUL(null,"a@0'*'a@1"),
 	DIV(null,"a@0'/'a@1"),
+	MOD(null,"a@0'%'a@1"),
 	ADD(null,"a@0'+'a@1"),
-	NEG("_","'-'a@0"),
 	SUB(null,(a,i)->{
 		if (i+2>a.size() || a.get(i).type==TokenRule.SYMBOL || a.get(i).type==TokenRule.RESWORD || a.get(i+1).type!=Rule.NEG) {
 			return null;
@@ -81,6 +85,16 @@ public enum Rule implements IElementType {
 		e.args[1] = a.get(i+1).args[0];
 		return new RuleResult(e, 2);
 	}),
+	BIT_AND(null,"a@0'&'a@1"),
+	BIT_OR(null,"a@0'|'a@1"),
+	EQ(null,"a@0'=='a@1"),
+	NEQ(null,"a@0'!='a@1"),
+	LT(null,"a@0'<'a@1"),
+	GT(null,"a@0'>'a@1"),
+	LTE(null,"a@0'<='a@1"),
+	GTE(null,"a@0'>='a@1"),
+	AND(null,"a@0'and'a@1"),
+	OR(null,"a@0'and'a@1"),
 	TUPLE("T", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
@@ -108,8 +122,20 @@ public enum Rule implements IElementType {
 	FIELD("G","'field'!t0?"),
 	FIELD_ASN(null,"G0!?'='t1"),
 	ASSIGN("=","t0'='t1"),
+	IF(null,"'if'!a@0c1"),
+	ELSEIF(null,"'elseif'!a@0c1"),
+	ELSE(null,"'else'!c1"),
+	FOR(null,"'for'!t0'in't1c2"),
+	WHILE(null,"'while'!a@0c1"),
+	REPEAT(null,"'repeat'!c1'until'a@0"),
+	RETURN(null,"'return'!a@0"),
+	RETURN_NULL(null,"'return'!"),
+	BREAK(null,"'break'!"),
+	PACKAGE(null,"'package'!t0"),
+	IMPORT(null,"'import'!t0"),
 	FUNC(null,"'function'!F01?c2"),
-	PROPFUNC(null,"'function'!w0?c2"),
+	STRUCT(null,"'struct'!w0c1"),
+	ENUM(null,"'enum'!w0c1"),
 	SEP(null,(a,i)->{
 		if (a.get(i).type != TokenRule.SEP) {
 			return null;
