@@ -13,13 +13,17 @@ import java.util.regex.Pattern;
  */
 public class Tokenizer {
 	public static ArrayList<Element> tokenize(String input) throws SourceException {
+		return tokenize(input, true);
+	}
+	
+	public static ArrayList<Element> tokenize(String input, boolean expand) throws SourceException {
 		ArrayList<Token> a = new ArrayList<>();
 		
 		//add basic tokens
+		int len = 0;
 		while (!input.isEmpty()) {
 			//System.out.println(input);
 			boolean found = false;
-			int len = 0;
 			for (TokenRule rule : TokenRule.values()) {
 				Matcher m = Pattern.compile(rule.match).matcher(input);
 				if (m.find()) {
@@ -46,7 +50,13 @@ public class Tokenizer {
 			}
 		}
 		//add compound/chain tokens
-		ArrayList<Element> a2 = makeCompounds(a);
+		ArrayList<Element> a2;
+		if (expand) {
+			a2 = makeCompounds(a);
+		} else {
+			a2 = new ArrayList<>();
+			a2.addAll(a);
+		}
 		//done tokenizing
 		return a2;
 	}
