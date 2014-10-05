@@ -30,7 +30,9 @@ public class Tokenizer {
 					String got = m.group();
 					int olen = len;
 					len+=got.length();
-					got = rule.format(got);
+					if (expand) {
+						got = rule.format(got);
+					}
 					input = m.replaceFirst("");
 					if (got!=null) {
 						a.add(new Token(new Range(olen,len),rule,got));
@@ -40,7 +42,7 @@ public class Tokenizer {
 				}
 			}
 			if (!found) {
-				throw new SourceException(new Range(len,len),"Syntax error");
+				throw new SourceException(new Range(len,len+1),"Unknown symbol");
 			}
 		}
 		//fix "one . sydrome" and turn them into symbols
@@ -63,6 +65,7 @@ public class Tokenizer {
 	
 	public static int matchCompound(int i, ArrayList<Token> a,ArrayList<Element> a2, CompoundTokenRule rule) throws SourceException {
 		int depth = 1;
+		Range initRange = a.get(i).range;
 		for (int j=i+1;j<a.size();j++) {
 			Token t2 = a.get(j);
 			if (t2.type==TokenRule.SYMBOL && t2.string().equals(rule.begin)) {
@@ -77,11 +80,11 @@ public class Tokenizer {
 					es.add(a.get(k));
 				}
 				es = makeCompounds(es);
-				a2.add(new Token(Range.from(a.get(i).range, a.get(j).range),rule,es));
+				a2.add(new Token(Range.from(initRange, a.get(j).range),rule,es));
 				return j;
 			}
 		}
-		throw new SourceException(new Range(0,0),"Unexpected EOF");
+		throw new SourceException(initRange,"Unexpected EOF");
 	}
 
 	public static ArrayList<Element> makeCompounds(ArrayList a) throws SourceException {

@@ -24,4 +24,8 @@ public class SourceException extends Exception {
 	public String getMessage() {
 		return super.getMessage();
 	}
+	
+	public Range getRange() {
+		return range;
+	}
 }
