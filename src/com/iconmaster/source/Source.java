@@ -7,6 +7,7 @@ import com.iconmaster.source.tokenize.Tokenizer;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
 import com.iconmaster.source.util.Debug;
+import com.iconmaster.source.validate.Validator;
 import com.iconmaster.source.xml.ElementXML;
 import com.iconmaster.source.xml.XMLHelper;
 import java.io.File;
@@ -73,9 +74,24 @@ public class Source {
 	
 	public static void printInput(String input) {
 		try {
-			ArrayList<Element> a = Parser.parse(Tokenizer.tokenize(input));
+			System.out.println("Tokenizing...");
+			ArrayList<Element> a = Tokenizer.tokenize(input);
 			System.out.println(a);
-
+			System.out.println("Parsing...");
+			a = Parser.parse(a);
+			System.out.println(a);
+			System.out.println("Validating...");
+			ArrayList<SourceException> errs = Validator.validate(a);
+			if (!errs.isEmpty()) {
+				System.out.println("There were errors detected:");
+				for (SourceException err : errs) {
+					System.out.println(err);
+				}
+				System.out.println("Compilation could not be completed.");
+				return;
+			}
+			System.out.println("Validation complete. No errors found!");
+			System.out.println("The final product is:");
 			Document doc = XMLHelper.blankDoc();
 			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
 			System.out.println(XMLHelper.toString(doc));
