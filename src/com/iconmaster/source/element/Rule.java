@@ -81,7 +81,7 @@ public enum Rule implements IElementType {
 	MOD(null,"a@0'%'a@1"),
 	ADD(null,"a@0'+'a@1"),
 	SUB(null,(a,i)->{
-		if (i+2>a.size() || a.get(i).type==TokenRule.SYMBOL || a.get(i).type==TokenRule.RESWORD || a.get(i+1).type!=Rule.NEG) {
+		if (i+2>a.size() || !isValidOperationToken(a.get(i+1)) || a.get(i+1).type!=Rule.NEG) {
 			return null;
 		}
 		Element e = new Element(Range.from(a.get(i).range,a.get(i+1).range),Rule.SUB);
@@ -126,21 +126,31 @@ public enum Rule implements IElementType {
 	FIELD("G","'field'!t0?"),
 	FIELD_ASN(null,"G0!?'='t1"),
 	ASSIGN("=","t0'='t1"),
-	IF(null,"'if'!a@0c1"),
-	ELSEIF(null,"'elseif'!a@0c1"),
-	ELSE(null,"'else'!c1"),
+	IF(null,"'if'!a@0c2"),
+	ELSEIF(null,"'elseif'!a@0c2"),
+	ELSE(null,"'else'!c2"),
 	FOR(null,"'for'!t0'in't1c2"),
-	WHILE(null,"'while'!a@0c1"),
-	REPEAT(null,"'repeat'!c1'until'a@0"),
-	RETURN(null,"'return'!a@0"),
+	WHILE(null,"'while'!a@0c2"),
+	REPEAT(null,"'repeat'!c2'until'a@0"),
 	RETURN_NULL(null,"'return'!"),
+	RETURN(null,new com.iconmaster.source.element.ISpecialRule() {
+		@Override
+		public RuleResult match(ArrayList<Element> a, int i) {
+			if (i+2>a.size() || !isValidOperationToken(a.get(i+1)) || a.get(i).type!=Rule.RETURN_NULL) {
+				return null;
+			}
+			Element e = new Element(Range.from(a.get(i).range,a.get(i+1).range),Rule.RETURN);
+			e.args[0] = a.get(i+1);
+			return new RuleResult(e, 2);
+		}
+	}),
 	BREAK(null,"'break'!"),
 	PACKAGE(null,"'package'!t0"),
 	IMPORT(null,"'import'!t0?"),
 	FUNC(null,"'function'!F01?c2"),
-	ITERATOR(null,"'iterator'!F0?c1"),
-	STRUCT(null,"'struct'!w@0c1"),
-	STRUCT_EXT(null,"'struct'!E02c1"),
+	ITERATOR(null,"'iterator'!F01?c2"),
+	STRUCT(null,"'struct'!w@0c2"),
+	STRUCT_EXT(null,"'struct'!E01c2"),
 	ENUM(null,"'enum'!w0c1"),
 	SEP(null,(a,i)->{
 		if (a.get(i).type != TokenRule.SEP) {
@@ -303,5 +313,9 @@ public enum Rule implements IElementType {
 	@Override
 	public String getAlias() {
 		return alias;
+	}
+	
+	public static boolean isValidOperationToken(Element e) {
+		return !(e.type==TokenRule.SYMBOL || e.type==TokenRule.RESWORD || e.type==TokenRule.SEP);
 	}
 }

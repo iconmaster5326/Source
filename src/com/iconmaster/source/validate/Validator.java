@@ -5,6 +5,7 @@ import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.TokenRule;
+import com.iconmaster.source.util.Debug;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 
@@ -31,6 +32,7 @@ public class Validator {
 	}
 	
 	public static ArrayList<SourceException> validateElement(Element e, Scope scope) {
+		Debug.println("Validating "+e+" in scope "+scope);
 		ArrayList<SourceException> a = new ArrayList<>();
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
@@ -60,19 +62,26 @@ public class Validator {
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.CODE));
 					break;
 				case INDEX:
-					return validate((ArrayList<Element>) e.args[0],Scope.RVALUE);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));
+					break;
 				case PAREN:
-					return validate((ArrayList<Element>) e.args[0],Scope.RVALUE);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));
+					break;
 			}
 		} else if (e.type instanceof Rule) {
 			switch ((Rule)e.type) {
 				//operator level
 				case TRUE:
 				case FALSE:
+					ensureScope(a,e,scope,Scope.RVALUE);
+					break;
 				case NOT:
 				case BIT_NOT:
-				case POW:
 				case NEG:
+					ensureScope(a,e,scope,Scope.RVALUE);
+					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
+					break;
+				case POW:
 				case MUL:
 				case DIV:
 				case MOD:
@@ -88,41 +97,75 @@ public class Validator {
 				case AND:
 				case OR:
 					ensureScope(a,e,scope,Scope.RVALUE);
+					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
+					a.addAll(validateElement((Element) e.args[1],Scope.RVALUE));
 					break;
 					
 				//struct level
 					
 				//code level
-				case LOCAL:
 				case LOCAL_ASN:
+					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
+				case LOCAL:
+					ensureScope(a,e,scope,Scope.CODE);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
+					break;
 				case ASSIGN:
+					ensureScope(a,e,scope,Scope.CODE);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
+					break;
 				case IF:
 				case ELSEIF:
 				case ELSE:
-				case FOR:
 				case WHILE:
 				case REPEAT:
+					ensureScope(a,e,scope,Scope.CODE);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
+					break;
+				case FOR:
+					ensureScope(a,e,scope,Scope.CODE);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
+					break;
 				case RETURN:
+					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
 				case RETURN_NULL:
 				case BREAK:
 					ensureScope(a,e,scope,Scope.CODE);
 					break;
 					
 				//global level
-				case STRUCT:
 				case STRUCT_EXT:
+					a.addAll(validateElement((Element) e.args[1],Scope.LVALUE));
+				case STRUCT:
+					ensureScope(a,e,scope,Scope.GLOBAL);
+					a.addAll(validateElement((Element) e.args[0],Scope.LVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.STRUCT));
+					break;
 				case ENUM:
+					ensureScope(a,e,scope,Scope.GLOBAL);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
+					break;
 				case PACKAGE:
 				case IMPORT:
 					ensureScope(a,e,scope,Scope.GLOBAL);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
 					break;
 				
 				//non-code level
 				case FUNC:
 				case ITERATOR:
-				case FIELD:
-				case FIELD_ASN:
 					ensureScope(a,e,scope,Scope.GLOBAL,Scope.STRUCT);
+					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
+					break;
+				case FIELD_ASN:
+					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
+				case FIELD:
+					ensureScope(a,e,scope,Scope.GLOBAL,Scope.STRUCT);
+					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
 					break;
 					
 				//always OK
@@ -137,12 +180,22 @@ public class Validator {
 				//other cases
 
 				case FCALL:
+					ensureScope(a,e,scope,Scope.RVALUE,Scope.CODE);
 					break;
 				case ICALL:
+					ensureScope(a,e,scope,Scope.RVALUE,Scope.LVALUE);
 					break;
 				case CHAIN:
+					ensureScope(a,e,scope,Scope.CODE,Scope.RVALUE,Scope.LVALUE);
+					for (Element e2 : (ArrayList<Element>)e.args[0]) {
+						a.addAll(validateElement(e2,Scope.RVALUE));
+					}
 					break;
 				case TUPLE:
+					ensureScope(a,e,scope,Scope.RVALUE,Scope.LVALUE);
+					for (Element e2 : (ArrayList<Element>)e.args[0]) {
+						a.addAll(validateElement(e2,scope));
+					}
 					break;
 				default:
 					a.add(genScopeError(e,scope));
