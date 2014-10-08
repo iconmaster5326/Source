@@ -147,7 +147,7 @@ public class Validator {
 					break;
 				case ENUM:
 					ensureScope(a,e,scope,Scope.GLOBAL);
-					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.LVALUE));
 					break;
 				case PACKAGE:
 				case IMPORT:
