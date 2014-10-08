@@ -347,3 +347,71 @@ local x,y = multiret()
 
 //x and y is set to 1 and 2.
 //If you didn't have the y there, the 2 wouldn't be assigned to anything.
+
+//Note that if you want a function to multiret, it's probably going to need
+//to be stated as such explicitly.
+
+//16. Some more diretives
+
+//Remember directives? They're important.
+
+@const
+
+//attached to a local or field means that it's a constant. It has to be set to something
+//when you make it, and said value cannot change. Consts are replaced with thier value
+//on compile-time.
+
+//@const functions take all @const vairables, and must return a @const item.
+
+@typedef
+
+//applied to a struct means that this struct is really another type, but with
+//functions attached to it. Typdef'd structs must have 1 and only 1 field.
+//The compiler uses this ariable as the 1 field, but pretends it's a real struct.
+
+@static
+
+//applied to a field in a struct means that it's actually a global field,
+//but is acsessed by the struct's name, just lie a field is.
+
+@nominify
+
+//applied to a function means that, on compile, there is no minification going on;
+//your resultant function will have line breaks and everything.
+
+//@nominify can be called globally.
+
+@@nominfy
+
+//See?
+
+@@minify
+
+//turns minification back on.
+
+@keepname
+
+//keeps the name of a function of variable just as it is on compile, instead of
+//shortening it to save space.
+
+@@keepname
+@@nokeepname
+
+//are things too.
+
+@export
+
+//Didn't I tell you about export already?
+
+@key=K
+
+//allows you to set a user key. The thing after the = is the key you want.
+
+@@icon=name,file
+
+//Creates an icon. File is a link to a PNG file, NOT a set of hex digits.
+
+@private
+
+//Makes a field or function in a struct inacsessable to functions outside the
+//struct.

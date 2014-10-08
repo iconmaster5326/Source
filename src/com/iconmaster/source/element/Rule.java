@@ -138,7 +138,7 @@ public enum Rule implements IElementType {
 	PACKAGE(null,"'package'!t0"),
 	IMPORT(null,"'import'!t0?"),
 	FUNC(null,"'function'!F01?c2"),
-	ITERATOR(null,"'iterator'!w0?c1"),
+	ITERATOR(null,"'iterator'!F0?c1"),
 	STRUCT(null,"'struct'!w@0c1"),
 	STRUCT_EXT(null,"'struct'!E02c1"),
 	ENUM(null,"'enum'!w0c1"),
