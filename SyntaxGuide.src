@@ -251,10 +251,11 @@ function main() {
 //You define one like so:
 
 field x
+field y=2
 
 //Simple.
 
-//Note that fields are, by HPPL design, non-transient. Therefore, you can't assign values to them like locals.
+//Note that fields are, by HPPL design and not ours, persistant.
 
 //11. Structs
 
