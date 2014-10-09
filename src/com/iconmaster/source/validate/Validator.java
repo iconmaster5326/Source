@@ -152,7 +152,7 @@ public class Validator {
 				case PACKAGE:
 				case IMPORT:
 					ensureScope(a,e,scope,Scope.GLOBAL);
-					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
+					a.addAll(validateElement((Element) e.args[0],Scope.LVALUE));
 					break;
 				
 				//non-code level

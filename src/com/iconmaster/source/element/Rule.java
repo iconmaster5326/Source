@@ -145,8 +145,8 @@ public enum Rule implements IElementType {
 		}
 	}),
 	BREAK(null,"'break'!"),
-	PACKAGE(null,"'package'!t0"),
-	IMPORT(null,"'import'!t0?"),
+	PACKAGE(null,"'package'!a@0"),
+	IMPORT(null,"'import'!a@0?"),
 	FUNC(null,"'function'!F01?c2"),
 	ITERATOR(null,"'iterator'!F01?c2"),
 	STRUCT(null,"'struct'!w@0c2"),

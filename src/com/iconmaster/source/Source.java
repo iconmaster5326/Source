@@ -3,6 +3,7 @@ package com.iconmaster.source;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.parse.Parser;
+import com.iconmaster.source.prototype.Prototyper;
 import com.iconmaster.source.tokenize.Tokenizer;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
@@ -91,6 +92,18 @@ public class Source {
 				return;
 			}
 			System.out.println("Validation complete. No errors found!");
+			System.out.println("Prototyping...");
+			Prototyper.PrototypeResult pkg = Prototyper.prototype(a);
+			System.out.println(pkg.result);
+			if (!pkg.errors.isEmpty()) {
+				System.out.println("There were errors detected:");
+				for (SourceException err : pkg.errors) {
+					System.out.println(err);
+				}
+				System.out.println("Compilation could not be completed.");
+				return;
+			}
+			System.out.println("Prototyping complete. No errors found!");
 			System.out.println("The final product is:");
 			Document doc = XMLHelper.blankDoc();
 			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
