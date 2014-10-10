@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.element.Element;
 import java.util.ArrayList;
 
 /**
@@ -8,14 +9,15 @@ import java.util.ArrayList;
  */
 public class Variable {
 	String name;
-	DataTypeDef type;
+	DataType type;
+	Element rawValue;
 	ArrayList<String> directives;
 
 	public Variable(String name) {
 		this(name,null);
 	}
 
-	public Variable(String name, DataTypeDef type) {
+	public Variable(String name, DataType type) {
 		this.name = name;
 		this.type = type;
 	}

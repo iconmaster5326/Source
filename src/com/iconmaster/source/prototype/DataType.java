@@ -3,6 +3,7 @@ package com.iconmaster.source.prototype;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.TokenRule;
 import java.util.ArrayList;
 
@@ -10,11 +11,16 @@ import java.util.ArrayList;
  *
  * @author iconmaster
  */
-public class DataTypeDef {
+public class DataType {
 	String name;
 	ArrayList<String> params = new ArrayList<>();
+	boolean weak = false;
+	
+	public DataType(String t) {
+		this.name = t;
+	}
 
-	public DataTypeDef(Element e) throws SourceException {
+	public DataType(Element e) throws SourceException {
 		if (e==null) {
 			name = "?";
 			return;
@@ -42,18 +48,24 @@ public class DataTypeDef {
 		}
 	}
 	
-	public static ArrayList<DataTypeDef> getFuncReturn(Element e) throws SourceException {
-		ArrayList<DataTypeDef> a = new ArrayList<>();
+	public static ArrayList<DataType> getFuncReturn(Element e) throws SourceException {
+		ArrayList<DataType> a = new ArrayList<>();
 		if (e==null) {
-			a.add(new DataTypeDef(null));
+			a.add(new DataType("?"));
 			return a;
 		}
 		if (e.type==Rule.TUPLE) {
 			for (Element e2 : (ArrayList<Element>) e.args[0]) {
-				a.add(new DataTypeDef(e2));
+				a.add(new DataType(e2));
+			}
+		} else if (e.type==CompoundTokenRule.PAREN) {
+			for (Element e2 : (ArrayList<Element>) e.args[0]) {
+				for (Element e3 : (ArrayList<Element>) e2.args[0]) {
+					a.add(new DataType(e3));
+				}
 			}
 		} else {
-			a.add(new DataTypeDef(e));
+			a.add(new DataType(e));
 		}
 		return a;
 	}

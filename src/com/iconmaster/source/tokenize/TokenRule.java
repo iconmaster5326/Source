@@ -10,7 +10,7 @@ public enum TokenRule implements IElementType {
 	SPACE(" ","[\\s]+"),
 	COMMENT(null,"\\/\\/[^\n]*\n"),
 	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|this|extends)\\b"),
-	WORD("w","[\\w\\?&&[^\\d]][\\w\\?]*"),
+	WORD("w","[\\w\\?&&[^\\d]][\\w\\?\\.]*"),
 	NUMBER("n","[\\d\\.]+"),
 	STRING("s","\"[^\"]*\""),
 	SEP(";",";+"),

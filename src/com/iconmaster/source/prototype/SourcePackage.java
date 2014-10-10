@@ -60,10 +60,26 @@ public class SourcePackage {
 					}
 					break;
 				case FIELD_ASN:
+					int i=0;
+					ArrayList<Element> vals = ((ArrayList<Element>) e.args[1]);
+					for (Element e2 : (ArrayList<Element>) e.args[0]) {
+						try {
+							Variable var = new Variable((String)e2.args[0], new DataType(e2.dataType));
+							if (i < vals.size()) {
+								var.rawValue = vals.get(i);
+							}
+							fields.add(var);
+						} catch (SourceException ex) {
+							errors.add(ex);
+						}
+						i++;
+					}
+					break;
 				case FIELD:
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						try {
-							fields.add(new Variable((String)e2.args[0], new DataTypeDef(e2.dataType)));
+							Variable var = new Variable((String)e2.args[0], new DataType(e2.dataType));
+							fields.add(var);
 						} catch (SourceException ex) {
 							errors.add(ex);
 						}
@@ -73,19 +89,21 @@ public class SourcePackage {
 					try {
 						String fname = (String) e.args[0];
 						ArrayList<Variable> args = new ArrayList<>();
-						ArrayList<DataTypeDef> rets = DataTypeDef.getFuncReturn(e.dataType);
+						ArrayList<DataType> rets = DataType.getFuncReturn(e.dataType);
 						
 						for (Element e2 : (ArrayList<Element>) e.args[1]) {
 							if (e2.args[0] instanceof ArrayList) {
 								for (Element e3 : (ArrayList<Element>) e2.args[0]) {
-									args.add(new Variable((String)e3.args[0], new DataTypeDef(e3.dataType)));
+									args.add(new Variable((String)e3.args[0], new DataType(e3.dataType)));
 								}
 							} else {
-								args.add(new Variable((String)e2.args[0], new DataTypeDef(e2.dataType)));
+								args.add(new Variable((String)e2.args[0], new DataType(e2.dataType)));
 							}
 						}
 						
-						functions.add(new Function(fname,args,rets));
+						Function fn = new Function(fname,args,rets);
+						fn.rawCode = (ArrayList<Element>) e.args[2];
+						functions.add(fn);
 					} catch (SourceException ex) {
 						errors.add(ex);
 					}
@@ -96,5 +114,22 @@ public class SourcePackage {
 			}
 		}
 		return errors;
+	}
+	
+	public void addContents(SourcePackage other) {
+		fields.addAll(other.fields);
+		functions.addAll(other.functions);
+	}
+	
+	public void addFunction(Function fn) {
+		functions.add(fn);
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public ArrayList<String> getImports() {
+		return imports;
 	}
 }
