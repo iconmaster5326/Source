@@ -1,5 +1,6 @@
 package com.iconmaster.source;
 
+import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.link.Linker;
@@ -10,15 +11,12 @@ import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
 import com.iconmaster.source.util.Debug;
 import com.iconmaster.source.validate.Validator;
-import com.iconmaster.source.xml.ElementXML;
-import com.iconmaster.source.xml.XMLHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.Document;
 
 /**
  *
@@ -120,10 +118,14 @@ public class Source {
 				return;
 			}
 			System.out.println("Prototyping complete. No errors found!");
-			System.out.println("The final product is:");
-			Document doc = XMLHelper.blankDoc();
-			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
-			System.out.println(XMLHelper.toString(doc));
+			System.out.println("Compiling...");
+			SourceCompiler.compile(linker.pkg);
+			System.out.println(linker.pkg);
+			System.out.println("Compiling done!");
+//			System.out.println("The final product is:");
+//			Document doc = XMLHelper.blankDoc();
+//			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
+//			System.out.println(XMLHelper.toString(doc));
 		} catch (SourceException ex) {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
 		}

@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.element.Element;
 import java.util.ArrayList;
 
@@ -14,7 +15,9 @@ public class Function {
 	protected ArrayList<String> directives;
 	protected ArrayList<Element> rawCode;
 	protected boolean library = false;
+	
 	protected boolean compiled = false;
+	protected ArrayList<Operation> code;
 
 	public Function(String name, ArrayList<Variable> args, ArrayList<DataType> returns) {
 		this.name = name;
@@ -24,7 +27,16 @@ public class Function {
 
 	@Override
 	public String toString() {
-		return name+args+" as "+returns;
+		StringBuilder sb = new StringBuilder(name+args+" as "+returns);
+		if (code!=null) {
+			sb.append(". CODE:");
+			
+			for (Operation op : code) {
+				sb.append("\n\t");
+				sb.append(op.toString());
+			}
+		}
+		return sb.toString();
 	}
 	
 	public static Function libraryFunction(String name, String[] args, String[] argTypes, String[] rets) {
@@ -40,10 +52,19 @@ public class Function {
 		for (String ret : rets) {
 			retList.add(new DataType(ret));
 		}
-				
+		
 		Function fn = new Function(name, argList, retList);
 		fn.library = true;
 		fn.compiled = true;
 		return fn;
+	}
+
+	public void setCompiled(ArrayList<Operation> code) {
+		this.compiled = true;
+		this.code = code;
+	}
+	
+	public ArrayList<Element> rawData() {
+		return rawCode;
 	}
 }

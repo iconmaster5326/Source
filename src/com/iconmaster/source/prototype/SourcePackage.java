@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
@@ -15,6 +16,9 @@ public class SourcePackage {
 	protected ArrayList<Variable> fields = new ArrayList<>();
 	protected ArrayList<Function> functions = new ArrayList<>();
 	protected ArrayList<String> imports = new ArrayList<>();
+	
+	protected boolean compiled = false;
+	public NameProvider nameProvider = new NameProvider();
 
 	@Override
 	public String toString() {
@@ -132,5 +136,13 @@ public class SourcePackage {
 
 	public ArrayList<String> getImports() {
 		return imports;
+	}
+
+	public ArrayList<Function> getFunctions() {
+		return functions;
+	}
+	
+	public ArrayList<Variable> getVariables() {
+		return fields;
 	}
 }
