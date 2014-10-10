@@ -8,8 +8,8 @@ public class Operation {
 	public enum OpType {
 		MOV,MOVN,ADD;
 		
-		public static boolean hasLVar(OpType type) {
-			switch (type) {
+		public boolean hasLVar() {
+			switch (this) {
 				case MOV:
 				case MOVN:
 				case ADD:

@@ -12,12 +12,15 @@ import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
 import com.iconmaster.source.util.Debug;
 import com.iconmaster.source.validate.Validator;
+import com.iconmaster.source.xml.ElementXML;
+import com.iconmaster.source.xml.XMLHelper;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.w3c.dom.Document;
 
 /**
  *
@@ -81,6 +84,12 @@ public class Source {
 			System.out.println("Parsing...");
 			a = Parser.parse(a);
 			System.out.println(a);
+			
+			Debug.println("The XML product is:");
+			Document doc = XMLHelper.blankDoc();
+			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
+			Debug.println(XMLHelper.toString(doc));
+			
 			System.out.println("Validating...");
 			ArrayList<SourceException> errs = Validator.validate(a);
 			if (!errs.isEmpty()) {
@@ -128,10 +137,6 @@ public class Source {
 			System.out.println("Got the following code:");
 			System.out.println(output);
 			System.out.println("Done!");
-//			System.out.println("The final product is:");
-//			Document doc = XMLHelper.blankDoc();
-//			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);
-//			System.out.println(XMLHelper.toString(doc));
 		} catch (SourceException ex) {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
 		}

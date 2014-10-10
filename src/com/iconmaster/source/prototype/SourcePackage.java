@@ -145,4 +145,13 @@ public class SourcePackage {
 	public ArrayList<Variable> getVariables() {
 		return fields;
 	}
+	
+	public Variable getField(String name) {
+		for (Variable v : fields) {
+			if (v.getName().equals(name)) {
+				return v;
+			}
+		}
+		return null;
+	}
 }

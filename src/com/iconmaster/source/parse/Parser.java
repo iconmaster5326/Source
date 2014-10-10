@@ -48,7 +48,7 @@ public class Parser {
 					}
 					Debug.print("matched rule "+rule.toString()+": ");
 					Debug.println(a);
-					i=-1;
+					//i=-1;
 				}
 			}
 		}

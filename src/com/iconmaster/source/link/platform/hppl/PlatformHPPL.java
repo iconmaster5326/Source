@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.assemble.AssemblyUtils;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Function;
@@ -78,11 +79,13 @@ public class PlatformHPPL extends Platform {
 		for (Operation op : expr) {
 			switch (op.op) {
 				case MOVN:
+					addLocal(pkg,expr,op,sb);
 					sb.append(op.args[0]);
 					sb.append(":=");
 					sb.append(op.args[1]);
 					break;
 				case ADD:
+					addLocal(pkg,expr,op,sb);
 					sb.append(op.args[0]);
 					sb.append(":=");
 					sb.append(op.args[1]);
@@ -93,5 +96,11 @@ public class PlatformHPPL extends Platform {
 			sb.append(";\n");
 		}
 		return sb.toString();
+	}
+	
+	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb) {
+		if (AssemblyUtils.isFirstRef(pkg, code, thisOp, thisOp.args[0])) {
+			sb.append("LOCAL ");
+		}
 	}
 }
