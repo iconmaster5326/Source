@@ -53,6 +53,14 @@ public class Variable {
 	public Element rawData() {
 		return rawValue;
 	}
+
+	public boolean isCompiled() {
+		return compiled;
+	}
+
+	public Expression getValue() {
+		return value;
+	}
 	
 	
 }

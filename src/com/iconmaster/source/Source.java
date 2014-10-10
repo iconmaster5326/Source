@@ -1,5 +1,6 @@
 package com.iconmaster.source;
 
+import com.iconmaster.source.assemble.Assembler;
 import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
@@ -122,6 +123,11 @@ public class Source {
 			SourceCompiler.compile(linker.pkg);
 			System.out.println(linker.pkg);
 			System.out.println("Compiling done!");
+			System.out.println("Assembling...");
+			String output = Assembler.assemble("HPPL", linker.pkg);
+			System.out.println("Got the following code:");
+			System.out.println(output);
+			System.out.println("Done!");
 //			System.out.println("The final product is:");
 //			Document doc = XMLHelper.blankDoc();
 //			ElementXML.toXML(doc, XMLHelper.addTag(doc, "parse_result", ""), a);

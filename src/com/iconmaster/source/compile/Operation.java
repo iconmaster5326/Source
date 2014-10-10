@@ -6,7 +6,7 @@ package com.iconmaster.source.compile;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVK,ADD
+		MOV,MOVN,ADD
 	}
 	
 	public OpType op;

@@ -70,7 +70,7 @@ public class SourceCompiler {
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case NUMBER:
-					expr.add(new Operation(OpType.MOVK,retVar,(String)e.args[0]));
+					expr.add(new Operation(OpType.MOVN,retVar,(String)e.args[0]));
 					break;
 			}
 		} else if (e.type instanceof CompoundTokenRule) {

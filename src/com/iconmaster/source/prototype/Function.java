@@ -67,4 +67,16 @@ public class Function {
 	public ArrayList<Element> rawData() {
 		return rawCode;
 	}
+
+	public boolean isCompiled() {
+		return compiled;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public ArrayList<Operation> getCode() {
+		return code;
+	}
 }
