@@ -79,6 +79,7 @@ public class PlatformHPPL extends Platform {
 		for (Operation op : expr) {
 			switch (op.op) {
 				case MOVN:
+				case MOV:
 					addLocal(pkg,expr,op,sb);
 					sb.append(op.args[0]);
 					sb.append(":=");

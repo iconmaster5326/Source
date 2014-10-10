@@ -46,14 +46,30 @@ public class SourceCompiler {
 		ArrayList<Operation> code = new ArrayList<>();
 		for (Element e : a) {
 			switch ((Rule)e.type) {
+				case LOCAL_ASN:
 				case ASSIGN:
-					//String var = resolveLValue(pkg, code, (Element) e.args[0]);
-					String var = (String) ((ArrayList<Element>)e.args[0]).get(0).args[0];
-					//Expression right = compileExpression(pkg, var, (Element) e.args[1]);
-					Expression right = compileExpression(pkg, var, (Element) ((ArrayList<Element>)e.args[1]).get(0));
-					code.addAll(right);
-					//unnessesary MOV (?)
-					//code.add(new Operation(OpType.MOV,var,right.retVar));
+					int i = 0;
+					ArrayList<Element> vals = (ArrayList<Element>)e.args[1];
+					ArrayList<String> names = new ArrayList<>();
+					for (Element e2 : (ArrayList<Element>)e.args[0]) {
+						if (i<vals.size()) {
+							String name = pkg.nameProvider.getNewName();
+							names.add(name);
+							String var = resolveLValue(pkg,code,e2);
+							Expression right = compileExpression(pkg, name, vals.get(i));
+							code.addAll(right);
+						}
+						i++;
+					}
+					i = 0;
+					for (Element e2 : (ArrayList<Element>)e.args[0]) {
+						if (i<vals.size()) {
+							String name = names.get(i);
+							String var = resolveLValue(pkg,code,e2);
+							code.add(new Operation(OpType.MOV,var,name));
+						}
+						i++;
+					}
 					break;
 			}
 		}
@@ -67,8 +83,15 @@ public class SourceCompiler {
 		}
 		expr.retVar = retVar;
 		
+		if (e==null) {
+			return expr;
+		}
+		
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
+				case WORD:
+					expr.add(new Operation(OpType.MOV,retVar,(String)e.args[0]));
+					break;
 				case NUMBER:
 					expr.add(new Operation(OpType.MOVN,retVar,(String)e.args[0]));
 					break;
