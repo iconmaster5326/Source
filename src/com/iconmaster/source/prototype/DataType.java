@@ -12,9 +12,9 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class DataType {
-	String name;
-	ArrayList<String> params = new ArrayList<>();
-	boolean weak = false;
+	protected String name;
+	protected ArrayList<String> params = new ArrayList<>();
+	protected boolean weak = false;
 	
 	public DataType(String t) {
 		this.name = t;

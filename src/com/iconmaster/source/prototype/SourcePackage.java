@@ -11,10 +11,10 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class SourcePackage {
-	String name;
-	ArrayList<Variable> fields = new ArrayList<>();
-	ArrayList<Function> functions = new ArrayList<>();
-	ArrayList<String> imports = new ArrayList<>();
+	protected String name;
+	protected ArrayList<Variable> fields = new ArrayList<>();
+	protected ArrayList<Function> functions = new ArrayList<>();
+	protected ArrayList<String> imports = new ArrayList<>();
 
 	@Override
 	public String toString() {
@@ -119,6 +119,7 @@ public class SourcePackage {
 	public void addContents(SourcePackage other) {
 		fields.addAll(other.fields);
 		functions.addAll(other.functions);
+		imports.addAll(other.imports);
 	}
 	
 	public void addFunction(Function fn) {

@@ -8,10 +8,10 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class Variable {
-	String name;
-	DataType type;
-	Element rawValue;
-	ArrayList<String> directives;
+	protected String name;
+	protected DataType type;
+	protected Element rawValue;
+	protected ArrayList<String> directives;
 
 	public Variable(String name) {
 		this(name,null);
