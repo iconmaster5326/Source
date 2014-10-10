@@ -23,20 +23,20 @@ public class PlatformHPPL extends Platform {
 	@Override
 	public String assemble(SourcePackage pkg) {
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n");
-		for (Variable var : pkg.getVariables()) {
-			if (var.isCompiled()) {
-				sb.append(var.getName());
-				sb.append(";");
-			}
-		}
-		sb.append("\n");
+//		for (Variable var : pkg.getVariables()) {
+//			if (var.isCompiled()) {
+//				sb.append(var.getName());
+//				sb.append(";");
+//			}
+//		}
+//		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
 			if (fn.isCompiled()) {
 				sb.append(fn.getName());
 				sb.append("();");
 			}
 		}
-		sb.append("\n\n");
+		sb.append("\n");
 		for (Variable var : pkg.getVariables()) {
 			if (var.isCompiled()) {
 				sb.append(assembleField(pkg,var));
