@@ -6,7 +6,18 @@ package com.iconmaster.source.compile;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,ADD
+		MOV,MOVN,ADD;
+		
+		public static boolean hasLVar(OpType type) {
+			switch (type) {
+				case MOV:
+				case MOVN:
+				case ADD:
+					return true;
+				default:
+					return false;
+			}
+		}
 	}
 	
 	public OpType op;

@@ -56,6 +56,8 @@ public class PlatformHPPL extends Platform {
 		sb.append("()\nBEGIN\n ");
 		if (fn.getCode()!=null) {
 			sb.append(assembleCode(pkg,fn.getCode()).replace("\n", "\n "));
+			sb.deleteCharAt(sb.length()-1);
+			sb.deleteCharAt(sb.length()-1);
 		}
 		sb.append("\nEND;\n\n");
 		return sb.toString();
@@ -90,8 +92,6 @@ public class PlatformHPPL extends Platform {
 			}
 			sb.append(";\n");
 		}
-		sb.deleteCharAt(sb.length()-1);
-		sb.deleteCharAt(sb.length()-1);
 		return sb.toString();
 	}
 }
