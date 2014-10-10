@@ -2,6 +2,7 @@ package com.iconmaster.source;
 
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.link.Linker;
 import com.iconmaster.source.parse.Parser;
 import com.iconmaster.source.prototype.Prototyper;
 import com.iconmaster.source.tokenize.Tokenizer;
@@ -86,6 +87,7 @@ public class Source {
 			if (!errs.isEmpty()) {
 				System.out.println("There were errors detected:");
 				for (SourceException err : errs) {
+					System.out.print("\t");
 					System.out.println(err);
 				}
 				System.out.println("Compilation could not be completed.");
@@ -98,6 +100,20 @@ public class Source {
 			if (!pkg.errors.isEmpty()) {
 				System.out.println("There were errors detected:");
 				for (SourceException err : pkg.errors) {
+					System.out.print("\t");
+					System.out.println(err);
+				}
+				System.out.println("Compilation could not be completed.");
+				return;
+			}
+			System.out.println("Prototyping complete. No errors found!");
+			System.out.println("Linking...");
+			Linker linker = Linker.link("HPPL", pkg.result);
+			System.out.println(linker);
+			if (!linker.unresolvedImports.isEmpty()) {
+				System.out.println("There were unresolved imports:");
+				for (String err : linker.unresolvedImports) {
+					System.out.print("\t");
 					System.out.println(err);
 				}
 				System.out.println("Compilation could not be completed.");

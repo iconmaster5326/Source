@@ -9,7 +9,7 @@ import java.util.HashMap;
  */
 public class Platform {
 	public String name;
-	public HashMap<String,SourcePackage> pkgs;
+	public HashMap<String,SourcePackage> pkgs = new HashMap<>();
 	
 	protected void registerLibrary(SourcePackage pkg) {
 		pkgs.put(pkg.getName(),pkg);

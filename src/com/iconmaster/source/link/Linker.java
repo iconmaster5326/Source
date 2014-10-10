@@ -1,9 +1,7 @@
 package com.iconmaster.source.link;
 
-import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -25,6 +23,7 @@ public class Linker {
 	public HashMap<String,SourcePackage> imported = new HashMap<>();
 	public Platform platform;
 	public SourcePackage pkg = new SourcePackage();
+	public ArrayList<String> unresolvedImports = new ArrayList<>();
 	
 	public Linker(String platform) {
 		this.platform = platforms.get(platform);
@@ -47,27 +46,43 @@ public class Linker {
 		return null;
 	}
 	
-	public void addImportRef(String pkgName) throws SourceException {
+	public boolean addImportRef(String pkgName) {
 		SourcePackage newPkg = getImportRef(pkgName);
 		if (newPkg!=null) {
 			linkLibrary(newPkg);
 			manageLinks();
 		} else {
-			throw new SourceException(new Range(0,1),"Cannot resolve import "+pkgName);
+			return false;
 		}
+		return true;
 	}
 	
-	public ArrayList<SourceException> manageLinks() {
-		ArrayList<SourceException> a = new ArrayList<>();
+	public void manageLinks() {
+		unresolvedImports.clear();
 		for (String imp : pkg.getImports()) {
 			if (!imported.containsKey(imp)) {
-				try {
-					addImportRef(imp);
-				} catch (SourceException ex) {
-					a.add(ex);
+				boolean found = addImportRef(imp);
+				if (!found) {
+					unresolvedImports.add(imp);
+				} else {
+					break;
 				}
 			}
 		}
-		return a;
+	}
+	
+	public static Linker link(String plat,SourcePackage pkg) {
+		Linker linker = new Linker(plat);
+		linker.linkUserPackage(pkg);
+		linker.manageLinks();
+		return linker;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("Linker (platform ");
+		sb.append(platform.name).append("):\n\t");
+		sb.append(pkg.toString().replace("\n", "\n\t"));
+		return sb.toString();
 	}
 }

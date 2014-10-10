@@ -14,6 +14,7 @@ public class Function {
 	protected ArrayList<String> directives;
 	protected ArrayList<Element> rawCode;
 	protected boolean library = false;
+	protected boolean compiled = false;
 
 	public Function(String name, ArrayList<Variable> args, ArrayList<DataType> returns) {
 		this.name = name;
@@ -37,11 +38,12 @@ public class Function {
 		}
 		
 		for (String ret : rets) {
-			retList.add(new DataType(rets[i]));
+			retList.add(new DataType(ret));
 		}
 				
 		Function fn = new Function(name, argList, retList);
 		fn.library = true;
+		fn.compiled = true;
 		return fn;
 	}
 }
