@@ -25,7 +25,7 @@ public class PlatformHPPL extends Platform {
 	public String assemble(SourcePackage pkg) {
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n");
 		for (Function fn : pkg.getFunctions()) {
-			if (fn.isCompiled()) {
+			if (fn.isCompiled() && !fn.isLibrary()) {
 				sb.append(fn.getName());
 				sb.append("();");
 			}
@@ -36,9 +36,9 @@ public class PlatformHPPL extends Platform {
 				sb.append(assembleField(pkg,var));
 			}
 		}
-		sb.append("\n\n");
+		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
-			if (fn.isCompiled()) {
+			if (fn.isCompiled() && !fn.isLibrary()) {
 				sb.append(assembleFunction(pkg,fn));
 			}
 		}
@@ -65,7 +65,7 @@ public class PlatformHPPL extends Platform {
 			sb.deleteCharAt(sb.length()-1);
 			sb.deleteCharAt(sb.length()-1);
 		}
-		sb.append("\nEND;\n\n");
+		sb.append("\nEND;\n");
 		return sb.toString();
 	}
 	
