@@ -2,6 +2,7 @@ package com.iconmaster.source;
 
 import com.iconmaster.source.assemble.Assembler;
 import com.iconmaster.source.compile.SourceCompiler;
+import com.iconmaster.source.compile.TypeChecker;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.link.Linker;
@@ -150,6 +151,18 @@ public class Source {
 			SourceCompiler.compile(linker.pkg);
 			System.out.println(linker.pkg);
 			System.out.println("Compiling done!");
+			System.out.println("Checking types...");
+			errs = TypeChecker.check(linker.pkg);
+			if (!errs.isEmpty()) {
+				System.out.println("There were errors detected:");
+				for (SourceException err : errs) {
+					System.out.print("\t");
+					System.out.println(err);
+				}
+				System.out.println("Compilation could not be completed.");
+				return;
+			}
+			System.out.println("Types checked. No errors found!");
 			System.out.println("Assembling...");
 			String outputStr = Assembler.assemble("HPPL", linker.pkg);
 			System.out.println("Got the following code:");

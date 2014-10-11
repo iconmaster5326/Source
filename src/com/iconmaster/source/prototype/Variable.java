@@ -2,6 +2,7 @@ package com.iconmaster.source.prototype;
 
 import com.iconmaster.source.compile.Expression;
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.VarSpace;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
@@ -17,7 +18,10 @@ public class Variable implements IDirectable {
 	protected ArrayList<String> directives = new ArrayList<>();;
 	
 	protected boolean compiled;
+	protected boolean library;
 	protected Expression value;
+	
+	public VarSpace varspace = new VarSpace(null);
 
 	public Variable(String name) {
 		this(name,null);
@@ -66,5 +70,9 @@ public class Variable implements IDirectable {
 	@Override
 	public ArrayList<String> getDirectives() {
 		return directives;
+	}
+	
+	public boolean isLibrary() {
+		return library;
 	}
 }

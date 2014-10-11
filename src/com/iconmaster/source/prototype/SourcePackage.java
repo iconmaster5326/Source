@@ -157,4 +157,13 @@ public class SourcePackage {
 		}
 		return null;
 	}
+
+	public Function getFunction(String name) {
+		for (Function v : functions) {
+			if (v.getName().equals(name)) {
+				return v;
+			}
+		}
+		return null;
+	}
 }

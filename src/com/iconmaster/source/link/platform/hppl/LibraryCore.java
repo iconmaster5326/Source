@@ -9,8 +9,8 @@ import com.iconmaster.source.prototype.SourcePackage;
  */
 public class LibraryCore extends SourcePackage {
 	public LibraryCore() {
-		this.name = "source.core";
+		this.name = "CORE";
 		
-		this.addFunction(Function.libraryFunction("range", new String[] {"begin","end"}, new String[] {"real","real"}, new String[] {"list"}));
+		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, new String[] {}));
 	}
 }

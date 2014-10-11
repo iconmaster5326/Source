@@ -1,6 +1,7 @@
 package com.iconmaster.source.prototype;
 
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.VarSpace;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
@@ -19,6 +20,8 @@ public class Function implements IDirectable {
 	
 	protected boolean compiled = false;
 	protected ArrayList<Operation> code;
+	
+	public VarSpace varspace = new VarSpace(null);
 
 	public Function(String name, ArrayList<Variable> args, ArrayList<DataType> returns) {
 		this.name = name;
@@ -84,5 +87,13 @@ public class Function implements IDirectable {
 	@Override
 	public ArrayList<String> getDirectives() {
 		return directives;
+	}
+
+	public ArrayList<Variable> getArguments() {
+		return args;
+	}
+
+	public boolean isLibrary() {
+		return library;
 	}
 }
