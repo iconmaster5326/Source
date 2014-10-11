@@ -3,7 +3,6 @@ package com.iconmaster.source.prototype;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
-import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.TokenRule;
 import java.util.ArrayList;
 
@@ -58,7 +57,7 @@ public class DataType {
 			for (Element e2 : (ArrayList<Element>) e.args[0]) {
 				a.add(new DataType(e2));
 			}
-		} else if (e.type==CompoundTokenRule.PAREN) {
+		} else if (e.type==Rule.PAREN) {
 			for (Element e2 : (ArrayList<Element>) e.args[0]) {
 				for (Element e3 : (ArrayList<Element>) e2.args[0]) {
 					a.add(new DataType(e3));

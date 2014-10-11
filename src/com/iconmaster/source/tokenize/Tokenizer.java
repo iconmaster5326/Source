@@ -53,57 +53,9 @@ public class Tokenizer {
 		}
 		//add compound/chain tokens
 		ArrayList<Element> a2;
-		if (expand) {
-			a2 = makeCompounds(a);
-		} else {
-			a2 = new ArrayList<>();
-			a2.addAll(a);
-		}
+		a2 = new ArrayList<>();
+		a2.addAll(a);
 		//done tokenizing
-		return a2;
-	}
-	
-	public static int matchCompound(int i, ArrayList<Token> a,ArrayList<Element> a2, CompoundTokenRule rule) throws SourceException {
-		int depth = 1;
-		Range initRange = a.get(i).range;
-		for (int j=i+1;j<a.size();j++) {
-			Token t2 = a.get(j);
-			if (t2.type==TokenRule.SYMBOL && t2.string().equals(rule.begin)) {
-				depth++;
-			} else if (t2.type==TokenRule.SYMBOL && t2.string().equals(rule.end)) {
-				depth--;
-			}
-
-			if (depth==0) {
-				ArrayList<Element> es = new ArrayList<>();
-				for (int k=i+1;k<j;k++) {
-					es.add(a.get(k));
-				}
-				es = makeCompounds(es);
-				a2.add(new Token(Range.from(initRange, a.get(j).range),rule,es));
-				return j;
-			}
-		}
-		throw new SourceException(initRange,"Unexpected EOF");
-	}
-
-	public static ArrayList<Element> makeCompounds(ArrayList a) throws SourceException {
-		ArrayList<Element> a2 = new ArrayList<>();
-		for (int i=0;i<a.size();i++) {
-			Object t = a.get(i);
-			boolean matched = false;
-			if (t instanceof Token) {
-				for (CompoundTokenRule rule : CompoundTokenRule.values()) {
-					if (((Token)t).type==TokenRule.SYMBOL && ((Token)t).string().equals(rule.begin)) {
-						i = matchCompound(i,a,a2,rule);
-						matched = true;
-					}
-				}
-			}
-			if (!matched) {
-				a2.add((Element)t);
-			}
-		}
 		return a2;
 	}
 }

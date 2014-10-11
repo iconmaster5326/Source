@@ -3,7 +3,6 @@ package com.iconmaster.source.validate;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
-import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Debug;
 import com.iconmaster.source.util.Range;
@@ -55,21 +54,22 @@ public class Validator {
 					a.add(new SourceException(e.range,"invalid token "+e.args[0]));
 					break;
 			}
-		} else if (e.type instanceof CompoundTokenRule) {
-			switch ((CompoundTokenRule)e.type) {
-				case BLOCK:
+		} else if (e.type instanceof Rule) {
+			switch ((Rule)e.type) {
+				//blocks
+				case CODE:
 					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.CODE));
 					break;
 				case INDEX:
+					ensureScope(a,e,scope,Scope.RVALUE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));
 					break;
 				case PAREN:
+					ensureScope(a,e,scope,Scope.CODE,Scope.RVALUE,Scope.LVALUE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));
 					break;
-			}
-		} else if (e.type instanceof Rule) {
-			switch ((Rule)e.type) {
+					
 				//operator level
 				case TRUE:
 				case FALSE:

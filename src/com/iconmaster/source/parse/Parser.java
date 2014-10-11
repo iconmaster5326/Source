@@ -5,7 +5,6 @@ import com.iconmaster.source.element.IElementType;
 import com.iconmaster.source.element.ISpecialRule;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
-import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Debug;
 import java.util.ArrayList;
@@ -27,9 +26,6 @@ public class Parser {
 			addAlias(rule);
 		}
 		for (IElementType rule : TokenRule.values()) {
-			addAlias(rule);
-		}
-		for (IElementType rule : CompoundTokenRule.values()) {
 			addAlias(rule);
 		}
 	}

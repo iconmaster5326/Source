@@ -2,7 +2,6 @@ package com.iconmaster.source.element;
 
 import com.iconmaster.source.element.ISpecialRule.RuleResult;
 import com.iconmaster.source.parse.Parser;
-import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.Token;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Range;
@@ -17,6 +16,90 @@ import java.util.regex.Pattern;
  * @author iconmaster
  */
 public enum Rule implements IElementType {
+	PAREN("p",(a,i)->{
+		if (a.get(i).type==TokenRule.SYMBOL && "(".equals(a.get(i).args[0])) {
+			int j = i;
+			int depth = 1;
+			ArrayList<Element> a2 = new ArrayList<>();
+			Range r1 = a.get(i).range;
+			while (true) {
+				j++;
+				if (j>a.size()) {
+					return null;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "(".equals(a.get(j).args[0])) {
+					depth++;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && ")".equals(a.get(j).args[0])) {
+					depth--;
+				}
+				if (depth==0) {
+					Element e = new Element(Range.from(r1, a.get(j).range),Rule.PAREN);
+					ArrayList<Element> a3 = Parser.parse((ArrayList<Element>) a2.clone());
+					e.args[0] = a3;
+					return new RuleResult(e,a2.size()+2);
+				}
+				a2.add(a.get(j));
+			}
+		}
+		return null;
+	}),
+	INDEX("i",(a,i)->{
+		if (a.get(i).type==TokenRule.SYMBOL && "[".equals(a.get(i).args[0])) {
+			int j = i;
+			int depth = 1;
+			ArrayList<Element> a2 = new ArrayList<>();
+			Range r1 = a.get(i).range;
+			while (true) {
+				j++;
+				if (j>a.size()) {
+					return null;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "[".equals(a.get(j).args[0])) {
+					depth++;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "]".equals(a.get(j).args[0])) {
+					depth--;
+				}
+				if (depth==0) {
+					Element e = new Element(Range.from(r1, a.get(j).range),Rule.INDEX);
+					ArrayList<Element> a3 = Parser.parse((ArrayList<Element>) a2.clone());
+					e.args[0] = a3;
+					return new RuleResult(e,a2.size()+2);
+				}
+				a2.add(a.get(j));
+			}
+		}
+		return null;
+	}),
+	CODE("c",(a,i)->{
+		if (a.get(i).type==TokenRule.SYMBOL && "{".equals(a.get(i).args[0])) {
+			int j = i;
+			int depth = 1;
+			ArrayList<Element> a2 = new ArrayList<>();
+			Range r1 = a.get(i).range;
+			while (true) {
+				j++;
+				if (j>a.size()) {
+					return null;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "{".equals(a.get(j).args[0])) {
+					depth++;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "}".equals(a.get(j).args[0])) {
+					depth--;
+				}
+				if (depth==0) {
+					Element e = new Element(Range.from(r1, a.get(j).range),Rule.CODE);
+					ArrayList<Element> a3 = Parser.parse((ArrayList<Element>) a2.clone());
+					e.args[0] = a3;
+					return new RuleResult(e,a2.size()+2);
+				}
+				a2.add(a.get(j));
+			}
+		}
+		return null;
+	}),
 	DIR(null,(a,i)->{ //local directive rule
 		if (i==a.size() || a.get(i).type != TokenRule.DIRECTIVE || ((Token)a.get(i)).string().startsWith("@")) {
 			return null;
@@ -28,14 +111,6 @@ public enum Rule implements IElementType {
 		return new RuleResult(null,1);
 	}),
 	GLOBAL_DIR(null,"r0"),
-	RECURSE(null,(a,i)->{ //parse the stuff in parens too!
-		if (a.get(i).args[9]==null && a.get(i).type instanceof CompoundTokenRule) {
-			a.get(i).args[0] = Parser.parse((ArrayList<Element>)a.get(i).args[0]);
-			a.get(i).args[9] = true;
-			return new RuleResult(null,0);
-		}
-		return null;
-	}),
 	FCALL("F","w0!p1?"),
 	ICALL("I","w0!i1?"),
 	CAST(null,(a,i)->{
@@ -51,23 +126,7 @@ public enum Rule implements IElementType {
 	CHAIN("C", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
-			if (i+3>a.size() || !(a.get(i+1)).args[0].equals(".")) {
-				return null;
-			}
-			Element e1 = a.get(i);
-			Element e2 = a.get(i+2);
-			
-			ArrayList ea;
-			if (e1.type==Rule.CHAIN && e1.args[0] instanceof ArrayList) {
-				ea = (ArrayList) e1.args[0];
-			} else {
-				ea = new ArrayList();
-				ea.add(e1);
-			}
-			ea.add(e2);
-			Element res = new Element(Range.from(e1.range, e2.range),Rule.CHAIN);
-			res.args[0] = ea;
-			return new RuleResult(res,3);
+			return null;
 		}
 	}),
 	TRUE(null,"'true'?!"),
@@ -102,23 +161,21 @@ public enum Rule implements IElementType {
 	TUPLE("T", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
-			if (i+3>a.size() || !(a.get(i+1)).args[0].equals(",")) {
+			if (i+2>a.size() || a.get(i+1).type!=TokenRule.SYMBOL || !",".equals(a.get(i+1).args[0])) {
 				return null;
 			}
-			Element e1 = a.get(i);
-			Element e2 = a.get(i+2);
-			
-			ArrayList ea;
-			if (e1.type==Rule.TUPLE && e1.args[0] instanceof ArrayList) {
-				ea = (ArrayList) e1.args[0];
-			} else {
-				ea = new ArrayList();
-				ea.add(e1);
+			int j = i;
+			ArrayList<Element> a2 = new ArrayList<>();
+			Range r1 = a.get(i).range;
+			while (true) {
+				a2.add(a.get(j));
+				if (j+2>a.size() || a.get(j+1).type!=TokenRule.SYMBOL || !",".equals(a.get(j+1).args[0])) {
+					Element e = new Element(Range.from(r1, a.get(j).range),Rule.TUPLE);
+					e.args[0] = a2;
+					return new RuleResult(e,a2.size()*2-1);
+				}
+				j+=2;
 			}
-			ea.add(e2);
-			Element res = new Element(Range.from(e1.range, e2.range),Rule.TUPLE);
-			res.args[0] = ea;
-			return new RuleResult(res,3);
 		}
 	}),
 	LOCAL("L","'local'!t0?"),
@@ -157,14 +214,14 @@ public enum Rule implements IElementType {
 			return null;
 		}
 		return new RuleResult(null,1);
-	}),
-	UNRECURSE(null,(a,i)->{
-		if (a.get(i).args[9]!=null && a.get(i).type instanceof CompoundTokenRule) {
-			a.get(i).args[9] = null;
-			return new RuleResult(null,0);
-		}
-		return null;
 	});
+
+	private boolean isCompound() {
+		switch (this) {
+			default:
+				return false;
+		}
+	}
 	
 	public class Clause {
 		public String toMatch;
@@ -207,8 +264,8 @@ public enum Rule implements IElementType {
 				Element v = a.get(i+j);
 				if ((clauses[j].literal && v.type instanceof TokenRule && ((Token)v).string().equals(clauses[j].toMatch)) || (v.type==Parser.getAlias(clauses[j].toMatch)) || (clauses[j].toMatch.equals("a")) || (clauses[j].toMatch.equals("t"))) {
 					if (clauses[j].toMatch.equals("t") && v.type!=Rule.TUPLE) {
-						if (v.type==CompoundTokenRule.PAREN) {
-							v = ((Token)v).array().get(0);
+						if (v.type==Rule.PAREN) {
+							v = ((ArrayList<Element>)v.args[0]).get(0);
 						} else {
 							ArrayList a2 = new ArrayList();
 							a2.add(v);

@@ -6,7 +6,6 @@ import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
-import com.iconmaster.source.tokenize.CompoundTokenRule;
 import com.iconmaster.source.tokenize.TokenRule;
 import java.util.ArrayList;
 
@@ -101,34 +100,6 @@ public class SourceCompiler {
 					expr.add(new Operation(OpType.MOVS,retVar,(String)e.args[0]));
 					break;
 			}
-		} else if (e.type instanceof CompoundTokenRule) {
-			switch ((CompoundTokenRule)e.type) {
-				case INDEX:
-					ArrayList<String> names = new ArrayList<>();
-					if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
-						for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
-							String lvar =  pkg.nameProvider.getNewName();
-							Expression expr2 = compileExpression(pkg, lvar, e2);
-							expr.addAll(expr2);
-							names.add(lvar);
-						}
-					} else {
-						String lvar =  pkg.nameProvider.getNewName();
-						Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
-						expr.addAll(expr2);
-						names.add(lvar);
-					}
-
-					String[] opArgs = new String[names.size()+1];
-					opArgs[0] = retVar;
-					int i = 1;
-					for (String name : names) {
-						opArgs[i] = name;
-						i++;
-					}
-					expr.add(new Operation(OpType.MOVL,opArgs));
-					break;
-			}
 		} else if (e.type instanceof Rule) {
 			switch ((Rule)e.type) {
 				case ADD:
@@ -155,6 +126,31 @@ public class SourceCompiler {
 					}
 					expr.add(new Operation(OpType.CALL,opArgs));
 					break;
+				case INDEX:
+					ArrayList<String> names = new ArrayList<>();
+					if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
+						for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
+							lvar =  pkg.nameProvider.getNewName();
+							Expression expr2 = compileExpression(pkg, lvar, e2);
+							expr.addAll(expr2);
+							names.add(lvar);
+						}
+					} else {
+						lvar =  pkg.nameProvider.getNewName();
+						Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
+						expr.addAll(expr2);
+						names.add(lvar);
+					}
+
+					opArgs = new String[names.size()+1];
+					opArgs[0] = retVar;
+					i = 1;
+					for (String name : names) {
+						opArgs[i] = name;
+						i++;
+					}
+					expr.add(new Operation(OpType.MOVL,opArgs));
+					break;
 			}
 		}
 		return expr;
@@ -165,10 +161,6 @@ public class SourceCompiler {
 			switch ((TokenRule)e.type) {
 				case WORD:
 					return (String) e.args[0];
-			}
-		} else if (e.type instanceof CompoundTokenRule) {
-			switch ((CompoundTokenRule)e.type) {
-				
 			}
 		} else if (e.type instanceof Rule) {
 			switch ((Rule)e.type) {
