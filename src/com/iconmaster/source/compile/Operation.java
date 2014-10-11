@@ -6,10 +6,15 @@ package com.iconmaster.source.compile;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,MOVS,CALL,ADD;
+		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
+		IF,ELSE,ELIF,FORR,FORE,FORP,WHILE,REP,END,
+		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
 		
 		public boolean hasLVar() {
 			switch (this) {
+				case RET:
+				case BRK:
+					return false;
 				default:
 					return true;
 			}

@@ -3,17 +3,18 @@ package com.iconmaster.source.prototype;
 import com.iconmaster.source.compile.Expression;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.element.Element;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
 /**
  *
  * @author iconmaster
  */
-public class Variable {
+public class Variable implements IDirectable {
 	protected String name;
 	protected DataType type;
 	protected Element rawValue;
-	protected ArrayList<String> directives;
+	protected ArrayList<String> directives = new ArrayList<>();;
 	
 	protected boolean compiled;
 	protected Expression value;
@@ -62,5 +63,8 @@ public class Variable {
 		return value;
 	}
 	
-	
+	@Override
+	public ArrayList<String> getDirectives() {
+		return directives;
+	}
 }

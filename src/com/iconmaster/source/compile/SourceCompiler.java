@@ -103,7 +103,31 @@ public class SourceCompiler {
 			}
 		} else if (e.type instanceof CompoundTokenRule) {
 			switch ((CompoundTokenRule)e.type) {
-				
+				case INDEX:
+					ArrayList<String> names = new ArrayList<>();
+					if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
+						for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
+							String lvar =  pkg.nameProvider.getNewName();
+							Expression expr2 = compileExpression(pkg, lvar, e2);
+							expr.addAll(expr2);
+							names.add(lvar);
+						}
+					} else {
+						String lvar =  pkg.nameProvider.getNewName();
+						Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
+						expr.addAll(expr2);
+						names.add(lvar);
+					}
+
+					String[] opArgs = new String[names.size()+1];
+					opArgs[0] = retVar;
+					int i = 1;
+					for (String name : names) {
+						opArgs[i] = name;
+						i++;
+					}
+					expr.add(new Operation(OpType.MOVL,opArgs));
+					break;
 			}
 		} else if (e.type instanceof Rule) {
 			switch ((Rule)e.type) {

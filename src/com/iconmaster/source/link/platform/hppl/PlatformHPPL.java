@@ -6,6 +6,7 @@ import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
+import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 
 /**
@@ -46,6 +47,9 @@ public class PlatformHPPL extends Platform {
 	
 	private String assembleFunction(SourcePackage pkg, Function fn) {
 		StringBuilder sb = new StringBuilder();
+		if (Directives.has(fn, "export")) {
+			sb.append("EXPORT ");
+		}
 		sb.append(fn.getName());
 		sb.append("()\nBEGIN\n ");
 		if (fn.getCode()!=null) {
@@ -59,6 +63,9 @@ public class PlatformHPPL extends Platform {
 	
 	private String assembleField(SourcePackage pkg, Variable var) {
 		StringBuilder sb = new StringBuilder();
+		if (Directives.has(var, "export")) {
+			sb.append("EXPORT ");
+		}
 		if (var.getValue()!=null) {
 			sb.append(assembleCode(pkg,var.getValue()));
 		} else {
@@ -84,6 +91,19 @@ public class PlatformHPPL extends Platform {
 					sb.append(":=\"");
 					sb.append(op.args[1]);
 					sb.append("\"");
+					break;
+				case MOVL:
+					addLocal(pkg,expr,op,sb);
+					sb.append(op.args[0]);
+					sb.append(":={");
+					if (op.args.length > 1) {
+						for (int i=1;i<op.args.length;i++) {
+							sb.append(op.args[i]);
+							sb.append(",");
+						}
+						sb.deleteCharAt(sb.length()-1);
+					}
+					sb.append("}");
 					break;
 				case ADD:
 					addLocal(pkg,expr,op,sb);

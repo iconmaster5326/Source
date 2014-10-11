@@ -72,6 +72,7 @@ public class SourcePackage {
 							if (i < vals.size()) {
 								var.rawValue = vals.get(i);
 							}
+							var.getDirectives().addAll(e.directives);
 							fields.add(var);
 						} catch (SourceException ex) {
 							errors.add(ex);
@@ -83,6 +84,7 @@ public class SourcePackage {
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						try {
 							Variable var = new Variable((String)e2.args[0], new DataType(e2.dataType));
+							var.getDirectives().addAll(e.directives);
 							fields.add(var);
 						} catch (SourceException ex) {
 							errors.add(ex);
@@ -106,6 +108,7 @@ public class SourcePackage {
 						}
 						
 						Function fn = new Function(fname,args,rets);
+						fn.getDirectives().addAll(e.directives);
 						fn.rawCode = (ArrayList<Element>) e.args[2];
 						functions.add(fn);
 					} catch (SourceException ex) {

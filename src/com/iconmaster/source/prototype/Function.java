@@ -2,17 +2,18 @@ package com.iconmaster.source.prototype;
 
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.element.Element;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
 /**
  *
  * @author iconmaster
  */
-public class Function {
+public class Function implements IDirectable {
 	protected String name;
 	protected ArrayList<Variable> args;
 	protected ArrayList<DataType> returns;
-	protected ArrayList<String> directives;
+	protected ArrayList<String> directives = new ArrayList<>();
 	protected ArrayList<Element> rawCode;
 	protected boolean library = false;
 	
@@ -78,5 +79,10 @@ public class Function {
 
 	public ArrayList<Operation> getCode() {
 		return code;
+	}
+	
+	@Override
+	public ArrayList<String> getDirectives() {
+		return directives;
 	}
 }
