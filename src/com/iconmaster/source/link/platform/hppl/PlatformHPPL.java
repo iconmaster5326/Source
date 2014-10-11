@@ -51,7 +51,15 @@ public class PlatformHPPL extends Platform {
 			sb.append("EXPORT ");
 		}
 		sb.append(fn.getName());
-		sb.append("()\nBEGIN\n ");
+		sb.append("(");
+		if (!fn.getArguments().isEmpty()) {
+			for (Variable arg : fn.getArguments()) {
+				sb.append(arg.getName());
+				sb.append(',');
+			}
+			sb.deleteCharAt(sb.length()-1);
+		}
+		sb.append(")\nBEGIN\n ");
 		if (fn.getCode()!=null) {
 			sb.append(assembleCode(pkg,fn.getCode()).replace("\n", "\n "));
 			sb.deleteCharAt(sb.length()-1);
