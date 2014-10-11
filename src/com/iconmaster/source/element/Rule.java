@@ -126,7 +126,21 @@ public enum Rule implements IElementType {
 	CHAIN("C", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
-			return null;
+			if (i+2>a.size() || a.get(i+1).type!=TokenRule.SYMBOL || !".".equals(a.get(i+1).args[0])) {
+				return null;
+			}
+			int j = i;
+			ArrayList<Element> a2 = new ArrayList<>();
+			Range r1 = a.get(i).range;
+			while (true) {
+				a2.add(a.get(j));
+				if (j+2>a.size() || a.get(j+1).type!=TokenRule.SYMBOL || !".".equals(a.get(j+1).args[0])) {
+					Element e = new Element(Range.from(r1, a.get(j).range),Rule.CHAIN);
+					e.args[0] = a2;
+					return new RuleResult(e,a2.size()*2-1);
+				}
+				j+=2;
+			}
 		}
 	}),
 	TRUE(null,"'true'?!"),
