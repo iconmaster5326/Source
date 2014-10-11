@@ -39,7 +39,7 @@ public enum TokenRule implements IElementType {
 			case COMMENT:
 				return null;
 			case STRING:
-				return input.substring(1, input.length()-1);
+				return input.substring(1, input.length()-1).replace("\n", " ");
 			case DIRECTIVE:
 				return input.substring(1);
 			default:
