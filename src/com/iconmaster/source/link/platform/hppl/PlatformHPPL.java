@@ -23,13 +23,6 @@ public class PlatformHPPL extends Platform {
 	@Override
 	public String assemble(SourcePackage pkg) {
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n");
-//		for (Variable var : pkg.getVariables()) {
-//			if (var.isCompiled()) {
-//				sb.append(var.getName());
-//				sb.append(";");
-//			}
-//		}
-//		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
 			if (fn.isCompiled()) {
 				sb.append(fn.getName());
@@ -85,6 +78,13 @@ public class PlatformHPPL extends Platform {
 					sb.append(":=");
 					sb.append(op.args[1]);
 					break;
+				case MOVS:
+					addLocal(pkg,expr,op,sb);
+					sb.append(op.args[0]);
+					sb.append(":=\"");
+					sb.append(op.args[1]);
+					sb.append("\"");
+					break;
 				case ADD:
 					addLocal(pkg,expr,op,sb);
 					sb.append(op.args[0]);
@@ -93,6 +93,20 @@ public class PlatformHPPL extends Platform {
 					sb.append("+");
 					sb.append(op.args[2]);
 					break;
+				case CALL:
+					addLocal(pkg,expr,op,sb);
+					sb.append(op.args[0]);
+					sb.append(":=");
+					sb.append(op.args[1]);
+					if (op.args.length > 2) {
+						sb.append("(");
+						for (int i=2;i<op.args.length;i++) {
+							sb.append(op.args[i]);
+							sb.append(",");
+						}
+						sb.deleteCharAt(sb.length()-1);
+						sb.append(")");
+					}
 			}
 			sb.append(";\n");
 		}

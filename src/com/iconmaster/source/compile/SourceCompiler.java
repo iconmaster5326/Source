@@ -71,6 +71,8 @@ public class SourceCompiler {
 						i++;
 					}
 					break;
+				default:
+					code.addAll(compileExpression(pkg,null,e));
 			}
 		}
 		return code;
@@ -95,6 +97,9 @@ public class SourceCompiler {
 				case NUMBER:
 					expr.add(new Operation(OpType.MOVN,retVar,(String)e.args[0]));
 					break;
+				case STRING:
+					expr.add(new Operation(OpType.MOVS,retVar,(String)e.args[0]));
+					break;
 			}
 		} else if (e.type instanceof CompoundTokenRule) {
 			switch ((CompoundTokenRule)e.type) {
@@ -110,6 +115,21 @@ public class SourceCompiler {
 					expr.addAll(left);
 					expr.addAll(right);
 					expr.add(new Operation(OpType.ADD,retVar,lvar,rvar));
+					break;
+				case FCALL:
+					ArrayList<Element> args = ((ArrayList<Element>) e.args[1]);
+					String[] opArgs = new String[args.size()+2];
+					opArgs[0] = retVar;
+					opArgs[1] = (String) e.args[0];
+					int i = 2;
+					for (Element arg : args) {
+						String argName = pkg.nameProvider.getNewName();
+						Expression expr2 = compileExpression(pkg, argName, arg);
+						expr.addAll(expr2);
+						opArgs[i] = argName;
+						i++;
+					}
+					expr.add(new Operation(OpType.CALL,opArgs));
 					break;
 			}
 		}
