@@ -136,6 +136,7 @@ public class PlatformHPPL extends Platform {
 						sb.deleteCharAt(sb.length()-1);
 						sb.append(")");
 					}
+					break;
 				default:
 					append = false;
 			}

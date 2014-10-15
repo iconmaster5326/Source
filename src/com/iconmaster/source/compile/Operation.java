@@ -63,7 +63,7 @@ public class Operation {
 				for (int i=2;i<args.length;i++) {
 					a.add(args[i]);
 				}
-				return a.toArray(args);
+				return a.toArray(new String[] {});
 			default:
 				return this.args;
 		}
