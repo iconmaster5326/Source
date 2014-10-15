@@ -7,8 +7,8 @@ package com.iconmaster.source.compile;
 public class NameProvider {
 	private int lastName = -1;
 	
-	public String getNewName() {
+	public String getTempName() {
 		lastName++;
-		return "TMP_"+Integer.toString(lastName);
+		return "$TMP"+Integer.toString(lastName);
 	}
 }

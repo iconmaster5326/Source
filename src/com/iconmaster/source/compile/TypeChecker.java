@@ -31,7 +31,7 @@ public class TypeChecker {
 	public static ArrayList<SourceException> checkFunction(SourcePackage pkg, Function fn) {
 		ArrayList<SourceException> a = new ArrayList<>();
 		for (Variable arg : fn.getArguments()) {
-			fn.varspace.putVar(arg);
+			fn.varspace.putVar(arg.getName());
 		}
 		for (Operation op : fn.getCode()) {
 			if (op.op==OpType.CALL) {
@@ -41,11 +41,18 @@ public class TypeChecker {
 					a.add(new SourceException(new Range(0,1),"Undefined function "+op.args[1]));
 				}
 			}
-			if (op.op.hasLVar()) {
-				if (pkg.getField(op.args[0])!=null) {
-					fn.varspace.putField(pkg.getField(op.args[0]));
-				} else if (fn.varspace.getVar(op.args[0])==null) {
-					fn.varspace.putVar(new Variable(op.args[0]));
+			if (op.op==OpType.DEF) {
+				for (String arg : op.args) {
+					fn.varspace.putVar(arg);
+				}
+			}
+			if (op.getVarNames().length!=0) {
+				for (String name : op.getVarNames()) {
+					if (pkg.getField(name)!=null) {
+						fn.varspace.putField(pkg.getField(name));
+					} else if (fn.varspace.getVar(name)==null && !name.startsWith("$")) {
+						a.add(new SourceException(new Range(0,1),"Undefined variable "+name));
+					}
 				}
 			}
 		}

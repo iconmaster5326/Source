@@ -6,7 +6,7 @@ package com.iconmaster.source.compile;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
+		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,DEF,
 		IF,ELSE,ELIF,FORR,FORE,FORP,WHILE,REP,END,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
 		
@@ -14,6 +14,7 @@ public class Operation {
 			switch (this) {
 				case RET:
 				case BRK:
+				case DEF:
 					return false;
 				default:
 					return true;
@@ -43,5 +44,16 @@ public class Operation {
 			sb.append(arg).append("\t");
 		}
 		return sb.toString();
+	}
+	
+	public String[] getVarNames() {
+		switch (this.op) {
+			case MOVN:
+			case MOVS:
+			case MOVL:
+				return new String[] {this.args[0]};
+			default:
+				return this.args;
+		}
 	}
 }

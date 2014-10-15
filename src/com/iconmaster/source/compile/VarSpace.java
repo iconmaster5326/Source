@@ -9,7 +9,7 @@ import java.util.HashMap;
  * @author iconmaster
  */
 public class VarSpace {
-	HashMap<String,Variable> varsUsed = new HashMap<>();
+	HashMap<String,String> varsUsed = new HashMap<>();
 	HashMap<String,Variable> fieldsUsed = new HashMap<>();
 	HashMap<String,Function> funcsUsed = new HashMap<>();
 	public VarSpace parent;
@@ -18,12 +18,12 @@ public class VarSpace {
 		this.parent = parent;
 	}
 
-	public void putVar(Variable var) {
-		varsUsed.put(var.getName(),var);
+	public void putVar(String var) {
+		varsUsed.put(var,var);
 	}
 	
-	public Variable getVar(String name) {
-		Variable var = varsUsed.get(name);
+	public String getVar(String name) {
+		String var = varsUsed.get(name);
 		if (var == null && parent != null) {
 			return parent.getVar(name);
 		}
