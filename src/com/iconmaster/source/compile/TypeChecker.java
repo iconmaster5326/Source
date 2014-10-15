@@ -49,7 +49,7 @@ public class TypeChecker {
 				for (String name : op.getVarNames()) {
 					if (pkg.getField(name)!=null) {
 						fn.varspace.putField(pkg.getField(name));
-					} else if (fn.varspace.getVar(name)==null && !name.startsWith("$")) {
+					} else if (fn.varspace.getVar(name)==null && name!=null && !name.startsWith("$")) {
 						a.add(new SourceException(op.range,"Undefined variable "+name));
 					}
 				}

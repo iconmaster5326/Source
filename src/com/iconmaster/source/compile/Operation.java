@@ -1,6 +1,7 @@
 package com.iconmaster.source.compile;
 
 import com.iconmaster.source.util.Range;
+import java.util.ArrayList;
 
 /**
  *
@@ -56,6 +57,13 @@ public class Operation {
 			case MOVS:
 			case MOVL:
 				return new String[] {this.args[0]};
+			case CALL:
+				ArrayList<String> a = new ArrayList<>();
+				a.add(args[0]);
+				for (int i=2;i<args.length;i++) {
+					a.add(args[i]);
+				}
+				return a.toArray(args);
 			default:
 				return this.args;
 		}
