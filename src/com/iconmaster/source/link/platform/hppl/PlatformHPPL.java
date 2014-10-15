@@ -25,7 +25,7 @@ public class PlatformHPPL extends Platform {
 	public String assemble(SourcePackage pkg) {
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n");
 		for (Function fn : pkg.getFunctions()) {
-			if (fn.isCompiled() && !fn.isLibrary()) {
+			if (fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline")) {
 				sb.append(fn.getName());
 				sb.append("();");
 			}
@@ -38,7 +38,7 @@ public class PlatformHPPL extends Platform {
 		}
 		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
-			if (fn.isCompiled() && !fn.isLibrary()) {
+			if (fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline")) {
 				sb.append(assembleFunction(pkg,fn));
 			}
 		}
@@ -135,6 +135,13 @@ public class PlatformHPPL extends Platform {
 						}
 						sb.deleteCharAt(sb.length()-1);
 						sb.append(")");
+					}
+					break;
+				case RET:
+					sb.append("RETURN");
+					if (op.args.length>0) {
+						sb.append(" ");
+						sb.append(op.args[0]);
 					}
 					break;
 				default:

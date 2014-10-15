@@ -7,6 +7,7 @@ import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.tokenize.TokenRule;
+import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 
 /**
@@ -82,6 +83,15 @@ public class SourceCompiler {
 						i++;
 					}
 					break;
+				case RETURN:
+					String name = pkg.nameProvider.getTempName();
+					Expression expr = compileExpression(pkg,name, (Element) e.args[0]);
+					code.addAll(expr);
+					code.add(new Operation(OpType.RET,e.range,name));
+					break;
+				case RETURN_NULL:
+					code.add(new Operation(OpType.RET,e.range));
+					break;
 				default:
 					code.addAll(compileExpression(pkg,null,e));
 			}
@@ -136,6 +146,19 @@ public class SourceCompiler {
 						opArgs[i] = argName;
 						i++;
 					}
+					if (pkg.getFunction((String) e.args[0])!=null) {
+						Function fn = pkg.getFunction((String) e.args[0]);
+						if (Directives.has(fn, "inline") && !fn.isLibrary() && opArgs.length-2==fn.getArguments().size()) {
+							for (i=2;i<opArgs.length;i++) {
+								expr.add(new Operation(OpType.MOV,e.range,fn.getArguments().get(i-2).getName(),opArgs[i]));
+							}
+							if (!fn.isCompiled()) {
+								compileFunction(pkg,fn);
+							}
+							expr.addAll(inline(fn.getCode(),retVar));
+							break;
+						}
+					}
 					expr.add(new Operation(OpType.CALL,e.range,opArgs));
 					break;
 				case INDEX:
@@ -180,5 +203,19 @@ public class SourceCompiler {
 			}
 		}
 		return null;
+	}
+	
+	public static ArrayList<Operation> inline(ArrayList<Operation> code, String retVar) {
+		ArrayList<Operation> code2 = new ArrayList<>();
+		for (Operation op : code) {
+			if (op.op==OpType.RET) {
+				if (op.args.length>0) {
+					code2.add(new Operation(OpType.MOV,op.range,retVar,op.args[0]));
+				}
+			} else {
+				code2.add(op);
+			}
+		}
+		return code2;
 	}
 }
