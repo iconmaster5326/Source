@@ -135,22 +135,29 @@ public class SourceCompiler {
 					break;
 				case FCALL:
 					ArrayList<Element> args = ((ArrayList<Element>) e.args[1]);
-					String[] opArgs = new String[args.size()+2];
-					opArgs[0] = retVar;
-					opArgs[1] = (String) e.args[0];
-					int i = 2;
+					ArrayList<String> opArgs = new ArrayList<>();
+					opArgs.add(retVar);
+					opArgs.add((String) e.args[0]);
 					for (Element arg : args) {
-						String argName = pkg.nameProvider.getTempName();
-						Expression expr2 = compileExpression(pkg, argName, arg);
-						expr.addAll(expr2);
-						opArgs[i] = argName;
-						i++;
+						if (arg.type==Rule.TUPLE) {
+							for (Element e3 : (ArrayList<Element>)arg.args[0]) {
+								String argName = pkg.nameProvider.getTempName();
+								Expression expr3 = compileExpression(pkg, argName, e3);
+								expr.addAll(expr3);
+								opArgs.add(argName);
+							}
+						} else {
+							String argName = pkg.nameProvider.getTempName();
+							Expression expr2 = compileExpression(pkg, argName, arg);
+							expr.addAll(expr2);
+							opArgs.add(argName);
+						}
 					}
 					if (pkg.getFunction((String) e.args[0])!=null) {
 						Function fn = pkg.getFunction((String) e.args[0]);
-						if (Directives.has(fn, "inline") && !fn.isLibrary() && opArgs.length-2==fn.getArguments().size()) {
-							for (i=2;i<opArgs.length;i++) {
-								expr.add(new Operation(OpType.MOV,e.range,fn.getArguments().get(i-2).getName(),opArgs[i]));
+						if (Directives.has(fn, "inline") && !fn.isLibrary() && opArgs.size()-2==fn.getArguments().size()) {
+							for (int i=2;i<opArgs.size();i++) {
+								expr.add(new Operation(OpType.MOV,e.range,fn.getArguments().get(i-2).getName(),opArgs.get(i)));
 							}
 							if (!fn.isCompiled()) {
 								compileFunction(pkg,fn);
@@ -159,7 +166,7 @@ public class SourceCompiler {
 							break;
 						}
 					}
-					expr.add(new Operation(OpType.CALL,e.range,opArgs));
+					expr.add(new Operation(OpType.CALL,e.range,opArgs.toArray(new String[] {})));
 					break;
 				case INDEX:
 					ArrayList<String> names = new ArrayList<>();
@@ -177,14 +184,14 @@ public class SourceCompiler {
 						names.add(lvar);
 					}
 
-					opArgs = new String[names.size()+1];
-					opArgs[0] = retVar;
-					i = 1;
+					String[] opArgs2 = new String[names.size()+1];
+					opArgs2[0] = retVar;
+					int i = 1;
 					for (String name : names) {
-						opArgs[i] = name;
+						opArgs2[i] = name;
 						i++;
 					}
-					expr.add(new Operation(OpType.MOVL,e.range,opArgs));
+					expr.add(new Operation(OpType.MOVL,e.range,opArgs2));
 					break;
 			}
 		}

@@ -35,7 +35,11 @@ public class TypeChecker {
 		for (Operation op : fn.getCode()) {
 			if (op.op==OpType.CALL) {
 				if (pkg.getFunction(op.args[1])!=null) {
-					fn.varspace.putFunc(pkg.getFunction(op.args[1]));
+					Function tfn = pkg.getFunction(op.args[1]);
+					if (tfn.getArguments().size()!=op.args.length-2) {
+						a.add(new SourceException(op.range,"Illegal argument count for "+op.args[1]));
+					}
+					fn.varspace.putFunc(tfn);
 				} else {
 					a.add(new SourceException(op.range,"Undefined function "+op.args[1]));
 				}
