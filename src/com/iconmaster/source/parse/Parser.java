@@ -41,10 +41,10 @@ public class Parser {
 					}
 					if (m.ret!=null) {
 						a.add(i, m.ret);
+						i-=1;
 					}
 					Debug.print("matched rule "+rule.toString()+": ");
 					Debug.println(a);
-					//i=-1;
 				}
 			}
 		}
