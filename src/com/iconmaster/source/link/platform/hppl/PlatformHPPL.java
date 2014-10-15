@@ -85,6 +85,7 @@ public class PlatformHPPL extends Platform {
 	private String assembleCode(SourcePackage pkg, ArrayList<Operation> expr) {
 		StringBuilder sb = new StringBuilder();
 		for (Operation op : expr) {
+			boolean append = true;
 			switch (op.op) {
 				case MOVN:
 				case MOV:
@@ -135,8 +136,12 @@ public class PlatformHPPL extends Platform {
 						sb.deleteCharAt(sb.length()-1);
 						sb.append(")");
 					}
+				default:
+					append = false;
 			}
-			sb.append(";\n");
+			if (append) {
+				sb.append(";\n");
+			}
 		}
 		return sb.toString();
 	}
