@@ -50,14 +50,14 @@ public class SourceCompiler {
 					for (Element e2 : (ArrayList<Element>)e.args[0]) {
 						lnames.add(resolveLValue(pkg,code,e2));
 					}
-					code.add(new Operation(OpType.DEF, lnames.toArray(new String[0])));
+					code.add(new Operation(OpType.DEF, e.range, lnames.toArray(new String[0])));
 					break;
 				case LOCAL_ASN:
 					lnames = new ArrayList<>();
 					for (Element e2 : (ArrayList<Element>)e.args[0]) {
 						lnames.add(resolveLValue(pkg,code,e2));
 					}
-					code.add(new Operation(OpType.DEF, lnames.toArray(new String[0])));
+					code.add(new Operation(OpType.DEF, e.range, lnames.toArray(new String[0])));
 				case ASSIGN:
 					int i = 0;
 					ArrayList<Element> vals = (ArrayList<Element>)e.args[1];
@@ -77,7 +77,7 @@ public class SourceCompiler {
 						if (i<vals.size()) {
 							String name = names.get(i);
 							String var = resolveLValue(pkg,code,e2);
-							code.add(new Operation(OpType.MOV,var,name));
+							code.add(new Operation(OpType.MOV, e2.range, var,name));
 						}
 						i++;
 					}
@@ -103,13 +103,13 @@ public class SourceCompiler {
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case WORD:
-					expr.add(new Operation(OpType.MOV,retVar,(String)e.args[0]));
+					expr.add(new Operation(OpType.MOV,e.range,retVar,(String)e.args[0]));
 					break;
 				case NUMBER:
-					expr.add(new Operation(OpType.MOVN,retVar,(String)e.args[0]));
+					expr.add(new Operation(OpType.MOVN,e.range,retVar,(String)e.args[0]));
 					break;
 				case STRING:
-					expr.add(new Operation(OpType.MOVS,retVar,(String)e.args[0]));
+					expr.add(new Operation(OpType.MOVS,e.range,retVar,(String)e.args[0]));
 					break;
 			}
 		} else if (e.type instanceof Rule) {
@@ -121,7 +121,7 @@ public class SourceCompiler {
 					Expression right = compileExpression(pkg, rvar, (Element) e.args[1]);
 					expr.addAll(left);
 					expr.addAll(right);
-					expr.add(new Operation(OpType.ADD,retVar,lvar,rvar));
+					expr.add(new Operation(OpType.ADD,e.range,retVar,lvar,rvar));
 					break;
 				case FCALL:
 					ArrayList<Element> args = ((ArrayList<Element>) e.args[1]);
@@ -136,7 +136,7 @@ public class SourceCompiler {
 						opArgs[i] = argName;
 						i++;
 					}
-					expr.add(new Operation(OpType.CALL,opArgs));
+					expr.add(new Operation(OpType.CALL,e.range,opArgs));
 					break;
 				case INDEX:
 					ArrayList<String> names = new ArrayList<>();
@@ -161,7 +161,7 @@ public class SourceCompiler {
 						opArgs[i] = name;
 						i++;
 					}
-					expr.add(new Operation(OpType.MOVL,opArgs));
+					expr.add(new Operation(OpType.MOVL,e.range,opArgs));
 					break;
 			}
 		}

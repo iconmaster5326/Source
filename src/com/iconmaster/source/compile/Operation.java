@@ -1,5 +1,7 @@
 package com.iconmaster.source.compile;
 
+import com.iconmaster.source.util.Range;
+
 /**
  *
  * @author iconmaster
@@ -25,9 +27,11 @@ public class Operation {
 	public OpType op;
 	public String[] args;
 	public VarSpace vspace;
+	public Range range;
 
-	public Operation(OpType op, String... args) {
+	public Operation(OpType op, Range range, String... args) {
 		this.op = op;
+		this.range = range;
 		this.args = args;
 	}
 	

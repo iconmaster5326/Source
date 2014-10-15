@@ -5,7 +5,6 @@ import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
-import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 
 /**
@@ -38,7 +37,7 @@ public class TypeChecker {
 				if (pkg.getFunction(op.args[1])!=null) {
 					fn.varspace.putFunc(pkg.getFunction(op.args[1]));
 				} else {
-					a.add(new SourceException(new Range(0,1),"Undefined function "+op.args[1]));
+					a.add(new SourceException(op.range,"Undefined function "+op.args[1]));
 				}
 			}
 			if (op.op==OpType.DEF) {
@@ -51,7 +50,7 @@ public class TypeChecker {
 					if (pkg.getField(name)!=null) {
 						fn.varspace.putField(pkg.getField(name));
 					} else if (fn.varspace.getVar(name)==null && !name.startsWith("$")) {
-						a.add(new SourceException(new Range(0,1),"Undefined variable "+name));
+						a.add(new SourceException(op.range,"Undefined variable "+name));
 					}
 				}
 			}

@@ -16,7 +16,7 @@ public class SourceException extends Exception {
 	}
 	
 	public SourceException(Range range, String message) {
-		super(range.toString()+": "+message);
+		super((range==null?"null: ":range.toString()+": ")+message);
 		this.range = range;
 	}
 	
