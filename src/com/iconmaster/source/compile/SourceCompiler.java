@@ -45,14 +45,26 @@ public class SourceCompiler {
 		ArrayList<Operation> code = new ArrayList<>();
 		for (Element e : a) {
 			switch ((Rule)e.type) {
+				case LOCAL:
+					ArrayList<String> lnames = new ArrayList<>();
+					for (Element e2 : (ArrayList<Element>)e.args[0]) {
+						lnames.add(resolveLValue(pkg,code,e2));
+					}
+					code.add(new Operation(OpType.DEF, lnames.toArray(new String[0])));
+					break;
 				case LOCAL_ASN:
+					lnames = new ArrayList<>();
+					for (Element e2 : (ArrayList<Element>)e.args[0]) {
+						lnames.add(resolveLValue(pkg,code,e2));
+					}
+					code.add(new Operation(OpType.DEF, lnames.toArray(new String[0])));
 				case ASSIGN:
 					int i = 0;
 					ArrayList<Element> vals = (ArrayList<Element>)e.args[1];
 					ArrayList<String> names = new ArrayList<>();
 					for (Element e2 : (ArrayList<Element>)e.args[0]) {
 						if (i<vals.size()) {
-							String name = pkg.nameProvider.getNewName();
+							String name = pkg.nameProvider.getTempName();
 							names.add(name);
 							String var = resolveLValue(pkg,code,e2);
 							Expression right = compileExpression(pkg, name, vals.get(i));
@@ -80,7 +92,7 @@ public class SourceCompiler {
 	public static Expression compileExpression(SourcePackage pkg, String retVar, Element e) {
 		Expression expr = new Expression();
 		if (retVar == null) {
-			retVar = pkg.nameProvider.getNewName();
+			retVar = pkg.nameProvider.getTempName();
 		}
 		expr.retVar = retVar;
 		
@@ -103,9 +115,9 @@ public class SourceCompiler {
 		} else if (e.type instanceof Rule) {
 			switch ((Rule)e.type) {
 				case ADD:
-					String lvar = pkg.nameProvider.getNewName();
+					String lvar = pkg.nameProvider.getTempName();
 					Expression left = compileExpression(pkg, lvar, (Element) e.args[0]);
-					String rvar = pkg.nameProvider.getNewName();
+					String rvar = pkg.nameProvider.getTempName();
 					Expression right = compileExpression(pkg, rvar, (Element) e.args[1]);
 					expr.addAll(left);
 					expr.addAll(right);
@@ -118,7 +130,7 @@ public class SourceCompiler {
 					opArgs[1] = (String) e.args[0];
 					int i = 2;
 					for (Element arg : args) {
-						String argName = pkg.nameProvider.getNewName();
+						String argName = pkg.nameProvider.getTempName();
 						Expression expr2 = compileExpression(pkg, argName, arg);
 						expr.addAll(expr2);
 						opArgs[i] = argName;
@@ -130,13 +142,13 @@ public class SourceCompiler {
 					ArrayList<String> names = new ArrayList<>();
 					if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
 						for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
-							lvar =  pkg.nameProvider.getNewName();
+							lvar =  pkg.nameProvider.getTempName();
 							Expression expr2 = compileExpression(pkg, lvar, e2);
 							expr.addAll(expr2);
 							names.add(lvar);
 						}
 					} else {
-						lvar =  pkg.nameProvider.getNewName();
+						lvar =  pkg.nameProvider.getTempName();
 						Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
 						expr.addAll(expr2);
 						names.add(lvar);
