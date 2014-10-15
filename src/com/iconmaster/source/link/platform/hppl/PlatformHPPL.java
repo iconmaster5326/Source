@@ -2,6 +2,10 @@ package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.assemble.AssemblyUtils;
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.Operation.OpType;
+import static com.iconmaster.source.compile.Operation.OpType.CONCAT;
+import static com.iconmaster.source.compile.Operation.OpType.GE;
+import static com.iconmaster.source.compile.Operation.OpType.LE;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
@@ -86,66 +90,67 @@ public class PlatformHPPL extends Platform {
 		StringBuilder sb = new StringBuilder();
 		for (Operation op : expr) {
 			boolean append = true;
-			switch (op.op) {
-				case MOVN:
-				case MOV:
-					addLocal(pkg,expr,op,sb);
-					sb.append(op.args[0]);
-					sb.append(":=");
-					sb.append(op.args[1]);
-					break;
-				case MOVS:
-					addLocal(pkg,expr,op,sb);
-					sb.append(op.args[0]);
-					sb.append(":=\"");
-					sb.append(op.args[1]);
-					sb.append("\"");
-					break;
-				case MOVL:
-					addLocal(pkg,expr,op,sb);
-					sb.append(op.args[0]);
-					sb.append(":={");
-					if (op.args.length > 1) {
-						for (int i=1;i<op.args.length;i++) {
-							sb.append(op.args[i]);
-							sb.append(",");
-						}
-						sb.deleteCharAt(sb.length()-1);
-					}
-					sb.append("}");
-					break;
-				case ADD:
-					addLocal(pkg,expr,op,sb);
-					sb.append(op.args[0]);
-					sb.append(":=");
-					sb.append(op.args[1]);
-					sb.append("+");
-					sb.append(op.args[2]);
-					break;
-				case CALL:
-					addLocal(pkg,expr,op,sb);
-					sb.append(op.args[0]);
-					sb.append(":=");
-					sb.append(op.args[1]);
-					if (op.args.length > 2) {
-						sb.append("(");
-						for (int i=2;i<op.args.length;i++) {
-							sb.append(op.args[i]);
-							sb.append(",");
-						}
-						sb.deleteCharAt(sb.length()-1);
-						sb.append(")");
-					}
-					break;
-				case RET:
-					sb.append("RETURN");
-					if (op.args.length>0) {
-						sb.append(" ");
+			if (op.op.isMathOp()) {
+				addLocal(pkg,expr,op,sb);
+				sb.append(op.args[0]);
+				sb.append(":=");
+				sb.append(op.args[1]);
+				sb.append(getMathOp(op.op));
+				sb.append(op.args[2]);
+			} else {
+				switch (op.op) {
+					case MOVN:
+					case MOV:
+						addLocal(pkg,expr,op,sb);
 						sb.append(op.args[0]);
-					}
-					break;
-				default:
-					append = false;
+						sb.append(":=");
+						sb.append(op.args[1]);
+						break;
+					case MOVS:
+						addLocal(pkg,expr,op,sb);
+						sb.append(op.args[0]);
+						sb.append(":=\"");
+						sb.append(op.args[1]);
+						sb.append("\"");
+						break;
+					case MOVL:
+						addLocal(pkg,expr,op,sb);
+						sb.append(op.args[0]);
+						sb.append(":={");
+						if (op.args.length > 1) {
+							for (int i=1;i<op.args.length;i++) {
+								sb.append(op.args[i]);
+								sb.append(",");
+							}
+							sb.deleteCharAt(sb.length()-1);
+						}
+						sb.append("}");
+						break;
+					case CALL:
+						addLocal(pkg,expr,op,sb);
+						sb.append(op.args[0]);
+						sb.append(":=");
+						sb.append(op.args[1]);
+						if (op.args.length > 2) {
+							sb.append("(");
+							for (int i=2;i<op.args.length;i++) {
+								sb.append(op.args[i]);
+								sb.append(",");
+							}
+							sb.deleteCharAt(sb.length()-1);
+							sb.append(")");
+						}
+						break;
+					case RET:
+						sb.append("RETURN");
+						if (op.args.length>0) {
+							sb.append(" ");
+							sb.append(op.args[0]);
+						}
+						break;
+					default:
+						append = false;
+				}
 			}
 			if (append) {
 				sb.append(";\n");
@@ -159,4 +164,41 @@ public class PlatformHPPL extends Platform {
 			sb.append("LOCAL ");
 		}
 	}
+	
+	public static String getMathOp(OpType type) {
+			switch (type) {
+				case ADD:
+					return "+";
+				case SUB:
+					return "-";
+				case MUL:
+					return "*";
+				case DIV:
+					return "/";
+				case MOD:
+					return "%";
+				case POW:
+					return "^";
+				case AND:
+					return " AND ";
+				case OR:
+					return " OR ";
+				case CONCAT:
+					return "+";
+				case EQ:
+					return "==";
+				case NEQ:
+					return "<>";
+				case LT:
+					return "<";
+				case GT:
+					return ">";
+				case LE:
+					return "<=";
+				case GE:
+					return ">=";
+				default:
+					return null;
+			}
+		}
 }

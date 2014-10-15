@@ -123,76 +123,77 @@ public class SourceCompiler {
 					break;
 			}
 		} else if (e.type instanceof Rule) {
-			switch ((Rule)e.type) {
-				case ADD:
-					String lvar = pkg.nameProvider.getTempName();
-					Expression left = compileExpression(pkg, lvar, (Element) e.args[0]);
-					String rvar = pkg.nameProvider.getTempName();
-					Expression right = compileExpression(pkg, rvar, (Element) e.args[1]);
-					expr.addAll(left);
-					expr.addAll(right);
-					expr.add(new Operation(OpType.ADD,e.range,retVar,lvar,rvar));
-					break;
-				case FCALL:
-					ArrayList<Element> args = ((ArrayList<Element>) e.args[1]);
-					ArrayList<String> opArgs = new ArrayList<>();
-					opArgs.add(retVar);
-					opArgs.add((String) e.args[0]);
-					for (Element arg : args) {
-						if (arg.type==Rule.TUPLE) {
-							for (Element e3 : (ArrayList<Element>)arg.args[0]) {
+			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
+				String lvar = pkg.nameProvider.getTempName();
+				Expression left = compileExpression(pkg, lvar, (Element) e.args[0]);
+				String rvar = pkg.nameProvider.getTempName();
+				Expression right = compileExpression(pkg, rvar, (Element) e.args[1]);
+				expr.addAll(left);
+				expr.addAll(right);
+				expr.add(new Operation(OpType.MathToOpType((Rule) e.type),e.range,retVar,lvar,rvar));
+			} else {
+				switch ((Rule)e.type) {
+					case FCALL:
+						ArrayList<Element> args = ((ArrayList<Element>) e.args[1]);
+						ArrayList<String> opArgs = new ArrayList<>();
+						opArgs.add(retVar);
+						opArgs.add((String) e.args[0]);
+						for (Element arg : args) {
+							if (arg.type==Rule.TUPLE) {
+								for (Element e3 : (ArrayList<Element>)arg.args[0]) {
+									String argName = pkg.nameProvider.getTempName();
+									Expression expr3 = compileExpression(pkg, argName, e3);
+									expr.addAll(expr3);
+									opArgs.add(argName);
+								}
+							} else {
 								String argName = pkg.nameProvider.getTempName();
-								Expression expr3 = compileExpression(pkg, argName, e3);
-								expr.addAll(expr3);
+								Expression expr2 = compileExpression(pkg, argName, arg);
+								expr.addAll(expr2);
 								opArgs.add(argName);
 							}
+						}
+						if (pkg.getFunction((String) e.args[0])!=null) {
+							Function fn = pkg.getFunction((String) e.args[0]);
+							if (Directives.has(fn, "inline") && !fn.isLibrary() && opArgs.size()-2==fn.getArguments().size()) {
+								for (int i=2;i<opArgs.size();i++) {
+									expr.add(new Operation(OpType.MOV,e.range,fn.getArguments().get(i-2).getName(),opArgs.get(i)));
+								}
+								if (!fn.isCompiled()) {
+									compileFunction(pkg,fn);
+								}
+								expr.addAll(inline(fn.getCode(),retVar));
+								break;
+							}
+						}
+						expr.add(new Operation(OpType.CALL,e.range,opArgs.toArray(new String[] {})));
+						break;
+					case INDEX:
+						ArrayList<String> names = new ArrayList<>();
+						if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
+							for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
+								String lvar = pkg.nameProvider.getTempName();
+								Expression expr2 = compileExpression(pkg, lvar, e2);
+								expr.addAll(expr2);
+								names.add(lvar);
+							}
 						} else {
-							String argName = pkg.nameProvider.getTempName();
-							Expression expr2 = compileExpression(pkg, argName, arg);
-							expr.addAll(expr2);
-							opArgs.add(argName);
-						}
-					}
-					if (pkg.getFunction((String) e.args[0])!=null) {
-						Function fn = pkg.getFunction((String) e.args[0]);
-						if (Directives.has(fn, "inline") && !fn.isLibrary() && opArgs.size()-2==fn.getArguments().size()) {
-							for (int i=2;i<opArgs.size();i++) {
-								expr.add(new Operation(OpType.MOV,e.range,fn.getArguments().get(i-2).getName(),opArgs.get(i)));
-							}
-							if (!fn.isCompiled()) {
-								compileFunction(pkg,fn);
-							}
-							expr.addAll(inline(fn.getCode(),retVar));
-							break;
-						}
-					}
-					expr.add(new Operation(OpType.CALL,e.range,opArgs.toArray(new String[] {})));
-					break;
-				case INDEX:
-					ArrayList<String> names = new ArrayList<>();
-					if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
-						for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
-							lvar =  pkg.nameProvider.getTempName();
-							Expression expr2 = compileExpression(pkg, lvar, e2);
+							String lvar = pkg.nameProvider.getTempName();
+							Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
 							expr.addAll(expr2);
 							names.add(lvar);
 						}
-					} else {
-						lvar =  pkg.nameProvider.getTempName();
-						Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
-						expr.addAll(expr2);
-						names.add(lvar);
-					}
 
-					String[] opArgs2 = new String[names.size()+1];
-					opArgs2[0] = retVar;
-					int i = 1;
-					for (String name : names) {
-						opArgs2[i] = name;
-						i++;
-					}
-					expr.add(new Operation(OpType.MOVL,e.range,opArgs2));
-					break;
+						String[] opArgs2 = new String[names.size()+1];
+						opArgs2[0] = retVar;
+						int i = 1;
+						for (String name : names) {
+							opArgs2[i] = name;
+							i++;
+						}
+						expr.add(new Operation(OpType.MOVL,e.range,opArgs2));
+						break;
+				}
 			}
 		}
 		return expr;

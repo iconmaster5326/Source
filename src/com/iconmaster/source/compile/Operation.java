@@ -1,5 +1,6 @@
 package com.iconmaster.source.compile;
 
+import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 
@@ -12,6 +13,51 @@ public class Operation {
 		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,DEF,
 		IF,ELSE,ELIF,FORR,FORE,FORP,WHILE,REP,END,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
+
+		public static OpType MathToOpType(Rule e) {
+			switch (e) {
+				case ADD:
+					return OpType.ADD;
+				case SUB:
+					return OpType.SUB;
+				case MUL:
+					return OpType.MUL;
+				case DIV:
+					return OpType.DIV;
+				case MOD:
+					return OpType.MOD;
+				case POW:
+					return OpType.POW;
+				case AND:
+					return OpType.AND;
+				case OR:
+					return OpType.OR;
+				case NOT:
+					return OpType.NOT;
+				case NEG:
+					return OpType.NEG;
+				case BIT_AND:
+					return OpType.BAND;
+				case BIT_OR:
+					return OpType.BOR;
+				case BIT_NOT:
+					return OpType.BNOT;
+				case EQ:
+					return OpType.EQ;
+				case NEQ:
+					return OpType.NEQ;
+				case LT:
+					return OpType.LT;
+				case GT:
+					return OpType.GT;
+				case LTE:
+					return OpType.LE;
+				case GTE:
+					return OpType.GE;
+				default:
+					return null;
+			}
+		}
 		
 		public boolean hasLVar() {
 			switch (this) {
@@ -21,6 +67,34 @@ public class Operation {
 					return false;
 				default:
 					return true;
+			}
+		}
+		
+		public boolean isMathOp() {
+			switch (this) {
+				case ADD:
+				case SUB:
+				case MUL:
+				case DIV:
+				case MOD:
+				case POW:
+				case AND:
+				case OR:
+				case NOT:
+				case NEG:
+				case BAND:
+				case BOR:
+				case BNOT:
+				case CONCAT:
+				case EQ:
+				case NEQ:
+				case LT:
+				case GT:
+				case LE:
+				case GE:
+					return true;
+				default:
+					return false;
 			}
 		}
 	}
