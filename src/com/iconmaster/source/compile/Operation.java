@@ -127,6 +127,8 @@ public class Operation {
 	
 	public String[] getVarNames() {
 		switch (this.op) {
+			case DEF:
+				return new String[] {};
 			case MOVN:
 			case MOVS:
 			case MOVL:

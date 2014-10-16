@@ -90,62 +90,28 @@ public class PlatformHPPL extends Platform {
 		StringBuilder sb = new StringBuilder();
 		for (Operation op : expr) {
 			boolean append = true;
-			if (op.op.isMathOp()) {
-				addLocal(pkg,expr,op,sb);
-				sb.append(op.args[0]);
-				sb.append(":=");
-				sb.append(op.args[1]);
-				sb.append(getMathOp(op.op));
-				sb.append(op.args[2]);
+			if (canRemove(pkg, expr, op)) {
+				append = false;
+			} else if (op.op.hasLVar()) {
+				
+				String s = assembleExpression(pkg, expr, op);
+				if (s==null) {
+					append = false;
+				} else {
+					if (!ditchLValue(pkg, expr, op)) {
+						addLocal(pkg, expr, op, sb);
+						sb.append(op.args[0]);
+						sb.append(":=");
+					}
+					sb.append(s);
+				}
 			} else {
 				switch (op.op) {
-					case MOVN:
-					case MOV:
-						addLocal(pkg,expr,op,sb);
-						sb.append(op.args[0]);
-						sb.append(":=");
-						sb.append(op.args[1]);
-						break;
-					case MOVS:
-						addLocal(pkg,expr,op,sb);
-						sb.append(op.args[0]);
-						sb.append(":=\"");
-						sb.append(op.args[1]);
-						sb.append("\"");
-						break;
-					case MOVL:
-						addLocal(pkg,expr,op,sb);
-						sb.append(op.args[0]);
-						sb.append(":={");
-						if (op.args.length > 1) {
-							for (int i=1;i<op.args.length;i++) {
-								sb.append(op.args[i]);
-								sb.append(",");
-							}
-							sb.deleteCharAt(sb.length()-1);
-						}
-						sb.append("}");
-						break;
-					case CALL:
-						addLocal(pkg,expr,op,sb);
-						sb.append(op.args[0]);
-						sb.append(":=");
-						sb.append(op.args[1]);
-						if (op.args.length > 2) {
-							sb.append("(");
-							for (int i=2;i<op.args.length;i++) {
-								sb.append(op.args[i]);
-								sb.append(",");
-							}
-							sb.deleteCharAt(sb.length()-1);
-							sb.append(")");
-						}
-						break;
 					case RET:
 						sb.append("RETURN");
 						if (op.args.length>0) {
 							sb.append(" ");
-							sb.append(op.args[0]);
+							sb.append(getInlineString(pkg, expr, op.args[0]));
 						}
 						break;
 					default:
@@ -154,6 +120,53 @@ public class PlatformHPPL extends Platform {
 			}
 			if (append) {
 				sb.append(";\n");
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String assembleExpression(SourcePackage pkg, ArrayList<Operation> expr, Operation op) {
+		StringBuilder sb = new StringBuilder();
+		if (op.op.isMathOp()) {
+			sb.append(getInlineString(pkg, expr, op.args[1]));
+			sb.append(getMathOp(op.op));
+			sb.append(getInlineString(pkg, expr, op.args[2]));
+		} else {
+			switch (op.op) {
+				case MOVN:
+				case MOV:
+					sb.append(getInlineString(pkg, expr, op.args[1]));
+					break;
+				case MOVS:
+					sb.append("\"");
+					sb.append(op.args[1]);
+					sb.append("\"");
+					break;
+				case MOVL:
+					sb.append("{");
+					if (op.args.length > 1) {
+						for (int i=1;i<op.args.length;i++) {
+							sb.append(op.args[i]);
+							sb.append(",");
+						}
+						sb.deleteCharAt(sb.length()-1);
+					}
+					sb.append("}");
+					break;
+				case CALL:
+					sb.append(op.args[1]);
+					if (op.args.length > 2) {
+						sb.append("(");
+						for (int i=2;i<op.args.length;i++) {
+							sb.append(getInlineString(pkg, expr, op.args[i]));
+							sb.append(",");
+						}
+						sb.deleteCharAt(sb.length()-1);
+						sb.append(")");
+					}
+					break;
+				default:
+					return null;
 			}
 		}
 		return sb.toString();
@@ -201,4 +214,50 @@ public class PlatformHPPL extends Platform {
 					return null;
 			}
 		}
+	
+	public static boolean isInlinable(SourcePackage pkg, ArrayList<Operation> code, String var) {
+		ArrayList<Operation> lref = AssemblyUtils.getLReferences(pkg, code, var);
+		ArrayList<Operation> rref = AssemblyUtils.getRReferences(pkg, code, var);
+		if (lref.size()<2 && rref.size()<2) {
+//			if (!rref.isEmpty()) {
+//				if (rref.get(0).op.hasLVar() && !isInlinable(pkg, code, rref.get(0).args[0])) {
+//					return false;
+//				}
+//			}
+			return true;
+		}
+		return false;
+	}
+	
+	public String getInlineString(SourcePackage pkg, ArrayList<Operation> code, String var) {
+		if (isInlinable(pkg, code, var)) {
+			ArrayList<Operation> a = AssemblyUtils.getLReferences(pkg, code, var);
+			if (a.isEmpty()) {
+				return var;
+			}
+			return assembleExpression(pkg, code, a.get(0));
+		} else {
+			return var;
+		}
+	}
+	
+	public boolean canRemove(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
+		if (!op.op.hasLVar()) {
+			return false;
+		}
+		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
+			return false;
+		}
+		return isInlinable(pkg, ops, op.args[0]);
+	}
+	
+	public boolean ditchLValue(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
+		if (!op.op.hasLVar()) {
+			return false;
+		}
+		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
+			return true;
+		}
+		return false;
+	}
 }
