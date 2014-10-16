@@ -9,7 +9,6 @@ import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  *
@@ -230,60 +229,60 @@ public class SourceCompiler {
 	}
 	
 	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
-		int i = 0;
-		ArrayList<Operation> a = (ArrayList<Operation>) code.clone();
-		HashMap<String,String> reps = new HashMap<>();
-		for (Operation op : code) {
-			boolean addIt = true;
-			if (op.op==OpType.MOV) {
-				boolean valid = true;
-				int lval = -1;
-				int rval = -1;
-				for (int j = i;j<code.size();j++) {
-					Operation op2 = code.get(j);
-					if (op2.op.hasLVar() && op.args[0].equals(op2.args[0])) {
-						if (lval!=-1 || op2.op!=OpType.MOV) {
-							valid = false;
-							break;
-						}
-						lval = j;
-					}
-					if (op2.op!=OpType.MOV) {
-						for (String arg : op2.getVarNames()) {
-							if (arg.equals(op.args[0])) {
-								valid = false;
-								break;
-							}
-						}
-					} else {
-						if (op2.args[1].equals(op.args[0])) {
-							if (rval!=-1) {
-								valid = false;
-								break;
-							}
-							rval = j;
-						}
-					}
-				}
-				if (valid && lval!=-1 && rval!=-1) {
-					boolean canInline = true;
-					for (int j = lval+1;j<rval;j++) {
-						Operation op2 = code.get(j);
-						if (op2.op.hasLVar() && op.args[0].equals(op2.args[1])) {
-							canInline = false;
-						}
-					}
-					if (canInline) {
-						addIt = false;
-						reps.put(op.args[0], op.args[1]);
-					}
-				}
-			}
-			if (addIt) {
-				a.add(op);
-			}
-			i++;
-		}
+//		int i = 0;
+//		ArrayList<Operation> a = (ArrayList<Operation>) code.clone();
+//		HashMap<String,String> reps = new HashMap<>();
+//		for (Operation op : code) {
+//			boolean addIt = true;
+//			if (op.op==OpType.MOV) {
+//				boolean valid = true;
+//				int lval = -1;
+//				int rval = -1;
+//				for (int j = i;j<code.size();j++) {
+//					Operation op2 = code.get(j);
+//					if (op2.op.hasLVar() && op.args[0].equals(op2.args[0])) {
+//						if (lval!=-1 || op2.op!=OpType.MOV) {
+//							valid = false;
+//							break;
+//						}
+//						lval = j;
+//					}
+//					if (op2.op!=OpType.MOV) {
+//						for (String arg : op2.getVarNames()) {
+//							if (arg.equals(op.args[0])) {
+//								valid = false;
+//								break;
+//							}
+//						}
+//					} else {
+//						if (op2.args[1].equals(op.args[0])) {
+//							if (rval!=-1) {
+//								valid = false;
+//								break;
+//							}
+//							rval = j;
+//						}
+//					}
+//				}
+//				if (valid && lval!=-1 && rval!=-1) {
+//					boolean canInline = true;
+//					for (int j = lval+1;j<rval;j++) {
+//						Operation op2 = code.get(j);
+//						if (op2.op.hasLVar() && op.args[0].equals(op2.args[1])) {
+//							canInline = false;
+//						}
+//					}
+//					if (canInline) {
+//						addIt = false;
+//						reps.put(op.args[0], op.args[1]);
+//					}
+//				}
+//			}
+//			if (addIt) {
+//				a.add(op);
+//			}
+//			i++;
+//		}
 //		System.out.println(reps);
 //		for (Operation op : a) {
 //			if (op.op==OpType.MOV) {
