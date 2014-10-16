@@ -218,41 +218,37 @@ public class PlatformHPPL extends Platform {
 	public static boolean isInlinable(SourcePackage pkg, ArrayList<Operation> code, String var) {
 		ArrayList<Operation> lref = AssemblyUtils.getLReferences(pkg, code, var);
 		ArrayList<Operation> rref = AssemblyUtils.getRReferences(pkg, code, var);
-		if (lref.size()<2 && rref.size()<2) {
-//			if (!rref.isEmpty()) {
-//				if (rref.get(0).op.hasLVar() && !isInlinable(pkg, code, rref.get(0).args[0])) {
-//					return false;
-//				}
-//			}
-			return true;
-		}
-		return false;
+		return lref.size()<2 && rref.size()<2;
 	}
 	
 	public String getInlineString(SourcePackage pkg, ArrayList<Operation> code, String var) {
-		if (isInlinable(pkg, code, var)) {
-			ArrayList<Operation> a = AssemblyUtils.getLReferences(pkg, code, var);
-			if (a.isEmpty()) {
-				return var;
-			}
-			return assembleExpression(pkg, code, a.get(0));
-		} else {
+//		if (isInlinable(pkg, code, var)) {
+//			ArrayList<Operation> a = AssemblyUtils.getLReferences(pkg, code, var);
+//			if (a.isEmpty()) {
+//				return var;
+//			}
+//			return assembleExpression(pkg, code, a.get(0));
+//		} else {
 			return var;
-		}
+//		}
 	}
 	
 	public boolean canRemove(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
-		if (!op.op.hasLVar()) {
-			return false;
-		}
-		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
-			return false;
-		}
-		return isInlinable(pkg, ops, op.args[0]);
+//		if (!op.op.hasLVar()) {
+//			return false;
+//		}
+//		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
+//			return false;
+//		}
+//		return isInlinable(pkg, ops, op.args[0]);
+		return false;
 	}
 	
 	public boolean ditchLValue(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
 		if (!op.op.hasLVar()) {
+			return false;
+		}
+		if (pkg.getField(op.args[0])!=null) {
 			return false;
 		}
 		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {

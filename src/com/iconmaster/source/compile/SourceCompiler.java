@@ -9,6 +9,7 @@ import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -96,7 +97,8 @@ public class SourceCompiler {
 					code.addAll(compileExpression(pkg,null,e));
 			}
 		}
-		return code;
+		return optimize(pkg, code);
+		//return code;
 	}
 	
 	public static Expression compileExpression(SourcePackage pkg, String retVar, Element e) {
@@ -162,7 +164,7 @@ public class SourceCompiler {
 								if (!fn.isCompiled()) {
 									compileFunction(pkg,fn);
 								}
-								expr.addAll(inline(fn.getCode(),retVar));
+								expr.addAll(inlineFunc(fn.getCode(),retVar));
 								break;
 							}
 						}
@@ -213,7 +215,7 @@ public class SourceCompiler {
 		return null;
 	}
 	
-	public static ArrayList<Operation> inline(ArrayList<Operation> code, String retVar) {
+	public static ArrayList<Operation> inlineFunc(ArrayList<Operation> code, String retVar) {
 		ArrayList<Operation> code2 = new ArrayList<>();
 		for (Operation op : code) {
 			if (op.op==OpType.RET) {
@@ -225,5 +227,75 @@ public class SourceCompiler {
 			}
 		}
 		return code2;
+	}
+	
+	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
+		int i = 0;
+		ArrayList<Operation> a = (ArrayList<Operation>) code.clone();
+		HashMap<String,String> reps = new HashMap<>();
+		for (Operation op : code) {
+			boolean addIt = true;
+			if (op.op==OpType.MOV) {
+				boolean valid = true;
+				int lval = -1;
+				int rval = -1;
+				for (int j = i;j<code.size();j++) {
+					Operation op2 = code.get(j);
+					if (op2.op.hasLVar() && op.args[0].equals(op2.args[0])) {
+						if (lval!=-1 || op2.op!=OpType.MOV) {
+							valid = false;
+							break;
+						}
+						lval = j;
+					}
+					if (op2.op!=OpType.MOV) {
+						for (String arg : op2.getVarNames()) {
+							if (arg.equals(op.args[0])) {
+								valid = false;
+								break;
+							}
+						}
+					} else {
+						if (op2.args[1].equals(op.args[0])) {
+							if (rval!=-1) {
+								valid = false;
+								break;
+							}
+							rval = j;
+						}
+					}
+				}
+				if (valid && lval!=-1 && rval!=-1) {
+					boolean canInline = true;
+					for (int j = lval+1;j<rval;j++) {
+						Operation op2 = code.get(j);
+						if (op2.op.hasLVar() && op.args[0].equals(op2.args[1])) {
+							canInline = false;
+						}
+					}
+					if (canInline) {
+						addIt = false;
+						reps.put(op.args[0], op.args[1]);
+					}
+				}
+			}
+			if (addIt) {
+				a.add(op);
+			}
+			i++;
+		}
+//		System.out.println(reps);
+//		for (Operation op : a) {
+//			if (op.op==OpType.MOV) {
+//				if (reps.containsKey(op.args[0])) {
+//					op.args[0] = reps.get(op.args[0]);
+//				}
+//				if (reps.containsKey(op.args[1])) {
+//					op.args[1] = reps.get(op.args[1]);
+//				}
+//			}
+//		}
+//		return a;
+		return code;
 	}
 }
