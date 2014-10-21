@@ -10,8 +10,10 @@ import java.util.ArrayList;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,DEF,
-		IF,ELSE,ELIF,FORR,FORE,FORP,WHILE,REP,END,
+		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
+		DEF,BEGIN,END,
+		IF,ELSE,FORR,FORE,FORP,WHILE,REP,
+		ENDB,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
 
 		public static OpType MathToOpType(Rule e) {
@@ -64,6 +66,11 @@ public class Operation {
 				case RET:
 				case BRK:
 				case DEF:
+				case IF:
+				case ELSE:
+				case BEGIN:
+				case END:
+				case ENDB:
 					return false;
 				default:
 					return true;

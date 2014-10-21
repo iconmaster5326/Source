@@ -44,6 +44,7 @@ public class TypeChecker {
 					a.add(new SourceException(op.range,"Undefined function "+op.args[1]));
 				}
 			}
+			
 			if (op.op==OpType.DEF) {
 				for (String arg : op.args) {
 					if (fn.varspace.getVar(arg)!=null) {
@@ -52,7 +53,12 @@ public class TypeChecker {
 						fn.varspace.putVar(arg);
 					}
 				}
+			} else if (op.op==OpType.BEGIN) {
+				fn.varspace = new VarSpace(fn.varspace);
+			} else if (op.op==OpType.END) {
+				fn.varspace = fn.varspace.parent;
 			}
+			
 			if (op.getVarNames().length!=0) {
 				for (String name : op.getVarNames()) {
 					if (pkg.getField(name)!=null) {

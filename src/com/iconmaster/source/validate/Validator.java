@@ -117,11 +117,14 @@ public class Validator {
 					break;
 				case IF:
 				case ELSEIF:
-				case ELSE:
 				case WHILE:
 				case REPEAT:
 					ensureScope(a,e,scope,Scope.CODE);
-					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));
+					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
+					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
+					break;
+				case ELSE:
+					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
 					break;
 				case FOR:

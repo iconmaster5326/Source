@@ -12,6 +12,7 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  *
@@ -88,6 +89,8 @@ public class PlatformHPPL extends Platform {
 	
 	private String assembleCode(SourcePackage pkg, ArrayList<Operation> expr) {
 		StringBuilder sb = new StringBuilder();
+		Stack<Operation> blockOp = new Stack<>();
+		Operation lastBlockOp = null;
 		for (Operation op : expr) {
 			boolean append = true;
 			if (canRemove(pkg, expr, op)) {
@@ -113,6 +116,24 @@ public class PlatformHPPL extends Platform {
 							sb.append(" ");
 							sb.append(getInlineString(pkg, expr, op.args[0]));
 						}
+						break;
+					case IF:
+						sb.append("IF ");
+						sb.append(getInlineString(pkg, expr, op.args[0]));
+						sb.append(" THEN\n");
+						append = false;
+						blockOp.push(op);
+						break;
+					case ELSE:
+						int di = sb.lastIndexOf("END;");
+						sb.delete(di-1,di+4);
+						sb.append("ELSE\n");
+						append = false;
+						blockOp.push(op);
+						break;
+					case ENDB:
+						lastBlockOp = blockOp.pop();
+						sb.append("END");
 						break;
 					default:
 						append = false;

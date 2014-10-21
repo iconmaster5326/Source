@@ -109,6 +109,35 @@ public class SourceCompiler {
 				case RETURN_NULL:
 					code.add(new Operation(OpType.RET,e.range));
 					break;
+				case IF:
+					name = pkg.nameProvider.getTempName();
+					expr = compileExpression(pkg, name, (Element) e.args[0]);
+					code.addAll(expr);
+					code.add(new Operation(OpType.IF,e.range,name));
+					code.add(new Operation(OpType.BEGIN,e.range));
+					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
+					code.add(new Operation(OpType.END,e.range));
+					code.add(new Operation(OpType.ENDB,e.range));
+					break;
+				case ELSE:
+					code.add(new Operation(OpType.ELSE,e.range));
+					code.add(new Operation(OpType.BEGIN,e.range));
+					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
+					code.add(new Operation(OpType.END,e.range));
+					code.add(new Operation(OpType.ENDB,e.range));
+					break;
+				case ELSEIF:
+					code.add(new Operation(OpType.ELSE,e.range));
+					name = pkg.nameProvider.getTempName();
+					expr = compileExpression(pkg, name, (Element) e.args[0]);
+					code.addAll(expr);
+					code.add(new Operation(OpType.IF,e.range,name));
+					code.add(new Operation(OpType.BEGIN,e.range));
+					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
+					code.add(new Operation(OpType.ENDB,e.range));
+					code.add(new Operation(OpType.END,e.range));
+					code.add(new Operation(OpType.ENDB,e.range));
+					break;
 				default:
 					code.addAll(compileExpression(pkg,null,e));
 			}
@@ -210,6 +239,13 @@ public class SourceCompiler {
 							i++;
 						}
 						expr.add(new Operation(OpType.MOVL,e.range,opArgs2));
+						break;
+					case PAREN:
+						ArrayList<Element> pargs = (ArrayList<Element>) e.args[0];
+						if (pargs.size()!=1) {
+							throw new SourceException(e.range,"Invalid use of parenthesis");
+						}
+						expr.addAll(compileExpression(pkg, retVar, pargs.get(0)));
 						break;
 				}
 			}
