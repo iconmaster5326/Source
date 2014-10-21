@@ -218,30 +218,42 @@ public class PlatformHPPL extends Platform {
 	public static boolean isInlinable(SourcePackage pkg, ArrayList<Operation> code, String var) {
 		ArrayList<Operation> lref = AssemblyUtils.getLReferences(pkg, code, var);
 		ArrayList<Operation> rref = AssemblyUtils.getRReferences(pkg, code, var);
+		if (lref.size()==1 && rref.size()==1) {
+			Operation lop = lref.get(0);
+			Operation rop = rref.get(0);
+			if (lop.op == OpType.MOV && rop.op == OpType.MOV) {
+				ArrayList<Operation> sub = new ArrayList<>();
+				sub.addAll(code.subList(code.indexOf(lop)+1, code.indexOf(rop)-1));
+				sub = AssemblyUtils.getReferences(pkg, sub, rop.args[0]);
+				if (sub.isEmpty()) {
+					return false;
+				}
+			}
+		}
 		return lref.size()<2 && rref.size()<2;
 	}
 	
 	public String getInlineString(SourcePackage pkg, ArrayList<Operation> code, String var) {
-//		if (isInlinable(pkg, code, var)) {
-//			ArrayList<Operation> a = AssemblyUtils.getLReferences(pkg, code, var);
-//			if (a.isEmpty()) {
-//				return var;
-//			}
-//			return assembleExpression(pkg, code, a.get(0));
-//		} else {
+		if (isInlinable(pkg, code, var)) {
+			ArrayList<Operation> a = AssemblyUtils.getLReferences(pkg, code, var);
+			if (a.isEmpty()) {
+				return var;
+			}
+			return assembleExpression(pkg, code, a.get(0));
+		} else {
 			return var;
-//		}
+		}
 	}
 	
 	public boolean canRemove(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
-//		if (!op.op.hasLVar()) {
-//			return false;
-//		}
-//		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
-//			return false;
-//		}
-//		return isInlinable(pkg, ops, op.args[0]);
-		return false;
+		if (!op.op.hasLVar()) {
+			return false;
+		}
+		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
+			return false;
+		}
+		return isInlinable(pkg, ops, op.args[0]);
+//		return false;
 	}
 	
 	public boolean ditchLValue(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
@@ -251,7 +263,7 @@ public class PlatformHPPL extends Platform {
 		if (pkg.getField(op.args[0])!=null) {
 			return false;
 		}
-		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
+		if (AssemblyUtils.getReferences(pkg, ops, op.args[0]).size()<=1) {
 			return true;
 		}
 		return false;
