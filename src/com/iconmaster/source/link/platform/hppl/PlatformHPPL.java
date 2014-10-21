@@ -223,7 +223,7 @@ public class PlatformHPPL extends Platform {
 			Operation rop = rref.get(0);
 			if (lop.op == OpType.MOV && rop.op == OpType.MOV) {
 				ArrayList<Operation> sub = new ArrayList<>();
-				sub.addAll(code.subList(code.indexOf(lop)+1, code.indexOf(rop)-1));
+				sub.addAll(code.subList(Math.min(code.indexOf(rop)-1,code.indexOf(lop)+1), Math.max(code.indexOf(rop)-1,code.indexOf(lop)+1)));
 				sub = AssemblyUtils.getReferences(pkg, sub, rop.args[0]);
 				if (sub.isEmpty()) {
 					return false;

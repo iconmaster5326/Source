@@ -153,15 +153,7 @@ public enum Rule implements IElementType {
 	DIV(null,"a@0'/'a@1"),
 	MOD(null,"a@0'%'a@1"),
 	ADD(null,"a@0'+'a@1"),
-	SUB(null,(a,i)->{
-		if (i+2>a.size() || !isValidOperationToken(a.get(i+1)) || a.get(i+1).type!=Rule.NEG) {
-			return null;
-		}
-		Element e = new Element(Range.from(a.get(i).range,a.get(i+1).range),Rule.SUB);
-		e.args[0] = a.get(i);
-		e.args[1] = a.get(i+1).args[0];
-		return new RuleResult(e, 2);
-	}),
+	SUB(null,"A@0_1"),
 	BIT_AND(null,"a@0'&'a@1"),
 	BIT_OR(null,"a@0'|'a@1"),
 	EQ(null,"a@0'=='a@1"),
@@ -196,6 +188,8 @@ public enum Rule implements IElementType {
 	LOCAL_ASN(null,"L0!?'='t1"),
 	FIELD("G","'field'!t0?"),
 	FIELD_ASN(null,"G0!?'='t1"),
+	REF_INDEX(null,"A@0i1"),
+	REF_ICALL(null,"A@0p1"),
 	ASSIGN("=","t0'='t1"),
 	IF(null,"'if'!a@0c2"),
 	ELSEIF(null,"'elseif'!a@0c2"),
@@ -203,18 +197,8 @@ public enum Rule implements IElementType {
 	FOR(null,"'for'!t0'in't1c2"),
 	WHILE(null,"'while'!a@0c2"),
 	REPEAT(null,"'repeat'!c2'until'a@0"),
-	RETURN_NULL(null,"'return'!"),
-	RETURN(null,new com.iconmaster.source.element.ISpecialRule() {
-		@Override
-		public RuleResult match(ArrayList<Element> a, int i) {
-			if (i+2>a.size() || !isValidOperationToken(a.get(i+1)) || a.get(i).type!=Rule.RETURN_NULL) {
-				return null;
-			}
-			Element e = new Element(Range.from(a.get(i).range,a.get(i+1).range),Rule.RETURN);
-			e.args[0] = a.get(i+1);
-			return new RuleResult(e, 2);
-		}
-	}),
+	RETURN_NULL("R","'return'!"),
+	RETURN(null,"R!A@0?"),
 	BREAK(null,"'break'!"),
 	PACKAGE(null,"'package'!a@0"),
 	IMPORT(null,"'import'!a@0?"),
@@ -276,10 +260,12 @@ public enum Rule implements IElementType {
 			Range high = null;
 			for (int j=0;j<clauses.length;j++) {
 				Element v = a.get(i+j);
-				if ((clauses[j].literal && v.type instanceof TokenRule && ((Token)v).string().equals(clauses[j].toMatch)) || (v.type==Parser.getAlias(clauses[j].toMatch)) || (clauses[j].toMatch.equals("a")) || (clauses[j].toMatch.equals("t"))) {
+				if ((clauses[j].literal && v.type instanceof TokenRule && ((Token)v).string().equals(clauses[j].toMatch)) || (v.type==Parser.getAlias(clauses[j].toMatch)) || (clauses[j].toMatch.equals("a")) || (clauses[j].toMatch.equals("t")) || (clauses[j].toMatch.equals("A")) && isValidOperationToken(v)) {
 					if (clauses[j].toMatch.equals("t") && v.type!=Rule.TUPLE) {
 						if (v.type==Rule.PAREN) {
-							v = ((ArrayList<Element>)v.args[0]).get(0);
+							Element oldv = v;
+							v = new Element(v.range,Rule.TUPLE);
+							v.args[0] = oldv.args[0];
 						} else {
 							ArrayList a2 = new ArrayList();
 							a2.add(v);

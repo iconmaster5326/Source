@@ -179,9 +179,11 @@ public class Validator {
 				
 				//other cases
 
+				case REF_ICALL:
 				case FCALL:
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.CODE);
 					break;
+				case REF_INDEX:
 				case ICALL:
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.LVALUE);
 					break;
