@@ -80,11 +80,8 @@ public class Operation {
 				case POW:
 				case AND:
 				case OR:
-				case NOT:
-				case NEG:
 				case BAND:
 				case BOR:
-				case BNOT:
 				case CONCAT:
 				case EQ:
 				case NEQ:

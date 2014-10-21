@@ -74,7 +74,7 @@ public class Source {
 				input = "";
 				Scanner fileScanner = new Scanner(new File(cla.get("f")));
 				while (fileScanner.hasNext()){
-				   input+="\n"+fileScanner.next();
+				   input+="\n"+fileScanner.nextLine();
 				}
 				
 				
