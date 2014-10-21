@@ -138,9 +138,19 @@ public class PlatformHPPL extends Platform {
 						append = false;
 						blockOp.push(op);
 						break;
+					case REP:
+						sb.append("REPEAT\n");
+						append = false;
+						blockOp.push(op);
+						break;
 					case ENDB:
 						lastBlockOp = blockOp.pop();
-						sb.append("END");
+						if (lastBlockOp.op == OpType.REP) {
+							sb.append("UNTIL ");
+							sb.append(getInlineString(pkg, expr, lastBlockOp.args[0]));
+						} else {
+							sb.append("END");
+						}
 						break;
 					default:
 						append = false;

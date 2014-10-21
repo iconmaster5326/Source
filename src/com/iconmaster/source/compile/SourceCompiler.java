@@ -148,6 +148,16 @@ public class SourceCompiler {
 					code.add(new Operation(OpType.END,e.range));
 					code.add(new Operation(OpType.ENDB,e.range));
 					break;
+				case REPEAT:
+					name = pkg.nameProvider.getTempName();
+					code.add(new Operation(OpType.REP,e.range,name));
+					code.add(new Operation(OpType.BEGIN,e.range));
+					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
+					expr = compileExpression(pkg, name, (Element) e.args[0]);
+					code.addAll(expr);
+					code.add(new Operation(OpType.END,e.range));
+					code.add(new Operation(OpType.ENDB,e.range));
+					break;
 				default:
 					code.addAll(compileExpression(pkg,null,e));
 			}
