@@ -46,7 +46,11 @@ public class TypeChecker {
 			}
 			if (op.op==OpType.DEF) {
 				for (String arg : op.args) {
-					fn.varspace.putVar(arg);
+					if (fn.varspace.getVar(arg)!=null) {
+						a.add(new SourceException(op.range,"Variable "+arg+" already defined elsewhere"));
+					} else {
+						fn.varspace.putVar(arg);
+					}
 				}
 			}
 			if (op.getVarNames().length!=0) {
