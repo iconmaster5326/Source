@@ -62,12 +62,13 @@ public class Operation {
 		}
 		
 		public boolean hasLVar() {
+			if (this.isBlockStarter()) {
+				return false;
+			}
 			switch (this) {
 				case RET:
 				case BRK:
 				case DEF:
-				case IF:
-				case ELSE:
 				case BEGIN:
 				case END:
 				case ENDB:
@@ -96,6 +97,21 @@ public class Operation {
 				case GT:
 				case LE:
 				case GE:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
+		public boolean isBlockStarter() {
+			switch (this) {
+				case IF:
+				case ELSE:
+				case WHILE:
+				case REP:
+				case FORR:
+				case FORE:
+				case FORP:
 					return true;
 				default:
 					return false;

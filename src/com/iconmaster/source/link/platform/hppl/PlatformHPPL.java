@@ -131,6 +131,13 @@ public class PlatformHPPL extends Platform {
 						append = false;
 						blockOp.push(op);
 						break;
+					case WHILE:
+						sb.append("WHILE ");
+						sb.append(getInlineString(pkg, expr, op.args[0]));
+						sb.append(" DO\n");
+						append = false;
+						blockOp.push(op);
+						break;
 					case ENDB:
 						lastBlockOp = blockOp.pop();
 						sb.append("END");

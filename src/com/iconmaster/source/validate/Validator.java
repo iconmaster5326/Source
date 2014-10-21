@@ -90,6 +90,7 @@ public class Validator {
 				case BIT_AND:
 				case BIT_OR:
 				case EQ:
+				case NEQ:
 				case LT:
 				case GT:
 				case LTE:
