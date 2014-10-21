@@ -148,8 +148,17 @@ public class Source {
 			}
 			System.out.println("Prototyping complete. No errors found!");
 			System.out.println("Compiling...");
-			SourceCompiler.compile(linker.pkg);
+			errs = SourceCompiler.compile(linker.pkg);
 			System.out.println(linker.pkg);
+			if (!errs.isEmpty()) {
+				System.out.println("There were errors detected:");
+				for (SourceException err : errs) {
+					System.out.print("\t");
+					System.out.println(err);
+				}
+				System.out.println("Compilation could not be completed.");
+				return;
+			}
 			System.out.println("Compiling done!");
 			System.out.println("Checking types...");
 			errs = TypeChecker.check(linker.pkg);

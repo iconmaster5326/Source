@@ -3,6 +3,7 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
+import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
@@ -15,34 +16,50 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class SourceCompiler {
-	public static void compile(SourcePackage pkg) {
+	public static ArrayList<SourceException> compile(SourcePackage pkg) {
+		ArrayList<SourceException> errs = new ArrayList<>();
 		for (Variable var : pkg.getVariables()) {
-			compileVariable(pkg, var);
+			errs.addAll(compileVariable(pkg, var));
 		}
 		for (Function fn : pkg.getFunctions()) {
-			compileFunction(pkg,fn);
+			errs.addAll(compileFunction(pkg,fn));
 		}
+		return errs;
 	}
 	
-	public static void compileFunction(SourcePackage pkg, Function fn) {
+	public static ArrayList<SourceException> compileFunction(SourcePackage pkg, Function fn) {
+		ArrayList<SourceException> errs = new ArrayList<>();
 		if (fn.rawData()!=null) {
-			ArrayList<Operation> code = compileCode(pkg,fn.rawData());
+			ArrayList<Operation> code = null;
+			try {
+				code = compileCode(pkg,fn.rawData());
+			} catch (SourceException ex) {
+				errs.add(ex);
+			}
 			fn.setCompiled(code);
 		} else {
 			fn.setCompiled(null);
 		}
+		return errs;
 	}
 	
-	public static void compileVariable(SourcePackage pkg, Variable var) {
+	public static ArrayList<SourceException> compileVariable(SourcePackage pkg, Variable var) {
+		ArrayList<SourceException> errs = new ArrayList<>();
 		if (var.rawData()!=null) {
-			Expression expr = compileExpression(pkg, var.getName(), var.rawData());
+			Expression expr = null;
+			try {
+				expr = compileExpression(pkg, var.getName(), var.rawData());
+			} catch (SourceException ex) {
+				errs.add(ex);
+			}
 			var.setCompiled(expr);
 		} else {
 			var.setCompiled(null);
 		}
+		return errs;
 	}
 	
-	public static ArrayList<Operation> compileCode(SourcePackage pkg, ArrayList<Element> a) {
+	public static ArrayList<Operation> compileCode(SourcePackage pkg, ArrayList<Element> a) throws SourceException {
 		ArrayList<Operation> code = new ArrayList<>();
 		for (Element e : a) {
 			switch ((Rule)e.type) {
@@ -100,7 +117,7 @@ public class SourceCompiler {
 		//return code;
 	}
 	
-	public static Expression compileExpression(SourcePackage pkg, String retVar, Element e) {
+	public static Expression compileExpression(SourcePackage pkg, String retVar, Element e) throws SourceException {
 		Expression expr = new Expression();
 		if (retVar == null) {
 			retVar = pkg.nameProvider.getTempName();
@@ -200,7 +217,7 @@ public class SourceCompiler {
 		return expr;
 	}
 	
-	public static String resolveLValue(SourcePackage pkg, ArrayList<Operation> ops, Element e) {
+	public static String resolveLValue(SourcePackage pkg, ArrayList<Operation> ops, Element e) throws SourceException {
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case WORD:
@@ -214,7 +231,7 @@ public class SourceCompiler {
 		return null;
 	}
 	
-	public static ArrayList<Operation> inlineFunc(ArrayList<Operation> code, String retVar) {
+	public static ArrayList<Operation> inlineFunc(ArrayList<Operation> code, String retVar) throws SourceException {
 		ArrayList<Operation> code2 = new ArrayList<>();
 		for (Operation op : code) {
 			if (op.op==OpType.RET) {
@@ -228,7 +245,7 @@ public class SourceCompiler {
 		return code2;
 	}
 	
-	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
+	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) throws SourceException {
 //		int i = 0;
 //		ArrayList<Operation> a = (ArrayList<Operation>) code.clone();
 //		HashMap<String,String> reps = new HashMap<>();
