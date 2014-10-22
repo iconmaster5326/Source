@@ -22,6 +22,7 @@ public class Function implements IDirectable {
 	protected ArrayList<Operation> code;
 	
 	public VarSpace varspace = new VarSpace(null);
+	public OnCompile onCompile;
 
 	public Function(String name, ArrayList<Variable> args, ArrayList<DataType> returns) {
 		this.name = name;
@@ -95,5 +96,17 @@ public class Function implements IDirectable {
 
 	public boolean isLibrary() {
 		return library;
+	}
+	
+	public String compileFunction(SourcePackage pkg, Object... args) {
+		if (this.onCompile==null) {
+			return null;
+		} else {
+			return this.onCompile.compile(pkg,args);
+		}
+	}
+
+	public static interface OnCompile {
+		public String compile(SourcePackage pkg, Object... args);
 	}
 }

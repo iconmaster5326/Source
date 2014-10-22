@@ -192,6 +192,16 @@ public class PlatformHPPL extends Platform {
 					sb.append("}");
 					break;
 				case CALL:
+					Function fn = pkg.getFunction(op.args[1]);
+					if (fn!=null) {
+						if (fn.isLibrary()) {
+							String oncomp = fn.compileFunction(pkg,new PlatformContext(expr, op, sb, this));
+							if (oncomp!=null) {
+								sb.append(oncomp);
+								break;
+							}
+						}
+					}
 					sb.append(op.args[1]);
 					if (op.args.length > 2) {
 						sb.append("(");
