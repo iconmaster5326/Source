@@ -282,6 +282,11 @@ public class SourceCompiler {
 						}
 						expr.add(new Operation(OpType.CALL,e.range,opArgs.toArray(new String[] {})));
 						break;
+					case ICALL:
+						String iname = pkg.nameProvider.getTempName();
+						expr.addAll(compileExpression(pkg, iname, ((ArrayList<Element>) e.args[1]).get(0)));
+						expr.add(new Operation(OpType.INDEX, e.range, retVar, (String) e.args[0], iname));
+						break;
 					case INDEX:
 						ArrayList<String> names = new ArrayList<>();
 						if (!((ArrayList<Element>) e.args[0]).isEmpty()) {
