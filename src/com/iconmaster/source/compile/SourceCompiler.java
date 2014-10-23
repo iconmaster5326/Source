@@ -61,6 +61,7 @@ public class SourceCompiler {
 	
 	public static ArrayList<Operation> compileCode(SourcePackage pkg, ArrayList<Element> a) throws SourceException {
 		ArrayList<Operation> code = new ArrayList<>();
+		OpType asnType = null; //a temp vairable for +=, etc.
 		for (Element e : a) {
 			switch ((Rule)e.type) {
 				case LOCAL:
@@ -119,8 +120,30 @@ public class SourceCompiler {
 						i++;
 					}
 					break;
-				case RETURN:
+				case ADD_ASN:
+					if (e.type == Rule.ADD_ASN) {
+						asnType = OpType.ADD;
+					}
+				case SUB_ASN:
+					if (e.type == Rule.SUB_ASN) {
+						asnType = OpType.SUB;
+					}
+				case MUL_ASN:
+					if (e.type == Rule.MUL_ASN) {
+						asnType = OpType.MUL;
+					}
+				case DIV_ASN:
+					if (e.type == Rule.DIV_ASN) {
+						asnType = OpType.DIV;
+					}
+					String var = resolveLValue(pkg, code, (Element) e.args[0]);
 					String name = pkg.nameProvider.getTempName();
+					Expression rexpr = compileExpression(pkg, name, (Element) e.args[1]);
+					code.addAll(rexpr);
+					code.add(new Operation(asnType,e.range,var,var,name));
+					break;
+				case RETURN:
+					name = pkg.nameProvider.getTempName();
 					Expression expr = compileExpression(pkg,name, (Element) e.args[0]);
 					code.addAll(expr);
 					code.add(new Operation(OpType.RET,e.range,name));

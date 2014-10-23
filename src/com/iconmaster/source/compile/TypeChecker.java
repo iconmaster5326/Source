@@ -74,18 +74,6 @@ public class TypeChecker {
 						a.add(new SourceException(op.range,"Constant "+op.args[0]+" already has a value"));
 					}
 				}
-				
-				
-//				for (String arg : op.getVarNames()) {
-//					if (!arg.equals(op.args[0])) {
-//						Boolean result = fn.varspace.getVar(arg);
-//						if (result==null || result==false) {
-//							a.add(new SourceException(op.range,"Variable "+arg+" was not initialized "));
-//						}
-//					}
-//				}
-//				
-//				fn.varspace.putVarUsed(op.args[0]);
 			}
 			
 			if (op.getVarNames().length!=0) {

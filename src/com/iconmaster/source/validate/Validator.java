@@ -111,6 +111,14 @@ public class Validator {
 					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
 					break;
+				case ADD_ASN:
+				case SUB_ASN:
+				case MUL_ASN:
+				case DIV_ASN:
+					ensureScope(a,e,scope,Scope.CODE);
+					a.addAll(validateElement((Element) e.args[0],Scope.LVALUE));
+					a.addAll(validateElement((Element) e.args[1],Scope.RVALUE));
+					break;
 				case ASSIGN:
 					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
