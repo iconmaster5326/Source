@@ -333,7 +333,7 @@ public class SourceCompiler {
 				
 			}
 		}
-		return null;
+		throw new SourceException(e.range,"Could not resolve L-value");
 	}
 	
 	public static ArrayList<Operation> inlineFunc(ArrayList<Operation> code, String retVar) throws SourceException {
