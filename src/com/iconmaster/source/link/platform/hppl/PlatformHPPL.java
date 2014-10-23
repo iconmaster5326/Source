@@ -184,7 +184,7 @@ public class PlatformHPPL extends Platform {
 					sb.append("{");
 					if (op.args.length > 1) {
 						for (int i=1;i<op.args.length;i++) {
-							sb.append(op.args[i]);
+							sb.append(getInlineString(pkg, expr, op.args[i]));
 							sb.append(",");
 						}
 						sb.deleteCharAt(sb.length()-1);

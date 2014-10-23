@@ -151,7 +151,6 @@ public class Operation {
 				return new String[] {};
 			case MOVN:
 			case MOVS:
-			case MOVL:
 				return new String[] {this.args[0]};
 			case CALL:
 				ArrayList<String> a = new ArrayList<>();

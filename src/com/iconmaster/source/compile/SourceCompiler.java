@@ -237,18 +237,20 @@ public class SourceCompiler {
 						break;
 					case INDEX:
 						ArrayList<String> names = new ArrayList<>();
-						if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
-							for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
+						if (!((ArrayList<Element>) e.args[0]).isEmpty()) {
+							if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
+								for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
+									String lvar = pkg.nameProvider.getTempName();
+									Expression expr2 = compileExpression(pkg, lvar, e2);
+									expr.addAll(expr2);
+									names.add(lvar);
+								}
+							} else {
 								String lvar = pkg.nameProvider.getTempName();
-								Expression expr2 = compileExpression(pkg, lvar, e2);
+								Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
 								expr.addAll(expr2);
 								names.add(lvar);
 							}
-						} else {
-							String lvar = pkg.nameProvider.getTempName();
-							Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
-							expr.addAll(expr2);
-							names.add(lvar);
 						}
 
 						String[] opArgs2 = new String[names.size()+1];
