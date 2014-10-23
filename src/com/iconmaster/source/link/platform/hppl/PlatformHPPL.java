@@ -91,6 +91,9 @@ public class PlatformHPPL extends Platform {
 	private String assembleCode(SourcePackage pkg, ArrayList<Operation> expr) {
 		Stack<HashSet<String>> vars = new Stack<>();
 		vars.push(new HashSet<>());
+		Stack<HashSet<String>> defs = new Stack<>();
+		defs.push(new HashSet<>());
+		
 		StringBuilder sb = new StringBuilder();
 		Stack<Operation> blockOp = new Stack<>();
 		Operation lastBlockOp = null;
@@ -104,7 +107,7 @@ public class PlatformHPPL extends Platform {
 					append = false;
 				} else {
 					if (!ditchLValue(pkg, expr, op)) {
-						addLocal(pkg, expr, op, sb, vars);
+						addLocal(pkg, expr, op, sb, vars, defs);
 						sb.append(op.args[0]);
 						sb.append(":=");
 					}
@@ -156,10 +159,18 @@ public class PlatformHPPL extends Platform {
 						break;
 					case BEGIN:
 						vars.push(new HashSet<>());
+						defs.push(new HashSet<>());
 						append=false;
 						break;
 					case END:
 						vars.pop();
+						defs.pop();
+						append=false;
+						break;
+					case DEF:
+						for (String arg : op.args) {
+							defs.peek().add(arg);
+						}
 						append=false;
 						break;
 					default:
@@ -230,8 +241,21 @@ public class PlatformHPPL extends Platform {
 		return sb.toString();
 	}
 	
-	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb, Stack<HashSet<String>> vars) {
-		if (!vars.peek().contains(thisOp.args[0])) {
+	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb, Stack<HashSet<String>> vars, Stack<HashSet<String>> defs) {
+		boolean need = true;
+		for (HashSet<String> map : vars) {
+			if (map.contains(thisOp.args[0])) {
+				need = false;
+			}
+		}
+		for (HashSet<String> map : (Stack<HashSet<String>>) defs.clone()) {
+			if (map.contains(thisOp.args[0])) {
+				map.remove(thisOp.args[0]);
+				need = true;
+			}
+		}
+		
+		if (need) {
 			sb.append("LOCAL ");
 			vars.peek().add(thisOp.args[0]);
 		}

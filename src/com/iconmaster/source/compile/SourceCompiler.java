@@ -158,6 +158,11 @@ public class SourceCompiler {
 					code.add(new Operation(OpType.END,e.range));
 					code.add(new Operation(OpType.ENDB,e.range));
 					break;
+				case CODE:
+					code.add(new Operation(OpType.BEGIN,e.range));
+					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[0]));
+					code.add(new Operation(OpType.END,e.range));
+					break;
 				default:
 					code.addAll(compileExpression(pkg,null,e));
 			}
