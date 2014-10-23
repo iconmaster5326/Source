@@ -12,6 +12,7 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -88,6 +89,8 @@ public class PlatformHPPL extends Platform {
 	}
 	
 	private String assembleCode(SourcePackage pkg, ArrayList<Operation> expr) {
+		Stack<HashSet<String>> vars = new Stack<>();
+		vars.push(new HashSet<>());
 		StringBuilder sb = new StringBuilder();
 		Stack<Operation> blockOp = new Stack<>();
 		Operation lastBlockOp = null;
@@ -96,13 +99,12 @@ public class PlatformHPPL extends Platform {
 			if (canRemove(pkg, expr, op)) {
 				append = false;
 			} else if (op.op.hasLVar()) {
-				
 				String s = assembleExpression(pkg, expr, op);
 				if (s==null) {
 					append = false;
 				} else {
 					if (!ditchLValue(pkg, expr, op)) {
-						addLocal(pkg, expr, op, sb);
+						addLocal(pkg, expr, op, sb, vars);
 						sb.append(op.args[0]);
 						sb.append(":=");
 					}
@@ -151,6 +153,14 @@ public class PlatformHPPL extends Platform {
 						} else {
 							sb.append("END");
 						}
+						break;
+					case BEGIN:
+						vars.push(new HashSet<>());
+						append=false;
+						break;
+					case END:
+						vars.pop();
+						append=false;
 						break;
 					default:
 						append = false;
@@ -220,9 +230,10 @@ public class PlatformHPPL extends Platform {
 		return sb.toString();
 	}
 	
-	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb) {
-		if (AssemblyUtils.isFirstRef(pkg, code, thisOp, thisOp.args[0])) {
+	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb, Stack<HashSet<String>> vars) {
+		if (!vars.peek().contains(thisOp.args[0])) {
 			sb.append("LOCAL ");
+			vars.peek().add(thisOp.args[0]);
 		}
 	}
 	
