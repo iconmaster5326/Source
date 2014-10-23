@@ -12,7 +12,6 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -89,25 +88,23 @@ public class PlatformHPPL extends Platform {
 	}
 	
 	private String assembleCode(SourcePackage pkg, ArrayList<Operation> expr) {
-		Stack<HashSet<String>> vars = new Stack<>();
-		vars.push(new HashSet<>());
-		Stack<HashSet<String>> defs = new Stack<>();
-		defs.push(new HashSet<>());
+		Stack<AssembleVarSpace> vs = new Stack<>();
+		vs.add(new AssembleVarSpace());
 		
 		StringBuilder sb = new StringBuilder();
 		Stack<Operation> blockOp = new Stack<>();
 		Operation lastBlockOp = null;
 		for (Operation op : expr) {
 			boolean append = true;
-			if (canRemove(pkg, expr, op)) {
+			if (canRemove(pkg, expr, op, vs)) {
 				append = false;
 			} else if (op.op.hasLVar()) {
-				String s = assembleExpression(pkg, expr, op);
+				String s = assembleExpression(pkg, expr, op, vs);
 				if (s==null) {
 					append = false;
 				} else {
 					if (!ditchLValue(pkg, expr, op)) {
-						addLocal(pkg, expr, op, sb, vars, defs);
+						addLocal(pkg, expr, op, sb, vs);
 						sb.append(op.args[0]);
 						sb.append(":=");
 					}
@@ -119,12 +116,12 @@ public class PlatformHPPL extends Platform {
 						sb.append("RETURN");
 						if (op.args.length>0) {
 							sb.append(" ");
-							sb.append(getInlineString(pkg, expr, op.args[0]));
+							sb.append(getInlineString(pkg, expr, op.args[0], vs));
 						}
 						break;
 					case IF:
 						sb.append("IF ");
-						sb.append(getInlineString(pkg, expr, op.args[0]));
+						sb.append(getInlineString(pkg, expr, op.args[0], vs));
 						sb.append(" THEN\n");
 						append = false;
 						blockOp.push(op);
@@ -138,7 +135,7 @@ public class PlatformHPPL extends Platform {
 						break;
 					case WHILE:
 						sb.append("WHILE ");
-						sb.append(getInlineString(pkg, expr, op.args[0]));
+						sb.append(getInlineString(pkg, expr, op.args[0], vs));
 						sb.append(" DO\n");
 						append = false;
 						blockOp.push(op);
@@ -152,26 +149,32 @@ public class PlatformHPPL extends Platform {
 						lastBlockOp = blockOp.pop();
 						if (lastBlockOp.op == OpType.REP) {
 							sb.append("UNTIL ");
-							sb.append(getInlineString(pkg, expr, lastBlockOp.args[0]));
+							sb.append(getInlineString(pkg, expr, lastBlockOp.args[0], vs));
 						} else {
 							sb.append("END");
 						}
 						break;
 					case BEGIN:
-						vars.push(new HashSet<>());
-						defs.push(new HashSet<>());
+						vs.push(new AssembleVarSpace());
 						append=false;
 						break;
 					case END:
-						vars.pop();
-						defs.pop();
+						vs.pop();
 						append=false;
 						break;
 					case DEF:
 						for (String arg : op.args) {
-							defs.peek().add(arg);
+							vs.peek().defs.add(arg);
 						}
 						append=false;
+						break;
+					case PROP:
+						for (int i=1;i<op.args.length;i++) {
+							if ("const".equals(op.args[i])) {
+								vs.peek().consts.add(op.args[0]);
+							}
+						}
+						append = false;
 						break;
 					default:
 						append = false;
@@ -184,17 +187,17 @@ public class PlatformHPPL extends Platform {
 		return sb.toString();
 	}
 	
-	private String assembleExpression(SourcePackage pkg, ArrayList<Operation> expr, Operation op) {
+	private String assembleExpression(SourcePackage pkg, ArrayList<Operation> expr, Operation op, Stack<AssembleVarSpace> vs) {
 		StringBuilder sb = new StringBuilder();
 		if (op.op.isMathOp()) {
-			sb.append(getInlineString(pkg, expr, op.args[1]));
+			sb.append(getInlineString(pkg, expr, op.args[1], vs));
 			sb.append(getMathOp(op.op));
-			sb.append(getInlineString(pkg, expr, op.args[2]));
+			sb.append(getInlineString(pkg, expr, op.args[2], vs));
 		} else {
 			switch (op.op) {
 				case MOVN:
 				case MOV:
-					sb.append(getInlineString(pkg, expr, op.args[1]));
+					sb.append(getInlineString(pkg, expr, op.args[1], vs));
 					break;
 				case MOVS:
 					sb.append("\"");
@@ -205,7 +208,7 @@ public class PlatformHPPL extends Platform {
 					sb.append("{");
 					if (op.args.length > 1) {
 						for (int i=1;i<op.args.length;i++) {
-							sb.append(getInlineString(pkg, expr, op.args[i]));
+							sb.append(getInlineString(pkg, expr, op.args[i], vs));
 							sb.append(",");
 						}
 						sb.deleteCharAt(sb.length()-1);
@@ -216,7 +219,7 @@ public class PlatformHPPL extends Platform {
 					Function fn = pkg.getFunction(op.args[1]);
 					if (fn!=null) {
 						if (fn.isLibrary()) {
-							String oncomp = fn.compileFunction(pkg,new PlatformContext(expr, op, sb, this));
+							String oncomp = fn.compileFunction(pkg,new PlatformContext(expr, op, sb, this, vs));
 							if (oncomp!=null) {
 								sb.append(oncomp);
 								break;
@@ -227,7 +230,7 @@ public class PlatformHPPL extends Platform {
 					if (op.args.length > 2) {
 						sb.append("(");
 						for (int i=2;i<op.args.length;i++) {
-							sb.append(getInlineString(pkg, expr, op.args[i]));
+							sb.append(getInlineString(pkg, expr, op.args[i], vs));
 							sb.append(",");
 						}
 						sb.deleteCharAt(sb.length()-1);
@@ -241,28 +244,28 @@ public class PlatformHPPL extends Platform {
 		return sb.toString();
 	}
 	
-	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb, Stack<HashSet<String>> vars, Stack<HashSet<String>> defs) {
+	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb, Stack<AssembleVarSpace> vs) {
 		boolean need = true;
 		
 		if (pkg.getField(thisOp.args[0])!=null) {
 			need = false;
 		}
 		
-		for (HashSet<String> map : vars) {
-			if (map.contains(thisOp.args[0])) {
+		for (AssembleVarSpace avs : vs) {
+			if (avs.vars.contains(thisOp.args[0])) {
 				need = false;
 			}
 		}
-		for (HashSet<String> map : (Stack<HashSet<String>>) defs.clone()) {
-			if (map.contains(thisOp.args[0])) {
-				map.remove(thisOp.args[0]);
+		for (AssembleVarSpace avs : vs) {
+			if (avs.defs.contains(thisOp.args[0])) {
+				avs.defs.remove(thisOp.args[0]);
 				need = true;
 			}
 		}
 		
 		if (need) {
 			sb.append("LOCAL ");
-			vars.peek().add(thisOp.args[0]);
+			vs.peek().vars.add(thisOp.args[0]);
 		}
 	}
 	
@@ -303,7 +306,12 @@ public class PlatformHPPL extends Platform {
 			}
 		}
 	
-	public static boolean isInlinable(SourcePackage pkg, ArrayList<Operation> code, String var) {
+	public static boolean isInlinable(SourcePackage pkg, ArrayList<Operation> code, String var,Stack<AssembleVarSpace> vs) {
+		for (AssembleVarSpace avs : vs) {
+			if (avs.consts.contains(var)) {
+				return true;
+			}
+		}
 		ArrayList<Operation> lref = AssemblyUtils.getLReferences(pkg, code, var);
 		ArrayList<Operation> rref = AssemblyUtils.getRReferences(pkg, code, var);
 		if (lref.size()==1 && rref.size()==1) {
@@ -321,26 +329,26 @@ public class PlatformHPPL extends Platform {
 		return lref.size()<2 && rref.size()<2;
 	}
 	
-	public String getInlineString(SourcePackage pkg, ArrayList<Operation> code, String var) {
-		if (isInlinable(pkg, code, var)) {
+	public String getInlineString(SourcePackage pkg, ArrayList<Operation> code, String var, Stack<AssembleVarSpace> vs) {
+		if (isInlinable(pkg, code, var, vs)) {
 			ArrayList<Operation> a = AssemblyUtils.getLReferences(pkg, code, var);
 			if (a.isEmpty()) {
 				return var;
 			}
-			return assembleExpression(pkg, code, a.get(0));
+			return assembleExpression(pkg, code, a.get(0), vs);
 		} else {
 			return var;
 		}
 	}
 	
-	public boolean canRemove(SourcePackage pkg, ArrayList<Operation> ops, Operation op) {
+	public boolean canRemove(SourcePackage pkg, ArrayList<Operation> ops, Operation op, Stack<AssembleVarSpace> vs) {
 		if (!op.op.hasLVar()) {
 			return false;
 		}
 		if (AssemblyUtils.getRReferences(pkg, ops, op.args[0]).isEmpty()) {
 			return false;
 		}
-		return isInlinable(pkg, ops, op.args[0]);
+		return isInlinable(pkg, ops, op.args[0], vs);
 //		return false;
 	}
 	
