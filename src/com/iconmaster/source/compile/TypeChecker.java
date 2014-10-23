@@ -65,13 +65,27 @@ public class TypeChecker {
 				}
 			}
 			
-			if (op.op.hasLVar() && fn.varspace.getConst(op.args[0])!=null) {
-				Boolean result = fn.varspace.putConstValue(op.args[0]);
-				if (result==null) {
-					a.add(new SourceException(op.range,"Constant "+op.args[0]+" cannot be assigned to in this scope"));
-				} else if (result) {
-					a.add(new SourceException(op.range,"Constant "+op.args[0]+" already has a value"));
+			if (op.op.hasLVar()) {
+				if (fn.varspace.getConst(op.args[0])!=null) {
+					Boolean result = fn.varspace.putConstValue(op.args[0]);
+					if (result==null) {
+						a.add(new SourceException(op.range,"Constant "+op.args[0]+" cannot be assigned to in this scope"));
+					} else if (result) {
+						a.add(new SourceException(op.range,"Constant "+op.args[0]+" already has a value"));
+					}
 				}
+				
+				
+//				for (String arg : op.getVarNames()) {
+//					if (!arg.equals(op.args[0])) {
+//						Boolean result = fn.varspace.getVar(arg);
+//						if (result==null || result==false) {
+//							a.add(new SourceException(op.range,"Variable "+arg+" was not initialized "));
+//						}
+//					}
+//				}
+//				
+//				fn.varspace.putVarUsed(op.args[0]);
 			}
 			
 			if (op.getVarNames().length!=0) {

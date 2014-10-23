@@ -99,6 +99,11 @@ public class SourceCompiler {
 							String name = pkg.nameProvider.getTempName();
 							names.add(name);
 							String var = resolveLValue(pkg,code,e2);
+							if (!Directives.getAll(e).isEmpty()) {
+								ArrayList<String> pa = (ArrayList<String>) Directives.getAll(e).clone();
+								pa.add(0, name);
+								code.add(new Operation(OpType.PROP, e.range, pa.toArray(new String[0])));
+							}
 							Expression right = compileExpression(pkg, name, vals.get(i));
 							code.addAll(right);
 						}
