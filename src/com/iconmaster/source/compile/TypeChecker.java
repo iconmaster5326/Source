@@ -43,9 +43,7 @@ public class TypeChecker {
 				} else {
 					a.add(new SourceException(op.range,"Undefined function "+op.args[1]));
 				}
-			}
-			
-			if (op.op==OpType.DEF) {
+			} else if (op.op==OpType.DEF) {
 				for (String arg : op.args) {
 					if (fn.varspace.varsUsed.get(arg)!=null) {
 						a.add(new SourceException(op.range,"Variable "+arg+" already defined"));
@@ -57,6 +55,23 @@ public class TypeChecker {
 				fn.varspace = new VarSpace(fn.varspace);
 			} else if (op.op==OpType.END) {
 				fn.varspace = fn.varspace.parent;
+			} else if (op.op==OpType.PROP) {
+				String var = op.args[0];
+				for (int i=1;i<op.args.length;i++) {
+					String dir = op.args[i];
+					if ("const".equals(dir)) {
+						fn.varspace.putConst(var);
+					}
+				}
+			}
+			
+			if (op.op.hasLVar() && fn.varspace.getConst(op.args[0])!=null) {
+				Boolean result = fn.varspace.putConstValue(op.args[0]);
+				if (result==null) {
+					a.add(new SourceException(op.range,"Constant "+op.args[0]+" cannot be assigned to in this scope"));
+				} else if (result) {
+					a.add(new SourceException(op.range,"Constant "+op.args[0]+" already has a value"));
+				}
 			}
 			
 			if (op.getVarNames().length!=0) {

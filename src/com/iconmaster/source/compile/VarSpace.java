@@ -13,6 +13,8 @@ public class VarSpace {
 	HashMap<String,Variable> fieldsUsed = new HashMap<>();
 	HashMap<String,Function> funcsUsed = new HashMap<>();
 	public VarSpace parent;
+	
+	HashMap<String,Boolean> consts = new HashMap<>();
 
 	public VarSpace(VarSpace parent) {
 		this.parent = parent;
@@ -51,6 +53,27 @@ public class VarSpace {
 		if (var == null && parent != null) {
 			return parent.getFunc(name);
 		}
+		return var;
+	}
+	
+	public Boolean getConst(String name) {
+		Boolean var = consts.get(name);
+		if (var == null && parent != null) {
+			return parent.getConst(name);
+		}
+		return var;
+	}
+	
+	public void putConst(String name) {
+		consts.put(name, false);
+	}
+	
+	public Boolean putConstValue(String name) {
+		Boolean var = consts.get(name);
+		if (var==null) {
+			return null;
+		}
+		consts.put(name, true);
 		return var;
 	}
 }

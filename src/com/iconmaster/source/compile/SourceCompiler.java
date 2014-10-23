@@ -69,6 +69,13 @@ public class SourceCompiler {
 						lnames.add(resolveLValue(pkg,code,e2));
 					}
 					code.add(new Operation(OpType.DEF, e.range, lnames.toArray(new String[0])));
+					if (!Directives.getAll(e).isEmpty()) {
+						for (String name : lnames) {
+							ArrayList<String> pa = (ArrayList<String>) Directives.getAll(e).clone();
+							pa.add(0, name);
+							code.add(new Operation(OpType.PROP, e.range, pa.toArray(new String[0])));
+						}
+					}
 					break;
 				case LOCAL_ASN:
 					lnames = new ArrayList<>();
