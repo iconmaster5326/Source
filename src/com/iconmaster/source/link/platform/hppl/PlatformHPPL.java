@@ -243,6 +243,11 @@ public class PlatformHPPL extends Platform {
 	
 	public void addLocal(SourcePackage pkg, ArrayList<Operation> code, Operation thisOp, StringBuilder sb, Stack<HashSet<String>> vars, Stack<HashSet<String>> defs) {
 		boolean need = true;
+		
+		if (pkg.getField(thisOp.args[0])!=null) {
+			need = false;
+		}
+		
 		for (HashSet<String> map : vars) {
 			if (map.contains(thisOp.args[0])) {
 				need = false;
