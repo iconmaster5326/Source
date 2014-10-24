@@ -138,7 +138,9 @@ public class SourceCompiler {
 					expr.add(new Operation(OpType.MOVS, e.range, retVar, (String)e.args[0]));
 					break;
 				case WORD:
-					if (!frame.isDefined((String)e.args[0])) {
+					if (pkg.getField((String)e.args[0])!=null) {
+						expr.add(new Operation(OpType.MOV, e.range, retVar, (String)e.args[0]));
+					} else if (!frame.isDefined((String)e.args[0])) {
 						errs.add(new SourceException(e.range, "Undefined variable"));
 					} else if (frame.getVariable((String)e.args[0])==null) {
 						errs.add(new SourceException(e.range, "Uninitialized variable"));
@@ -226,7 +228,11 @@ public class SourceCompiler {
 			switch ((TokenRule)e.type) {
 				case WORD:
 					name = (String) e.args[0];
-					if (frame.getVariable(name)==null) {
+					if (pkg.getField(name)!=null) {
+						
+					} else if (!frame.isDefined(name)) {
+						errs.add(new SourceException(e.range,"Variable "+name+" not declared local"));
+					} else if (frame.getVariable(name)==null) {
 						name = frame.putVariable(name, false).name;
 					} else {
 						name = frame.getVariableName(name);
