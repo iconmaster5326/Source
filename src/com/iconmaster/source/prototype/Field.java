@@ -1,8 +1,8 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.Expression;
 import com.iconmaster.source.compile.Operation;
-import com.iconmaster.source.compile.VarSpace;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
@@ -11,25 +11,24 @@ import java.util.ArrayList;
  *
  * @author iconmaster
  */
-public class Variable implements IDirectable {
+public class Field implements IDirectable {
 	protected String name;
-	protected DataType type;
+	protected Element rawType;
 	protected Element rawValue;
 	protected ArrayList<String> directives = new ArrayList<>();;
 	
 	protected boolean compiled;
 	protected boolean library;
 	protected Expression value;
-	
-	public VarSpace varspace = new VarSpace(null);
+	protected DataType type;
 
-	public Variable(String name) {
+	public Field(String name) {
 		this(name,null);
 	}
 
-	public Variable(String name, DataType type) {
+	public Field(String name, Element type) {
 		this.name = name;
-		this.type = type;
+		this.rawType = type;
 	}
 	
 	@Override

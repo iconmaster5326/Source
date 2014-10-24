@@ -122,18 +122,12 @@ public class Operation {
 	
 	public OpType op;
 	public String[] args;
-	public VarSpace vspace;
 	public Range range;
 
 	public Operation(OpType op, Range range, String... args) {
 		this.op = op;
 		this.range = range;
 		this.args = args;
-	}
-	
-	public VarSpace createVarspace(VarSpace parent) {
-		this.vspace = new VarSpace(parent);
-		return vspace;
 	}
 
 	@Override

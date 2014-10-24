@@ -11,9 +11,9 @@ public class LibraryCore extends SourcePackage {
 	public LibraryCore() {
 		this.name = "CORE";
 		
-		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, new String[] {}));
+		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, "null"));
 		
-		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new String[] {"real","real"}, new String[] {"list"});
+		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new String[] {"real","real"}, "list");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("MAKELIST(X,X,");

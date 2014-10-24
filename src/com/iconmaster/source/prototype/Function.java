@@ -1,8 +1,9 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.Operation;
-import com.iconmaster.source.compile.VarSpace;
 import com.iconmaster.source.element.Element;
+import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
@@ -12,22 +13,22 @@ import java.util.ArrayList;
  */
 public class Function implements IDirectable {
 	protected String name;
-	protected ArrayList<Variable> args;
-	protected ArrayList<DataType> returns;
+	protected ArrayList<Field> args;
+	protected Element rawReturns;
 	protected ArrayList<String> directives = new ArrayList<>();
 	protected ArrayList<Element> rawCode;
 	protected boolean library = false;
 	
 	protected boolean compiled = false;
 	protected ArrayList<Operation> code;
+	protected DataType returns;
 	
-	public VarSpace varspace = new VarSpace(null);
 	public OnCompile onCompile;
 
-	public Function(String name, ArrayList<Variable> args, ArrayList<DataType> returns) {
+	public Function(String name, ArrayList<Field> args, Element returns) {
 		this.name = name;
 		this.args = args;
-		this.returns = returns;
+		this.rawReturns = returns;
 	}
 
 	@Override
@@ -44,21 +45,27 @@ public class Function implements IDirectable {
 		return sb.toString();
 	}
 	
-	public static Function libraryFunction(String name, String[] args, String[] argTypes, String[] rets) {
-		ArrayList<Variable> argList = new ArrayList<>();
+	public static Function libraryFunction(String name, String[] args, String[] argTypes, String ret) {
+		ArrayList<Field> argList = new ArrayList<>();
 		ArrayList<DataType> retList = new ArrayList<>();
 		
 		int i = 0;
 		for (String arg : args) {
-			argList.add(new Variable(arg, new DataType(i>=argTypes.length?"?":argTypes[i])));
+			Element e = null;
+			if (i<argTypes.length) {
+				e = new Element(null,TokenRule.WORD);
+				e.args[0] = argTypes[i];
+			}
+			argList.add(new Field(arg, e));
 			i++;
 		}
 		
-		for (String ret : rets) {
-			retList.add(new DataType(ret));
+		Element e = null;
+		if (ret!=null) {
+			e = new Element(null,TokenRule.WORD);
+			e.args[0] = ret;
 		}
-		
-		Function fn = new Function(name, argList, retList);
+		Function fn = new Function(name, argList, e);
 		fn.library = true;
 		fn.compiled = true;
 		return fn;
@@ -90,7 +97,7 @@ public class Function implements IDirectable {
 		return directives;
 	}
 
-	public ArrayList<Variable> getArguments() {
+	public ArrayList<Field> getArguments() {
 		return args;
 	}
 

@@ -9,7 +9,7 @@ import static com.iconmaster.source.compile.Operation.OpType.LE;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.prototype.Variable;
+import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -36,7 +36,7 @@ public class PlatformHPPL extends Platform {
 			}
 		}
 		sb.append("\n");
-		for (Variable var : pkg.getVariables()) {
+		for (Field var : pkg.getFields()) {
 			if (var.isCompiled()) {
 				sb.append(assembleField(pkg,var));
 			}
@@ -58,7 +58,7 @@ public class PlatformHPPL extends Platform {
 		sb.append(fn.getName());
 		sb.append("(");
 		if (!fn.getArguments().isEmpty()) {
-			for (Variable arg : fn.getArguments()) {
+			for (Field arg : fn.getArguments()) {
 				sb.append(arg.getName());
 				sb.append(',');
 			}
@@ -74,7 +74,7 @@ public class PlatformHPPL extends Platform {
 		return sb.toString();
 	}
 	
-	private String assembleField(SourcePackage pkg, Variable var) {
+	private String assembleField(SourcePackage pkg, Field var) {
 		StringBuilder sb = new StringBuilder();
 		if (Directives.has(var, "export")) {
 			sb.append("EXPORT ");

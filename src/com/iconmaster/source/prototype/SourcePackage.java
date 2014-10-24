@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class SourcePackage {
 	protected String name;
-	protected ArrayList<Variable> fields = new ArrayList<>();
+	protected ArrayList<Field> fields = new ArrayList<>();
 	protected ArrayList<Function> functions = new ArrayList<>();
 	protected ArrayList<String> imports = new ArrayList<>();
 	
@@ -29,7 +29,7 @@ public class SourcePackage {
 			sb.append(imp);
 		}
 		sb.append("\n\tFIELDS:");
-		for (Variable field : fields) {
+		for (Field field : fields) {
 			sb.append("\n\t\t");
 			sb.append(field.toString().replace("\n", "\n\t"));
 		}
@@ -67,53 +67,39 @@ public class SourcePackage {
 					int i=0;
 					ArrayList<Element> vals = ((ArrayList<Element>) e.args[1]);
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						try {
-							Variable var = new Variable((String)e2.args[0], new DataType(e2.dataType));
-							if (i < vals.size()) {
-								var.rawValue = vals.get(i);
-							}
-							var.getDirectives().addAll(e.directives);
-							fields.add(var);
-						} catch (SourceException ex) {
-							errors.add(ex);
+						Field var = new Field((String)e2.args[0], e2.dataType);
+						if (i < vals.size()) {
+							var.rawValue = vals.get(i);
 						}
+						var.getDirectives().addAll(e.directives);
+						fields.add(var);
 						i++;
 					}
 					break;
 				case FIELD:
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						try {
-							Variable var = new Variable((String)e2.args[0], new DataType(e2.dataType));
-							var.getDirectives().addAll(e.directives);
-							fields.add(var);
-						} catch (SourceException ex) {
-							errors.add(ex);
-						}
+						Field var = new Field((String)e2.args[0], e2.dataType);
+						var.getDirectives().addAll(e.directives);
+						fields.add(var);
 					}
 					break;
 				case FUNC:
-					try {
-						String fname = (String) e.args[0];
-						ArrayList<Variable> args = new ArrayList<>();
-						ArrayList<DataType> rets = DataType.getFuncReturn(e.dataType);
-						
-						for (Element e2 : (ArrayList<Element>) e.args[1]) {
-							if (e2.args[0] instanceof ArrayList) {
-								for (Element e3 : (ArrayList<Element>) e2.args[0]) {
-									args.add(new Variable((String)e3.args[0], new DataType(e3.dataType)));
-								}
-							} else {
-								args.add(new Variable((String)e2.args[0], new DataType(e2.dataType)));
+					String fname = (String) e.args[0];
+					ArrayList<Field> args = new ArrayList<>();
+					Element rets = e.dataType;
+					for (Element e2 : (ArrayList<Element>) e.args[1]) {
+						if (e2.args[0] instanceof ArrayList) {
+							for (Element e3 : (ArrayList<Element>) e2.args[0]) {
+								args.add(new Field((String)e3.args[0], e3.dataType));
 							}
+						} else {
+							args.add(new Field((String)e2.args[0], e2.dataType));
 						}
-						
-						Function fn = new Function(fname,args,rets);
-						fn.getDirectives().addAll(e.directives);
-						fn.rawCode = (ArrayList<Element>) e.args[2];
-						functions.add(fn);
-					} catch (SourceException ex) {
-						errors.add(ex);
 					}
+					Function fn = new Function(fname,args,rets);
+					fn.getDirectives().addAll(e.directives);
+					fn.rawCode = (ArrayList<Element>) e.args[2];
+					functions.add(fn);
 					break;
 				case ENUM:
 				case STRUCT:
@@ -145,12 +131,12 @@ public class SourcePackage {
 		return functions;
 	}
 	
-	public ArrayList<Variable> getVariables() {
+	public ArrayList<Field> getFields() {
 		return fields;
 	}
 	
-	public Variable getField(String name) {
-		for (Variable v : fields) {
+	public Field getField(String name) {
+		for (Field v : fields) {
 			if (v.getName().equals(name)) {
 				return v;
 			}

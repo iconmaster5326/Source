@@ -1,12 +1,13 @@
 package com.iconmaster.source.compile;
 
 import com.iconmaster.source.compile.Operation.OpType;
+import com.iconmaster.source.compile.ScopeFrame.Variable;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.prototype.Variable;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
@@ -18,308 +19,195 @@ import java.util.ArrayList;
 public class SourceCompiler {
 	public static ArrayList<SourceException> compile(SourcePackage pkg) {
 		ArrayList<SourceException> errs = new ArrayList<>();
-		for (Variable var : pkg.getVariables()) {
-			errs.addAll(compileVariable(pkg, var));
+		ScopeFrame sf = new ScopeFrame(pkg);
+		for (Field field : pkg.getFields()) {
+			if (!field.isCompiled() && !field.isLibrary()) {
+				compileField(pkg, new ScopeFrame(pkg, sf), field, errs);
+			}
 		}
 		for (Function fn : pkg.getFunctions()) {
-			errs.addAll(compileFunction(pkg,fn));
-		}
-		return errs;
-	}
-	
-	public static ArrayList<SourceException> compileFunction(SourcePackage pkg, Function fn) {
-		ArrayList<SourceException> errs = new ArrayList<>();
-		if (fn.rawData()!=null) {
-			ArrayList<Operation> code = null;
-			try {
-				code = compileCode(pkg,fn.rawData());
-			} catch (SourceException ex) {
-				errs.add(ex);
+			if (!fn.isCompiled() && !fn.isLibrary()) {
+				compileFunction(pkg, new ScopeFrame(pkg, sf), fn, errs);
 			}
-			fn.setCompiled(code);
-		} else {
-			fn.setCompiled(null);
 		}
 		return errs;
 	}
 	
-	public static ArrayList<SourceException> compileVariable(SourcePackage pkg, Variable var) {
-		ArrayList<SourceException> errs = new ArrayList<>();
-		if (var.rawData()!=null) {
-			Expression expr = null;
-			try {
-				expr = compileExpression(pkg, var.getName(), var.rawData());
-			} catch (SourceException ex) {
-				errs.add(ex);
-			}
-			var.setCompiled(expr);
-		} else {
-			var.setCompiled(null);
+	public static Expression compileFunction(SourcePackage pkg, ScopeFrame frame, Function fn, ArrayList<SourceException> errs) {
+		for (Field v : fn.getArguments()) {
+			frame.putVariable(v.getName(), !Directives.has(fn, "export"));
 		}
-		return errs;
+		Expression code = compileCode(pkg, frame, fn.rawData(), errs);
+		fn.setCompiled(code);
+		return code;
 	}
 	
-	public static ArrayList<Operation> compileCode(SourcePackage pkg, ArrayList<Element> a) throws SourceException {
-		ArrayList<Operation> code = new ArrayList<>();
-		OpType asnType = null; //a temp vairable for +=, etc.
-		for (Element e : a) {
+	public static Expression compileField(SourcePackage pkg, ScopeFrame frame, Field field, ArrayList<SourceException> errs) {
+		Variable v = frame.putVariable(field.getName(), false);
+		Expression expr = compileExpr(pkg, frame, v.name, field.rawData(), errs);
+		field.setCompiled(expr);
+		return expr;
+	}
+	
+	public static Expression compileCode(SourcePackage pkg, ScopeFrame frame, ArrayList<Element> es, ArrayList<SourceException> errs) {
+		Expression code = new Expression();
+		for (Element e : es) {
 			switch ((Rule)e.type) {
 				case LOCAL:
-					ArrayList<String> lnames = new ArrayList<>();
-					for (Element e2 : (ArrayList<Element>)e.args[0]) {
-						lnames.add(resolveLValue(pkg,code,e2));
-					}
-					code.add(new Operation(OpType.DEF, e.range, lnames.toArray(new String[0])));
-					if (!Directives.getAll(e).isEmpty()) {
-						for (String name : lnames) {
-							ArrayList<String> pa = (ArrayList<String>) Directives.getAll(e).clone();
-							pa.add(0, name);
-							code.add(new Operation(OpType.PROP, e.range, pa.toArray(new String[0])));
-						}
+					for (Element e2 : (ArrayList<Element>) e.args[0]) {
+						String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
+						frame.putDefined(expr2);
 					}
 					break;
 				case LOCAL_ASN:
-					lnames = new ArrayList<>();
-					for (Element e2 : (ArrayList<Element>)e.args[0]) {
-						lnames.add(resolveLValue(pkg,code,e2));
-					}
-					code.add(new Operation(OpType.DEF, e.range, lnames.toArray(new String[0])));
-					if (!Directives.getAll(e).isEmpty()) {
-						for (String name : lnames) {
-							ArrayList<String> pa = (ArrayList<String>) Directives.getAll(e).clone();
-							pa.add(0, name);
-							code.add(new Operation(OpType.PROP, e.range, pa.toArray(new String[0])));
-						}
+					for (Element e2 : (ArrayList<Element>) e.args[0]) {
+						String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
+						frame.putDefined(expr2);
 					}
 				case ASSIGN:
-					int i = 0;
-					ArrayList<Element> vals = (ArrayList<Element>)e.args[1];
 					ArrayList<String> names = new ArrayList<>();
-					for (Element e2 : (ArrayList<Element>)e.args[0]) {
-						if (i<vals.size()) {
-							String name = pkg.nameProvider.getTempName();
-							names.add(name);
-							String var = resolveLValue(pkg,code,e2);
-							if (!Directives.getAll(e).isEmpty()) {
-								ArrayList<String> pa = (ArrayList<String>) Directives.getAll(e).clone();
-								pa.add(0, name);
-								code.add(new Operation(OpType.PROP, e.range, pa.toArray(new String[0])));
-							}
-							Expression right = compileExpression(pkg, name, vals.get(i));
-							code.addAll(right);
+					ArrayList<Element> les = (ArrayList<Element>) e.args[0];
+					ArrayList<Element> res = (ArrayList<Element>) e.args[1];
+					for (Element e2 : res) {
+						String name2 = frame.newVarName();
+						Expression expr2 = compileExpr(pkg, frame, name2, e2, errs);
+						code.addAll(expr2);
+						names.add(name2);
+					}
+					int asni = 0;
+					for (Element e2 : les) {
+						if (asni<names.size()) {
+							Expression expr2 = resolveLValue(pkg, frame, e2, errs);
+							code.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
+							code.addAll(expr2);
 						}
-						i++;
+						asni++;
 					}
-					i = 0;
-					for (Element e2 : (ArrayList<Element>)e.args[0]) {
-						if (i<vals.size()) {
-							String name = names.get(i);
-							String var = resolveLValue(pkg,code,e2);
-							code.add(new Operation(OpType.MOV, e2.range, var,name));
-						}
-						i++;
-					}
-					break;
-				case ADD_ASN:
-					if (e.type == Rule.ADD_ASN) {
-						asnType = OpType.ADD;
-					}
-				case SUB_ASN:
-					if (e.type == Rule.SUB_ASN) {
-						asnType = OpType.SUB;
-					}
-				case MUL_ASN:
-					if (e.type == Rule.MUL_ASN) {
-						asnType = OpType.MUL;
-					}
-				case DIV_ASN:
-					if (e.type == Rule.DIV_ASN) {
-						asnType = OpType.DIV;
-					}
-					String var = resolveLValue(pkg, code, (Element) e.args[0]);
-					String name = pkg.nameProvider.getTempName();
-					Expression rexpr = compileExpression(pkg, name, (Element) e.args[1]);
-					code.addAll(rexpr);
-					code.add(new Operation(asnType,e.range,var,var,name));
-					break;
-				case RETURN:
-					name = pkg.nameProvider.getTempName();
-					Expression expr = compileExpression(pkg,name, (Element) e.args[0]);
-					code.addAll(expr);
-					code.add(new Operation(OpType.RET,e.range,name));
-					break;
-				case RETURN_NULL:
-					code.add(new Operation(OpType.RET,e.range));
 					break;
 				case IF:
-					name = pkg.nameProvider.getTempName();
-					expr = compileExpression(pkg, name, (Element) e.args[0]);
-					code.addAll(expr);
-					code.add(new Operation(OpType.IF,e.range,name));
-					code.add(new Operation(OpType.BEGIN,e.range));
-					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END,e.range));
-					code.add(new Operation(OpType.ENDB,e.range));
+					Expression cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					code.addAll(cond);
+					code.add(new Operation(OpType.IF, e.range, cond.retVar));
+					code.add(new Operation(OpType.BEGIN, e.range));
+					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					code.add(new Operation(OpType.END, e.range));
+					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				case ELSE:
-					code.add(new Operation(OpType.ELSE,e.range));
-					code.add(new Operation(OpType.BEGIN,e.range));
-					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END,e.range));
-					code.add(new Operation(OpType.ENDB,e.range));
-					break;
-				case ELSEIF:
-					code.add(new Operation(OpType.ELSE,e.range));
-					name = pkg.nameProvider.getTempName();
-					expr = compileExpression(pkg, name, (Element) e.args[0]);
-					code.addAll(expr);
-					code.add(new Operation(OpType.IF,e.range,name));
-					code.add(new Operation(OpType.BEGIN,e.range));
-					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.ENDB,e.range));
-					code.add(new Operation(OpType.END,e.range));
-					code.add(new Operation(OpType.ENDB,e.range));
+					code.add(new Operation(OpType.ELSE, e.range));
+					code.add(new Operation(OpType.BEGIN, e.range));
+					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					code.add(new Operation(OpType.END, e.range));
+					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				case WHILE:
-					name = pkg.nameProvider.getTempName();
-					expr = compileExpression(pkg, name, (Element) e.args[0]);
-					code.addAll(expr);
-					code.add(new Operation(OpType.WHILE,e.range,name));
-					code.add(new Operation(OpType.BEGIN,e.range));
-					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END,e.range));
-					code.add(new Operation(OpType.ENDB,e.range));
+					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					code.addAll(cond);
+					code.add(new Operation(OpType.WHILE, e.range, cond.retVar));
+					code.add(new Operation(OpType.BEGIN, e.range));
+					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					code.add(new Operation(OpType.END, e.range));
+					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				case REPEAT:
-					name = pkg.nameProvider.getTempName();
-					code.add(new Operation(OpType.REP,e.range,name));
-					code.add(new Operation(OpType.BEGIN,e.range));
-					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[2]));
-					expr = compileExpression(pkg, name, (Element) e.args[0]);
-					code.addAll(expr);
-					code.add(new Operation(OpType.END,e.range));
-					code.add(new Operation(OpType.ENDB,e.range));
-					break;
-				case CODE:
-					code.add(new Operation(OpType.BEGIN,e.range));
-					code.addAll(compileCode(pkg, (ArrayList<Element>) e.args[0]));
-					code.add(new Operation(OpType.END,e.range));
+					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					code.addAll(cond);
+					code.add(new Operation(OpType.REP, e.range, cond.retVar));
+					code.add(new Operation(OpType.BEGIN, e.range));
+					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					code.add(new Operation(OpType.END, e.range));
+					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				default:
-					code.addAll(compileExpression(pkg,null,e));
+					code.addAll(compileExpr(pkg, frame, frame.newVarName(), e, errs));
 			}
 		}
-		return optimize(pkg, code);
-		//return code;
+		code.add(0, new Operation(OpType.DEF, null, frame.getAllVars()));
+		return code;
 	}
 	
-	public static Expression compileExpression(SourcePackage pkg, String retVar, Element e) throws SourceException {
+	public static Expression compileExpr(SourcePackage pkg, ScopeFrame frame, String retVar, Element e, ArrayList<SourceException> errs) {
 		Expression expr = new Expression();
-		if (retVar == null) {
-			retVar = pkg.nameProvider.getTempName();
-		}
 		expr.retVar = retVar;
-		
-		if (e==null) {
-			return expr;
-		}
-		
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
-				case WORD:
-					expr.add(new Operation(OpType.MOV,e.range,retVar,(String)e.args[0]));
-					break;
 				case NUMBER:
-					expr.add(new Operation(OpType.MOVN,e.range,retVar,(String)e.args[0]));
+					expr.add(new Operation(OpType.MOVN, e.range, retVar, (String)e.args[0]));
 					break;
 				case STRING:
-					expr.add(new Operation(OpType.MOVS,e.range,retVar,(String)e.args[0]));
+					expr.add(new Operation(OpType.MOVS, e.range, retVar, (String)e.args[0]));
+					break;
+				case WORD:
+					if (!frame.isDefined((String)e.args[0])) {
+						errs.add(new SourceException(e.range, "Undefined variable"));
+					} else if (frame.getVariable((String)e.args[0])==null) {
+						errs.add(new SourceException(e.range, "Uninitialized variable"));
+					} else {
+						expr.add(new Operation(OpType.MOV, e.range, retVar, frame.getVariableName((String)e.args[0])));
+					}
 					break;
 			}
-		} else if (e.type instanceof Rule) {
+		} else {
 			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
-				String lvar = pkg.nameProvider.getTempName();
-				Expression left = compileExpression(pkg, lvar, (Element) e.args[0]);
-				String rvar = pkg.nameProvider.getTempName();
-				Expression right = compileExpression(pkg, rvar, (Element) e.args[1]);
-				expr.addAll(left);
-				expr.addAll(right);
-				expr.add(new Operation(OpType.MathToOpType((Rule) e.type),e.range,retVar,lvar,rvar));
+				Expression lexpr = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+				Expression rexpr = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[1], errs);
+				expr.addAll(lexpr);
+				expr.addAll(rexpr);
+				expr.add(new Operation(OpType.MathToOpType((Rule) e.type), e.range, retVar, lexpr.retVar, rexpr.retVar));
 			} else {
+				ArrayList<Element> es;
 				switch ((Rule)e.type) {
 					case FCALL:
-						ArrayList<Element> args = ((ArrayList<Element>) e.args[1]);
-						ArrayList<String> opArgs = new ArrayList<>();
-						opArgs.add(retVar);
-						opArgs.add((String) e.args[0]);
-						for (Element arg : args) {
-							if (arg.type==Rule.TUPLE) {
-								for (Element e3 : (ArrayList<Element>)arg.args[0]) {
-									String argName = pkg.nameProvider.getTempName();
-									Expression expr3 = compileExpression(pkg, argName, e3);
-									expr.addAll(expr3);
-									opArgs.add(argName);
-								}
-							} else {
-								String argName = pkg.nameProvider.getTempName();
-								Expression expr2 = compileExpression(pkg, argName, arg);
-								expr.addAll(expr2);
-								opArgs.add(argName);
-							}
+						ArrayList<String> names = new ArrayList<>();
+						for (Element e2 : (ArrayList<Element>) e.args[1]) {
+							String name = frame.newVarName();
+							Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+							expr.addAll(expr2);
+							names.add(name);
 						}
-						if (pkg.getFunction((String) e.args[0])!=null) {
-							Function fn = pkg.getFunction((String) e.args[0]);
-							if (Directives.has(fn, "inline") && !fn.isLibrary() && opArgs.size()-2==fn.getArguments().size()) {
-								for (int i=2;i<opArgs.size();i++) {
-									expr.add(new Operation(OpType.MOV,e.range,fn.getArguments().get(i-2).getName(),opArgs.get(i)));
-								}
-								if (!fn.isCompiled()) {
-									compileFunction(pkg,fn);
-								}
-								expr.addAll(inlineFunc(fn.getCode(),retVar));
-								break;
-							}
-						}
-						expr.add(new Operation(OpType.CALL,e.range,opArgs.toArray(new String[] {})));
+						names.add(0, (String) e.args[0]);
+						names.add(0,retVar);
+						expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						break;
 					case ICALL:
-						String iname = pkg.nameProvider.getTempName();
-						expr.addAll(compileExpression(pkg, iname, ((ArrayList<Element>) e.args[1]).get(0)));
-						expr.add(new Operation(OpType.INDEX, e.range, retVar, (String) e.args[0], iname));
+						names = new ArrayList<>();
+						es = (ArrayList<Element>) e.args[1];
+						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+							es = (ArrayList<Element>) es.get(0).args[0];
+						} else if (es.size()>1) {
+							errs.add(new SourceException(e.range, "Illegal index format"));
+						}
+						for (Element e2 : es) {
+							String name = frame.newVarName();
+							Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+							expr.addAll(expr2);
+							names.add(name);
+						}
+						if (!frame.isDefined((String)e.args[0])) {
+							errs.add(new SourceException(e.range, "Undefined variable"));
+						} else if (frame.getVariable((String)e.args[0])==null) {
+							errs.add(new SourceException(e.range, "Uninitialized variable"));
+						} else {
+							names.add(0,frame.getVariableName((String)e.args[0]));
+						}
+						names.add(0,retVar);
+						expr.add(new Operation(OpType.INDEX, e.range, names.toArray(new String[0])));
 						break;
 					case INDEX:
-						ArrayList<String> names = new ArrayList<>();
-						if (!((ArrayList<Element>) e.args[0]).isEmpty()) {
-							if (((ArrayList<Element>) e.args[0]).get(0).type==Rule.TUPLE) {
-								for (Element e2 : ((ArrayList<Element>)((Element)((ArrayList<Element>) e.args[0]).get(0)).args[0])) {
-									String lvar = pkg.nameProvider.getTempName();
-									Expression expr2 = compileExpression(pkg, lvar, e2);
-									expr.addAll(expr2);
-									names.add(lvar);
-								}
-							} else {
-								String lvar = pkg.nameProvider.getTempName();
-								Expression expr2 = compileExpression(pkg, lvar, ((ArrayList<Element>) e.args[0]).get(0));
-								expr.addAll(expr2);
-								names.add(lvar);
-							}
+						names = new ArrayList<>();
+						es = (ArrayList<Element>) e.args[0];
+						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+							es = (ArrayList<Element>) es.get(0).args[0];
+						} else if (es.size()>1) {
+							errs.add(new SourceException(e.range, "Illegal list format"));
 						}
-
-						String[] opArgs2 = new String[names.size()+1];
-						opArgs2[0] = retVar;
-						int i = 1;
-						for (String name : names) {
-							opArgs2[i] = name;
-							i++;
+						for (Element e2 : es) {
+							String name = frame.newVarName();
+							expr.addAll(compileExpr(pkg, frame, name, e2, errs));
+							names.add(name);
 						}
-						expr.add(new Operation(OpType.MOVL,e.range,opArgs2));
-						break;
-					case PAREN:
-						ArrayList<Element> pargs = (ArrayList<Element>) e.args[0];
-						if (pargs.size()!=1) {
-							throw new SourceException(e.range,"Invalid use of parenthesis");
-						}
-						expr.addAll(compileExpression(pkg, retVar, pargs.get(0)));
+						names.add(0,retVar);
+						expr.add(new Operation(OpType.MOVL, e.range, names.toArray(new String[0])));
 						break;
 				}
 			}
@@ -327,101 +215,52 @@ public class SourceCompiler {
 		return expr;
 	}
 	
-	public static String resolveLValue(SourcePackage pkg, ArrayList<Operation> ops, Element e) throws SourceException {
+	public static DataType compileDataType(SourcePackage pkg, ScopeFrame frame, Element expr, ArrayList<SourceException> errs) {
+		return null;
+	}
+	
+	public static Expression resolveLValue(SourcePackage pkg, ScopeFrame frame, Element e, ArrayList<SourceException> errs) {
+		Expression expr = new Expression();
+		String name;
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case WORD:
-					return (String) e.args[0];
+					name = (String) e.args[0];
+					if (frame.getVariable(name)==null) {
+						name = frame.putVariable(name, false).name;
+					} else {
+						name = frame.getVariableName(name);
+					}
+					expr.retVar = name;
+					break;
+				default:
+					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
-		} else if (e.type instanceof Rule) {
+		} else {
 			switch ((Rule)e.type) {
-				
+				default:
+					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		}
-		throw new SourceException(e.range,"Could not resolve L-value");
+		return expr;
 	}
 	
-	public static ArrayList<Operation> inlineFunc(ArrayList<Operation> code, String retVar) throws SourceException {
-		ArrayList<Operation> code2 = new ArrayList<>();
-		for (Operation op : code) {
-			if (op.op==OpType.RET) {
-				if (op.args.length>0) {
-					code2.add(new Operation(OpType.MOV,op.range,retVar,op.args[0]));
-				}
-			} else {
-				code2.add(op);
+	public static String resolveLValueRaw(SourcePackage pkg, ScopeFrame frame, Element e, ArrayList<SourceException> errs) {
+		String name = null;
+		if (e.type instanceof TokenRule) {
+			switch ((TokenRule)e.type) {
+				case WORD:
+					name = (String) e.args[0];
+					break;
+				default:
+					errs.add(new SourceException(e.range,"Illegal L-value"));
+			}
+		} else {
+			switch ((Rule)e.type) {
+				default:
+					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		}
-		return code2;
-	}
-	
-	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) throws SourceException {
-//		int i = 0;
-//		ArrayList<Operation> a = (ArrayList<Operation>) code.clone();
-//		HashMap<String,String> reps = new HashMap<>();
-//		for (Operation op : code) {
-//			boolean addIt = true;
-//			if (op.op==OpType.MOV) {
-//				boolean valid = true;
-//				int lval = -1;
-//				int rval = -1;
-//				for (int j = i;j<code.size();j++) {
-//					Operation op2 = code.get(j);
-//					if (op2.op.hasLVar() && op.args[0].equals(op2.args[0])) {
-//						if (lval!=-1 || op2.op!=OpType.MOV) {
-//							valid = false;
-//							break;
-//						}
-//						lval = j;
-//					}
-//					if (op2.op!=OpType.MOV) {
-//						for (String arg : op2.getVarNames()) {
-//							if (arg.equals(op.args[0])) {
-//								valid = false;
-//								break;
-//							}
-//						}
-//					} else {
-//						if (op2.args[1].equals(op.args[0])) {
-//							if (rval!=-1) {
-//								valid = false;
-//								break;
-//							}
-//							rval = j;
-//						}
-//					}
-//				}
-//				if (valid && lval!=-1 && rval!=-1) {
-//					boolean canInline = true;
-//					for (int j = lval+1;j<rval;j++) {
-//						Operation op2 = code.get(j);
-//						if (op2.op.hasLVar() && op.args[0].equals(op2.args[1])) {
-//							canInline = false;
-//						}
-//					}
-//					if (canInline) {
-//						addIt = false;
-//						reps.put(op.args[0], op.args[1]);
-//					}
-//				}
-//			}
-//			if (addIt) {
-//				a.add(op);
-//			}
-//			i++;
-//		}
-//		System.out.println(reps);
-//		for (Operation op : a) {
-//			if (op.op==OpType.MOV) {
-//				if (reps.containsKey(op.args[0])) {
-//					op.args[0] = reps.get(op.args[0]);
-//				}
-//				if (reps.containsKey(op.args[1])) {
-//					op.args[1] = reps.get(op.args[1]);
-//				}
-//			}
-//		}
-//		return a;
-		return code;
+		return name;
 	}
 }
