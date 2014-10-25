@@ -12,7 +12,7 @@ public class DataType {
 
 	@Override
 	public String toString() {
-		return ""+type;
+		return ""+type+(weak?"?":"");
 	}
 
 	public DataType() {

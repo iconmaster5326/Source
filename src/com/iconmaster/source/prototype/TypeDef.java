@@ -21,4 +21,14 @@ public class TypeDef {
 	public String toString() {
 		return name;
 	}
+	
+	public TypeDef getHighestType(TypeDef other, boolean weak) {
+		if (this==TypeDef.UNKNOWN) {
+			return this;
+		}
+		if (this==other) {
+			return this;
+		}
+		return weak?TypeDef.UNKNOWN:null;
+	}
 }

@@ -124,6 +124,14 @@ public class SourceCompiler {
 								code.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
 								code.addAll(lexprs.get(asni));
 								rexprs.add(expr2);
+								
+								//check data types
+								DataType ltype = lexprs.get(asni).type;
+								DataType rtype = expr2.type;
+								TypeDef highest = ltype.type.getHighestType(rtype.type, rtype.weak);
+								if (highest==null) {
+									errs.add(new SourceException(e.range,"Cannot convert data type "+rtype+" to "+ltype));
+								}
 							}
 						}
 						asni++;
@@ -352,7 +360,6 @@ public class SourceCompiler {
 				}
 			}
 		}
-		frame.setVarType(retVar, expr.type);
 		return expr;
 	}
 	
@@ -396,6 +403,7 @@ public class SourceCompiler {
 						name = frame.getVariableName(name);
 					}
 					expr.retVar = name;
+					expr.type = frame.getVarType(name);
 					break;
 				default:
 					errs.add(new SourceException(e.range,"Illegal L-value"));
@@ -431,7 +439,6 @@ public class SourceCompiler {
 					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		}
-		frame.setVarType(expr.retVar, expr.type);
 		return expr;
 	}
 	
