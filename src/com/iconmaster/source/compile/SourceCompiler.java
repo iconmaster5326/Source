@@ -57,31 +57,58 @@ public class SourceCompiler {
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
 						frame.putDefined(expr2);
+						if (Directives.has(e, "inline")) {
+							frame.putInline(expr2);
+						}
 					}
 					break;
 				case LOCAL_ASN:
+					if (Directives.has(e, "inline")) {
+						int asni = 0;
+						ArrayList<Element> les = (ArrayList<Element>) e.args[0];
+						ArrayList<Element> res = (ArrayList<Element>) e.args[1];
+						for (Element e2 : les) {
+							String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
+							frame.putInline(expr2);
+							if (asni<res.size()) {
+								frame.putInline(expr2, res.get(asni));
+							}
+							asni++;
+						}
+						break;
+					}
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
 						frame.putDefined(expr2);
 					}
 				case ASSIGN:
 					ArrayList<String> names = new ArrayList<>();
+					ArrayList<Expression> lexprs = new ArrayList<>();
+					ArrayList<Expression> rexprs = new ArrayList<>();
 					ArrayList<Element> les = (ArrayList<Element>) e.args[0];
 					ArrayList<Element> res = (ArrayList<Element>) e.args[1];
 					for (Element e2 : res) {
 						String name2 = frame.newVarName();
 						Expression expr2 = compileExpr(pkg, frame, name2, e2, errs);
-						code.addAll(expr2);
 						names.add(name2);
+						lexprs.add(expr2);
 					}
 					int asni = 0;
 					for (Element e2 : les) {
 						if (asni<names.size()) {
-							Expression expr2 = resolveLValue(pkg, frame, e2, errs);
-							code.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
-							code.addAll(expr2);
+							if (frame.isInlined(names.get(asni))) {
+								frame.putInline(names.get(asni), e2);
+							} else {
+								Expression expr2 = resolveLValue(pkg, frame, code, e2, errs);
+								code.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
+								code.addAll(lexprs.get(asni));
+								rexprs.add(expr2);
+							}
 						}
 						asni++;
+					}
+					for (Expression expr2 : rexprs) {
+						code.addAll(expr2);
 					}
 					break;
 				case IF:
@@ -118,6 +145,14 @@ public class SourceCompiler {
 					code.add(new Operation(OpType.END, e.range));
 					code.add(new Operation(OpType.ENDB, e.range));
 					break;
+				case RETURN_NULL:
+					code.add(new Operation(OpType.RET, e.range));
+					break;
+				case RETURN:
+					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					code.addAll(cond);
+					code.add(new Operation(OpType.RET, e.range, cond.retVar));
+					break;
 				default:
 					code.addAll(compileExpr(pkg, frame, frame.newVarName(), e, errs));
 			}
@@ -140,6 +175,13 @@ public class SourceCompiler {
 				case WORD:
 					if (pkg.getField((String)e.args[0])!=null) {
 						expr.add(new Operation(OpType.MOV, e.range, retVar, (String)e.args[0]));
+					} else if (frame.isInlined((String)e.args[0])) {
+						Element e2 = frame.getInline((String)e.args[0]);
+						if (e2==null) {
+							errs.add(new SourceException(e.range,"Constant "+e.args[0]+" not initialized"));
+						} else {
+							expr.addAll(compileExpr(pkg, frame, retVar, e2, errs));
+						}
 					} else if (!frame.isDefined((String)e.args[0])) {
 						errs.add(new SourceException(e.range, "Undefined variable"));
 					} else if (frame.getVariable((String)e.args[0])==null) {
@@ -221,7 +263,7 @@ public class SourceCompiler {
 		return null;
 	}
 	
-	public static Expression resolveLValue(SourcePackage pkg, ScopeFrame frame, Element e, ArrayList<SourceException> errs) {
+	public static Expression resolveLValue(SourcePackage pkg, ScopeFrame frame, Expression code, Element e, ArrayList<SourceException> errs) {
 		Expression expr = new Expression();
 		String name;
 		if (e.type instanceof TokenRule) {
@@ -230,6 +272,15 @@ public class SourceCompiler {
 					name = (String) e.args[0];
 					if (pkg.getField(name)!=null) {
 						
+//					} else if (frame.isInlined(name)) {
+//						Expression inline = frame.getInline(name);
+//						if (inline==null) {
+//							errs.add(new SourceException(e.range,"Constant "+name+" not initialized"));
+//						} else {
+//							code.addAll(inline);
+//							expr.retVar = inline.retVar;
+//							return expr;
+//						}
 					} else if (!frame.isDefined(name)) {
 						errs.add(new SourceException(e.range,"Variable "+name+" not declared local"));
 					} else if (frame.getVariable(name)==null) {

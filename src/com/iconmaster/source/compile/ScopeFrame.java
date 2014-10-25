@@ -1,5 +1,6 @@
 package com.iconmaster.source.compile;
 
+import com.iconmaster.source.element.Element;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,8 +16,6 @@ public class ScopeFrame {
 		public String name;
 		public String realName;
 		public DataType type;
-		public boolean inline = false;
-		public boolean assigned = false;
 	}
 	
 	public SourcePackage pkg;
@@ -24,6 +23,9 @@ public class ScopeFrame {
 	public HashMap<String,String> names = new HashMap<>();
 	public HashMap<String,Variable> vars = new HashMap<>();
 	public HashSet<String> defined = new HashSet<>();
+	
+	public HashSet<String> inline = new HashSet<>();
+	public HashMap<String,Element> inlineCode = new HashMap<>();
 
 	public ScopeFrame(SourcePackage pkg, ScopeFrame parent) {
 		this.pkg = pkg;
@@ -82,5 +84,28 @@ public class ScopeFrame {
 	
 	public boolean isDefined(String name) {
 		return defined.contains(name)?true:(parent==null?false:parent.isDefined(name));
+	}
+	
+	public void putInline(String name) {
+		inline.add(name);
+	}
+	
+	public void putInline(String name, Element expr) {
+		putInline(name);
+		inlineCode.put(name, expr);
+	}
+	
+	public boolean isInlined(String name) {
+		return inline.contains(name)?true:(parent==null?false:parent.isInlined(name));
+	}
+	
+	public Element getInline(String name) {
+		if (inlineCode.containsKey(name)) {
+			return inlineCode.get(name);
+		}
+		if (parent==null) {
+			return null;
+		}
+		return parent.getInline(name);
 	}
 }
