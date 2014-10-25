@@ -35,7 +35,7 @@ public class SourceCompiler {
 	
 	public static Expression compileFunction(SourcePackage pkg, ScopeFrame frame, Function fn, ArrayList<SourceException> errs) {
 		for (Field v : fn.getArguments()) {
-			frame.putVariable(v.getName(), !Directives.has(fn, "export"));
+			frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
 		}
 		Expression code = compileCode(pkg, frame, fn.rawData(), errs);
 		fn.setCompiled(code);
@@ -214,7 +214,7 @@ public class SourceCompiler {
 								expr.addAll(expr2);
 								i++;
 							}
-							ArrayList<Operation> fncode = compileFunction(pkg, frame, fn, errs);
+							ArrayList<Operation> fncode = compileFunction(pkg,  new ScopeFrame(pkg,frame), fn, errs);
 							for (Operation op: fncode) {
 								if (op.op==OpType.RET) {
 									if (op.args.length==0) {
@@ -300,15 +300,6 @@ public class SourceCompiler {
 					name = (String) e.args[0];
 					if (pkg.getField(name)!=null) {
 						
-//					} else if (frame.isInlined(name)) {
-//						Expression inline = frame.getInline(name);
-//						if (inline==null) {
-//							errs.add(new SourceException(e.range,"Constant "+name+" not initialized"));
-//						} else {
-//							code.addAll(inline);
-//							expr.retVar = inline.retVar;
-//							return expr;
-//						}
 					} else if (!frame.isDefined(name)) {
 						errs.add(new SourceException(e.range,"Variable "+name+" not declared local"));
 					} else if (frame.getVariable(name)==null) {
