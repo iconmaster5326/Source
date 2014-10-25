@@ -24,6 +24,7 @@ public class Function implements IDirectable {
 	protected DataType returns;
 	
 	public OnCompile onCompile;
+	public String pkgName;
 
 	public Function(String name, ArrayList<Field> args, Element returns) {
 		this.name = name;

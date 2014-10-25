@@ -72,7 +72,7 @@ public class SourcePackage {
 							var.rawValue = vals.get(i);
 						}
 						var.getDirectives().addAll(e.directives);
-						fields.add(var);
+						addField(var);
 						i++;
 					}
 					break;
@@ -80,7 +80,7 @@ public class SourcePackage {
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						Field var = new Field((String)e2.args[0], e2.dataType);
 						var.getDirectives().addAll(e.directives);
-						fields.add(var);
+						addField(var);
 					}
 					break;
 				case FUNC:
@@ -99,7 +99,7 @@ public class SourcePackage {
 					Function fn = new Function(fname,args,rets);
 					fn.getDirectives().addAll(e.directives);
 					fn.rawCode = (ArrayList<Element>) e.args[2];
-					functions.add(fn);
+					addFunction(fn);
 					break;
 				case ENUM:
 				case STRUCT:
@@ -116,11 +116,17 @@ public class SourcePackage {
 	}
 	
 	public void addFunction(Function fn) {
+		fn.pkgName = this.getName();
 		functions.add(fn);
+	}
+	
+	public void addField(Field f) {
+		f.pkgName = this.getName();
+		fields.add(f);
 	}
 
 	public String getName() {
-		return name;
+		return name==null?"":name;
 	}
 
 	public ArrayList<String> getImports() {
@@ -137,7 +143,7 @@ public class SourcePackage {
 	
 	public Field getField(String name) {
 		for (Field v : fields) {
-			if (v.getName().equals(name)) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
 				return v;
 			}
 		}
@@ -146,7 +152,7 @@ public class SourcePackage {
 
 	public Function getFunction(String name) {
 		for (Function v : functions) {
-			if (v.getName().equals(name)) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
 				return v;
 			}
 		}

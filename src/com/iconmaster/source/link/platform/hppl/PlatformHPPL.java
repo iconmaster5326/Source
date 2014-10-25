@@ -234,7 +234,11 @@ public class PlatformHPPL extends Platform {
 							}
 						}
 					}
-					sb.append(op.args[1]);
+					String fs = op.args[1];
+					if (fs.contains(".")) {
+						fs = fs.substring(op.args[1].lastIndexOf('.')+1);
+					}
+					sb.append(fs);
 					if (op.args.length > 2) {
 						sb.append("(");
 						for (int i=2;i<op.args.length;i++) {

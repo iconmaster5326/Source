@@ -21,6 +21,8 @@ public class Field implements IDirectable {
 	protected boolean library;
 	protected Expression value;
 	protected DataType type;
+	
+	public String pkgName;
 
 	public Field(String name) {
 		this(name,null);

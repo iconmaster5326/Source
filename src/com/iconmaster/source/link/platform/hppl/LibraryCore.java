@@ -9,7 +9,7 @@ import com.iconmaster.source.prototype.SourcePackage;
  */
 public class LibraryCore extends SourcePackage {
 	public LibraryCore() {
-		this.name = "CORE";
+		this.name = "core";
 		
 		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, "null"));
 		

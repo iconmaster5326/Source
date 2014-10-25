@@ -256,7 +256,7 @@ public class SourceCompiler {
 							es = (ArrayList<Element>) e.args[1];
 							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 								es = (ArrayList<Element>) es.get(0).args[0];
-							} else if (es.size()!=1) {
+							} else if (es.size()>1) {
 								errs.add(new SourceException(e.range, "Illegal function call format"));
 							}
 							for (Element e2 : es) {
