@@ -265,7 +265,7 @@ public class SourceCompiler {
 								expr.addAll(expr2);
 								names.add(name);
 							}
-							names.add(0, (String) e.args[0]);
+							names.add(0, (String) getFullyQualifiedName((String) e.args[0], fn));
 							names.add(0,retVar);
 							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
@@ -386,6 +386,13 @@ public class SourceCompiler {
 		} else {
 			switch ((Rule)e.type) {
 			}
+		}
+		return name;
+	}
+	
+	public static String getFullyQualifiedName(String name, Function fn) {
+		if (!name.startsWith(fn.pkgName+".")) {
+			name = fn.pkgName+"."+name;
 		}
 		return name;
 	}
