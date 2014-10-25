@@ -96,8 +96,9 @@ public class SourceCompiler {
 					int asni = 0;
 					for (Element e2 : les) {
 						if (asni<names.size()) {
-							if (frame.isInlined(names.get(asni))) {
-								frame.putInline(names.get(asni), e2);
+							String name2 = resolveLValueRaw(pkg, frame, e2, errs);
+							if (name2!=null && frame.isInlined(name2)) {
+								frame.putInline(name2, res.get(asni));
 							} else {
 								Expression expr2 = resolveLValue(pkg, frame, code, e2, errs);
 								code.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
