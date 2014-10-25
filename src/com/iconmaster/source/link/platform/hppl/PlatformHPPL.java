@@ -7,9 +7,9 @@ import static com.iconmaster.source.compile.Operation.OpType.CONCAT;
 import static com.iconmaster.source.compile.Operation.OpType.GE;
 import static com.iconmaster.source.compile.Operation.OpType.LE;
 import com.iconmaster.source.link.Platform;
+import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 import java.util.Stack;
@@ -176,6 +176,14 @@ public class PlatformHPPL extends Platform {
 						}
 						append = false;
 						break;
+					case MOVI:
+						sb.append(getInlineString(pkg, expr, op.args[0], vs));
+						sb.append("[");
+						sb.append(getInlineString(pkg, expr, op.args[2], vs));
+						sb.append("]");
+						sb.append(":=");
+						sb.append(getInlineString(pkg, expr, op.args[1], vs));
+						break;
 					default:
 						append = false;
 				}
@@ -324,6 +332,9 @@ public class PlatformHPPL extends Platform {
 			Operation lop = lref.get(0);
 			Operation rop = rref.get(0);
 			if (rop.op == OpType.INDEX && rop.args[1].equals(var)) {
+				return false;
+			}
+			if (rop.op == OpType.MOVI && rop.args[0].equals(var)) {
 				return false;
 			}
 			if (lop.op == OpType.MOV && rop.op == OpType.MOV) {

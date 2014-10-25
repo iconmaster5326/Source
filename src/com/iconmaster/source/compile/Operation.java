@@ -73,6 +73,7 @@ public class Operation {
 				case BEGIN:
 				case END:
 				case ENDB:
+				case MOVI:
 					return false;
 				default:
 					return true;

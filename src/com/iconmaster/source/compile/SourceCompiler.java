@@ -55,7 +55,7 @@ public class SourceCompiler {
 			switch ((Rule)e.type) {
 				case LOCAL:
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
+						String expr2 = resolveLValueRaw(pkg, frame, e2);
 						frame.putDefined(expr2);
 						if (Directives.has(e, "inline")) {
 							frame.putInline(expr2);
@@ -68,7 +68,7 @@ public class SourceCompiler {
 						ArrayList<Element> les = (ArrayList<Element>) e.args[0];
 						ArrayList<Element> res = (ArrayList<Element>) e.args[1];
 						for (Element e2 : les) {
-							String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
+							String expr2 = resolveLValueRaw(pkg, frame, e2);
 							frame.putInline(expr2);
 							if (asni<res.size()) {
 								frame.putInline(expr2, res.get(asni));
@@ -78,7 +78,7 @@ public class SourceCompiler {
 						break;
 					}
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						String expr2 = resolveLValueRaw(pkg, frame, e2, errs);
+						String expr2 = resolveLValueRaw(pkg, frame, e2);
 						frame.putDefined(expr2);
 					}
 				case ASSIGN:
@@ -96,7 +96,7 @@ public class SourceCompiler {
 					int asni = 0;
 					for (Element e2 : les) {
 						if (asni<names.size()) {
-							String name2 = resolveLValueRaw(pkg, frame, e2, errs);
+							String name2 = resolveLValueRaw(pkg, frame, e2);
 							if (name2!=null && frame.isInlined(name2)) {
 								frame.putInline(name2, res.get(asni));
 							} else {
@@ -246,7 +246,7 @@ public class SourceCompiler {
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
-						} else if (es.size()>1) {
+						} else if (es.size()!=1) {
 							errs.add(new SourceException(e.range, "Illegal index format"));
 						}
 						for (Element e2 : es) {
@@ -314,6 +314,31 @@ public class SourceCompiler {
 			}
 		} else {
 			switch ((Rule)e.type) {
+				case ICALL:
+					ArrayList<String> names = new ArrayList<>();
+					ArrayList<Element> es = (ArrayList<Element>) e.args[1];
+					if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+						es = (ArrayList<Element>) es.get(0).args[0];
+					} else if (es.size()!=1) {
+						errs.add(new SourceException(e.range, "Illegal index format"));
+					}
+					for (Element e2 : es) {
+						String name2 = frame.newVarName();
+						Expression expr2 = compileExpr(pkg, frame, name2, e2, errs);
+						code.addAll(expr2);
+						names.add(name2);
+					}
+					expr.retVar = frame.newVarName();
+					names.add(0,expr.retVar);
+					if (!frame.isDefined((String)e.args[0])) {
+						errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
+					} else if (frame.getVariable((String)e.args[0])==null) {
+						errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
+					} else {
+						names.add(0,frame.getVariableName((String)e.args[0]));
+					}
+					expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
+					break;
 				default:
 					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
@@ -321,20 +346,16 @@ public class SourceCompiler {
 		return expr;
 	}
 	
-	public static String resolveLValueRaw(SourcePackage pkg, ScopeFrame frame, Element e, ArrayList<SourceException> errs) {
+	public static String resolveLValueRaw(SourcePackage pkg, ScopeFrame frame, Element e) {
 		String name = null;
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case WORD:
 					name = (String) e.args[0];
 					break;
-				default:
-					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		} else {
 			switch ((Rule)e.type) {
-				default:
-					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		}
 		return name;
