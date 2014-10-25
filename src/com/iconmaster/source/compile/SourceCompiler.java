@@ -203,19 +203,46 @@ public class SourceCompiler {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
 					case FCALL:
-						ArrayList<String> names = new ArrayList<>();
-						for (Element e2 : (ArrayList<Element>) e.args[1]) {
-							String name = frame.newVarName();
-							Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
-							expr.addAll(expr2);
-							names.add(name);
+						Function fn = pkg.getFunction((String) e.args[0]);
+						if (fn==null) {
+							errs.add(new SourceException(e.range, "Undefined function "+e.args[0]));
+						} else if (Directives.has(fn, "inline")) {
+							int i=0;
+							for (Element e2 : (ArrayList<Element>) e.args[1]) {
+								String name = fn.getArguments().get(i).getName();
+								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+								expr.addAll(expr2);
+								i++;
+							}
+							ArrayList<Operation> fncode = compileFunction(pkg, frame, fn, errs);
+							for (Operation op: fncode) {
+								if (op.op==OpType.RET) {
+									if (op.args.length==0) {
+										op.op = OpType.NOP;
+									} else {
+										op.op = OpType.MOV;
+										op.args = new String[] {retVar, op.args[0]};
+									}
+								}
+							}
+							expr.add(new Operation(OpType.BEGIN, e.range));
+							expr.addAll(fncode);
+							expr.add(new Operation(OpType.END, e.range));
+						} else {
+							ArrayList<String> names = new ArrayList<>();
+							for (Element e2 : (ArrayList<Element>) e.args[1]) {
+								String name = frame.newVarName();
+								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+								expr.addAll(expr2);
+								names.add(name);
+							}
+							names.add(0, (String) e.args[0]);
+							names.add(0,retVar);
+							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
-						names.add(0, (String) e.args[0]);
-						names.add(0,retVar);
-						expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						break;
 					case ICALL:
-						names = new ArrayList<>();
+						ArrayList<String> names = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
@@ -229,9 +256,9 @@ public class SourceCompiler {
 							names.add(name);
 						}
 						if (!frame.isDefined((String)e.args[0])) {
-							errs.add(new SourceException(e.range, "Undefined variable"));
+							errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
 						} else if (frame.getVariable((String)e.args[0])==null) {
-							errs.add(new SourceException(e.range, "Uninitialized variable"));
+							errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
 						} else {
 							names.add(0,frame.getVariableName((String)e.args[0]));
 						}
