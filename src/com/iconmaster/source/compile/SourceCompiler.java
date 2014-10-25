@@ -230,7 +230,13 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.END, e.range));
 						} else {
 							ArrayList<String> names = new ArrayList<>();
-							for (Element e2 : (ArrayList<Element>) e.args[1]) {
+							es = (ArrayList<Element>) e.args[1];
+							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+								es = (ArrayList<Element>) es.get(0).args[0];
+							} else if (es.size()!=1) {
+								errs.add(new SourceException(e.range, "Illegal function call format"));
+							}
+							for (Element e2 : es) {
 								String name = frame.newVarName();
 								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
 								expr.addAll(expr2);
