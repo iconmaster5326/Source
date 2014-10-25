@@ -24,6 +24,7 @@ public class PlatformHPPL extends Platform {
 		this.name = "HPPL";
 		
 		this.registerLibrary(new LibraryCore());
+		this.registerLibrary(new LibraryMath());
 	}
 	
 	@Override
