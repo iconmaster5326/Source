@@ -14,6 +14,8 @@ public class LibraryCore extends SourcePackage {
 		
 		this.addType(TypeDef.UNKNOWN);
 		this.addType(TypeDef.REAL);
+		this.addType(TypeDef.STRING);
+		this.addType(TypeDef.LIST);
 		
 		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, "null"));
 		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new String[] {"real","real"}, "list");

@@ -74,6 +74,9 @@ public class SourceCompiler {
 						if (Directives.has(e, "inline")) {
 							frame.putInline(expr2);
 						}
+						if (e2.dataType!=null) {
+							frame.setVarType(expr2, compileDataType(pkg, frame, e2.dataType, errs));
+						}
 					}
 					break;
 				case LOCAL_ASN:
@@ -94,6 +97,9 @@ public class SourceCompiler {
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						String expr2 = resolveLValueRaw(pkg, frame, e2);
 						frame.putDefined(expr2);
+						if (e2.dataType!=null) {
+							frame.setVarType(expr2, compileDataType(pkg, frame, e2.dataType, errs));
+						}
 					}
 				case ASSIGN:
 					ArrayList<String> names = new ArrayList<>();
@@ -205,9 +211,11 @@ public class SourceCompiler {
 			switch ((TokenRule)e.type) {
 				case NUMBER:
 					expr.add(new Operation(OpType.MOVN, e.range, retVar, (String)e.args[0]));
+					expr.type = new DataType(TypeDef.REAL,true);
 					break;
 				case STRING:
 					expr.add(new Operation(OpType.MOVS, e.range, retVar, (String)e.args[0]));
+					expr.type = new DataType(TypeDef.STRING,false);
 					break;
 				case WORD:
 					if (pkg.getField((String)e.args[0])!=null) {
@@ -322,6 +330,7 @@ public class SourceCompiler {
 						}
 						names.add(0,retVar);
 						expr.add(new Operation(OpType.MOVL, e.range, names.toArray(new String[0])));
+						expr.type = new DataType(TypeDef.LIST,false);
 						break;
 					case PAREN:
 						es = (ArrayList<Element>) e.args[0];
@@ -335,6 +344,7 @@ public class SourceCompiler {
 				}
 			}
 		}
+		frame.setVarType(retVar, expr.type);
 		return expr;
 	}
 	
@@ -413,6 +423,7 @@ public class SourceCompiler {
 					errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		}
+		frame.setVarType(expr.retVar, expr.type);
 		return expr;
 	}
 	
