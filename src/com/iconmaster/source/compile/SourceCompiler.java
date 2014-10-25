@@ -51,6 +51,7 @@ public class SourceCompiler {
 	
 	public static Expression compileCode(SourcePackage pkg, ScopeFrame frame, ArrayList<Element> es, ArrayList<SourceException> errs) {
 		Expression code = new Expression();
+		OpType asnType = null;
 		for (Element e : es) {
 			switch ((Rule)e.type) {
 				case LOCAL:
@@ -153,6 +154,28 @@ public class SourceCompiler {
 					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
 					code.addAll(cond);
 					code.add(new Operation(OpType.RET, e.range, cond.retVar));
+					break;
+				case ADD_ASN:
+					asnType = OpType.ADD;
+				case SUB_ASN:
+					if (e.type==Rule.SUB_ASN) {
+						asnType = OpType.SUB;
+					}
+				case MUL_ASN:
+					if (e.type==Rule.MUL_ASN) {
+						asnType = OpType.MUL;
+					}
+				case DIV_ASN:
+					if (e.type==Rule.DIV_ASN) {
+						asnType = OpType.DIV;
+					}
+					Expression lexpr1 = resolveLValue(pkg, frame, code, (Element) e.args[0], errs);
+					Expression lexpr2 = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					Expression rexpr = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[1], errs);
+					code.addAll(rexpr);
+					code.addAll(lexpr2);
+					code.add(new Operation(asnType, e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
+					code.addAll(lexpr1);
 					break;
 				default:
 					code.addAll(compileExpr(pkg, frame, frame.newVarName(), e, errs));
