@@ -8,6 +8,7 @@ import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
@@ -36,6 +37,12 @@ public class SourceCompiler {
 	public static Expression compileFunction(SourcePackage pkg, ScopeFrame frame, Function fn, ArrayList<SourceException> errs) {
 		for (Field v : fn.getArguments()) {
 			frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
+			if (v.getRawType()!=null) {
+				v.setType(compileDataType(pkg, frame, v.getRawType(), errs));
+			}
+		}
+		if (fn.getReturn()!=null) {
+			fn.setReturnType(compileDataType(pkg, frame, fn.getReturn(), errs));
 		}
 		Expression code = compileCode(pkg, frame, fn.rawData(), errs);
 		fn.setCompiled(code);
@@ -44,9 +51,15 @@ public class SourceCompiler {
 	
 	public static Expression compileField(SourcePackage pkg, ScopeFrame frame, Field field, ArrayList<SourceException> errs) {
 		Variable v = frame.putVariable(field.getName(), false);
-		Expression expr = compileExpr(pkg, frame, v.name, field.rawData(), errs);
-		field.setCompiled(expr);
-		return expr;
+		if (field.getRawType()!=null) {
+			field.setType(compileDataType(pkg, frame, field.getRawType(), errs));
+		}
+		if (field.rawData()!=null) {
+			Expression expr = compileExpr(pkg, frame, v.name, field.rawData(), errs);
+			field.setCompiled(expr);
+			return expr;
+		}
+		return null;
 	}
 	
 	public static Expression compileCode(SourcePackage pkg, ScopeFrame frame, ArrayList<Element> es, ArrayList<SourceException> errs) {
@@ -325,8 +338,27 @@ public class SourceCompiler {
 		return expr;
 	}
 	
-	public static DataType compileDataType(SourcePackage pkg, ScopeFrame frame, Element expr, ArrayList<SourceException> errs) {
-		return null;
+	public static DataType compileDataType(SourcePackage pkg, ScopeFrame frame, Element e, ArrayList<SourceException> errs) {
+		DataType dt = new DataType();
+		if (e.type instanceof TokenRule) {
+			switch ((TokenRule)e.type) {
+				case WORD:
+					TypeDef def = pkg.getType((String) e.args[0]);
+					if (def==null) {
+						errs.add(new SourceException(e.range, "unknown data type "+e.args[0]));
+					}
+					dt.type = def;
+					break;
+				default:
+					errs.add(new SourceException(e.range, "Illegal data type format"));
+			}
+		} else {
+			switch ((Rule)e.type) {
+				default:
+					errs.add(new SourceException(e.range, "Illegal data type format"));
+			}
+		}
+		return dt;
 	}
 	
 	public static Expression resolveLValue(SourcePackage pkg, ScopeFrame frame, Expression code, Element e, ArrayList<SourceException> errs) {

@@ -38,9 +38,8 @@ public class PlatformHPPL extends Platform {
 		}
 		sb.append("\n");
 		for (Field var : pkg.getFields()) {
-			if (var.isCompiled()) {
 				sb.append(assembleField(pkg,var));
-			}
+				sb.append(";");
 		}
 		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {

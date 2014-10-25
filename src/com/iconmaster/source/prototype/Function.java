@@ -14,14 +14,14 @@ import java.util.ArrayList;
 public class Function implements IDirectable {
 	protected String name;
 	protected ArrayList<Field> args;
-	protected Element rawReturns;
+	private Element rawReturns;
 	protected ArrayList<String> directives = new ArrayList<>();
 	protected ArrayList<Element> rawCode;
 	protected boolean library = false;
 	
 	protected boolean compiled = false;
 	protected ArrayList<Operation> code;
-	protected DataType returns;
+	private DataType returns;
 	
 	public OnCompile onCompile;
 	public String pkgName;
@@ -112,6 +112,19 @@ public class Function implements IDirectable {
 		} else {
 			return this.onCompile.compile(pkg,args);
 		}
+	}
+
+
+	public Element getReturn() {
+		return rawReturns;
+	}
+
+	public DataType getReturnType() {
+		return returns;
+	}
+
+	public void setReturnType(DataType returns) {
+		this.returns = returns;
 	}
 
 	public static interface OnCompile {

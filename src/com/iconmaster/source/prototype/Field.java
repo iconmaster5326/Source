@@ -13,14 +13,14 @@ import java.util.ArrayList;
  */
 public class Field implements IDirectable {
 	protected String name;
-	protected Element rawType;
+	private Element rawType;
 	protected Element rawValue;
 	protected ArrayList<String> directives = new ArrayList<>();;
 	
 	protected boolean compiled;
 	protected boolean library;
 	protected Expression value;
-	protected DataType type;
+	private DataType type;
 	
 	public String pkgName;
 
@@ -35,7 +35,7 @@ public class Field implements IDirectable {
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(name+"="+type);
+		StringBuilder sb = new StringBuilder(name+"="+getType());
 		if (value!=null) {
 			sb.append(". CODE:");
 			
@@ -75,5 +75,17 @@ public class Field implements IDirectable {
 	
 	public boolean isLibrary() {
 		return library;
+	}
+
+	public Element getRawType() {
+		return rawType;
+	}
+
+	public DataType getType() {
+		return type;
+	}
+
+	public void setType(DataType type) {
+		this.type = type;
 	}
 }

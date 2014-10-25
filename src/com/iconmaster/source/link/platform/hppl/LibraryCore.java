@@ -2,6 +2,7 @@ package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.prototype.TypeDef;
 
 /**
  *
@@ -11,8 +12,10 @@ public class LibraryCore extends SourcePackage {
 	public LibraryCore() {
 		this.name = "core";
 		
-		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, "null"));
+		this.addType(TypeDef.UNKNOWN);
+		this.addType(TypeDef.REAL);
 		
+		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, "null"));
 		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new String[] {"real","real"}, "list");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];

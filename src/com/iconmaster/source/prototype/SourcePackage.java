@@ -11,11 +11,12 @@ import java.util.ArrayList;
  *
  * @author iconmaster
  */
-public class SourcePackage {
+public class SourcePackage {	
 	protected String name;
 	protected ArrayList<Field> fields = new ArrayList<>();
 	protected ArrayList<Function> functions = new ArrayList<>();
 	protected ArrayList<String> imports = new ArrayList<>();
+	private ArrayList<TypeDef> types = new ArrayList<>();
 	
 	protected boolean compiled = false;
 	public NameProvider nameProvider = new NameProvider();
@@ -113,6 +114,7 @@ public class SourcePackage {
 		fields.addAll(other.fields);
 		functions.addAll(other.functions);
 		imports.addAll(other.imports);
+		types.addAll(other.types);
 	}
 	
 	public void addFunction(Function fn) {
@@ -153,6 +155,24 @@ public class SourcePackage {
 	public Function getFunction(String name) {
 		for (Function v : functions) {
 			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
+				return v;
+			}
+		}
+		return null;
+	}
+
+	public ArrayList<TypeDef> getTypes() {
+		return types;
+	}
+	
+	public void addType(TypeDef def) {
+		def.pkgName = this.getName();
+		types.add(def);
+	}
+	
+	public TypeDef getType(String name) {
+		for (TypeDef v : types) {
+			if (v.name.equals(name) || (v.pkgName+"."+v.name).equals(name)) {
 				return v;
 			}
 		}
