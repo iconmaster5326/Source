@@ -341,6 +341,14 @@ public class SourceCompiler {
 							expr.addAll(compileExpr(pkg, frame, retVar, e2, errs));
 						}
 						break;
+					case TRUE:
+						expr.add(new Operation(OpType.MOVN, e.range, retVar, "1"));
+						expr.type = new DataType(TypeDef.REAL,true);
+						break;
+					case FALSE:
+						expr.add(new Operation(OpType.MOVN, e.range, retVar, "0"));
+						expr.type = new DataType(TypeDef.REAL,true);
+						break;
 				}
 			}
 		}
