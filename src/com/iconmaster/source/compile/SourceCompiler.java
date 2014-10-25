@@ -310,6 +310,15 @@ public class SourceCompiler {
 						names.add(0,retVar);
 						expr.add(new Operation(OpType.MOVL, e.range, names.toArray(new String[0])));
 						break;
+					case PAREN:
+						es = (ArrayList<Element>) e.args[0];
+						if (es.size()!=1) {
+							errs.add(new SourceException(e.range, "Illegal parenthesis format"));
+						}
+						for (Element e2 : es) {
+							expr.addAll(compileExpr(pkg, frame, retVar, e2, errs));
+						}
+						break;
 				}
 			}
 		}
