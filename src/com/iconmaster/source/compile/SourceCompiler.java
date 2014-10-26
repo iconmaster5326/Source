@@ -439,6 +439,19 @@ public class SourceCompiler {
 						expr.add(new Operation(OpType.MOVN, e.range, retVar, "0"));
 						expr.type = new DataType(TypeDef.REAL,true);
 						break;
+					case TO:
+						String name = frame.newVarName();
+						Expression lexpr = compileExpr(pkg, frame, name, (Element) e.args[0], errs);
+						expr.addAll(lexpr);
+						DataType rtype = compileDataType(pkg, frame, (Element) e.args[1], errs);
+						String fnName = rtype.type.name+"._cast";
+						if (pkg.getFunction(fnName)==null) {
+							errs.add(new SourceException(e.range, "Cannot convert type "+lexpr.type+" to type "+rtype));
+						} else {
+							expr.add(new Operation(OpType.CALL, e.range, retVar, fnName, name));
+							expr.type = rtype;
+						}
+						break;
 				}
 			}
 		}

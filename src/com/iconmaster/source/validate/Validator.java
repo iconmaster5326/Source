@@ -96,6 +96,7 @@ public class Validator {
 				case LTE:
 				case GTE:
 				case AND:
+				case TO:
 				case OR:
 				case CONCAT:
 					ensureScope(a,e,scope,Scope.RVALUE);

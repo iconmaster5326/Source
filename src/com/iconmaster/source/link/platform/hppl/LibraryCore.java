@@ -18,6 +18,7 @@ public class LibraryCore extends SourcePackage {
 		this.addType(TypeDef.LIST);
 		
 		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new TypeDef[] {}, null));
+		
 		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new TypeDef[] {TypeDef.REAL,TypeDef.REAL}, TypeDef.LIST);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
@@ -28,6 +29,16 @@ public class LibraryCore extends SourcePackage {
 			return ")";
 		};
 		this.addFunction(fn);
+		
 		this.addFunction(Function.libraryFunction("list.size", new String[] {"item"}, new TypeDef[] {TypeDef.LIST}, TypeDef.REAL));
+		
+		fn = Function.libraryFunction("string._cast", new String[] {"item"}, new TypeDef[] {}, TypeDef.STRING);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append("STRING(");
+			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[2], ctx.vs));
+			return ")";
+		};
+		this.addFunction(fn);
 	}
 }
