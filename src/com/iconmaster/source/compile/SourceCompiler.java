@@ -446,7 +446,7 @@ public class SourceCompiler {
 						DataType rtype = compileDataType(pkg, frame, (Element) e.args[1], errs);
 						String fnName = rtype.type.name+"._cast";
 						if (pkg.getFunction(fnName)==null) {
-							errs.add(new SourceException(e.range, "Cannot convert type "+lexpr.type+" to type "+rtype));
+							errs.add(new SourceException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists"));
 						} else {
 							expr.add(new Operation(OpType.CALL, e.range, retVar, fnName, name));
 							expr.type = rtype;
