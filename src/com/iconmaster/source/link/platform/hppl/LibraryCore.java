@@ -28,6 +28,6 @@ public class LibraryCore extends SourcePackage {
 			return ")";
 		};
 		this.addFunction(fn);
-		
+		this.addFunction(Function.libraryFunction("list.size", new String[] {"item"}, new TypeDef[] {TypeDef.LIST}, TypeDef.REAL));
 	}
 }
