@@ -282,15 +282,42 @@ public class SourceCompiler {
 				switch ((Rule)e.type) {
 					case FCALL:
 						Function fn = pkg.getFunction((String) e.args[0]);
+						boolean method = false;
 						if (fn==null) {
-							errs.add(new SourceException(e.range, "Undefined function "+e.args[0]));
-						} else if (Directives.has(fn, "inline")) {
-							int i=0;
-							for (Element e2 : (ArrayList<Element>) e.args[1]) {
+							fn = getRealFunction(pkg, frame, (String) e.args[0], errs);
+							method = true;
+							if (fn==null) {
+								errs.add(new SourceException(e.range, "Undefined function "+e.args[0]));
+								break;
+							}
+						}
+						es = (ArrayList<Element>) e.args[1];
+						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+							es = (ArrayList<Element>) es.get(0).args[0];
+						} else if (es.size()>1) {
+							errs.add(new SourceException(e.range, "Illegal function call format"));
+						}
+						ArrayList<Expression> args = new ArrayList<>();
+						if (Directives.has(fn, "inline")) {
+							if (method) {
+								Expression mexpr = new Expression();
+								String s = (String) e.args[0];
+								s = s.substring(0,s.indexOf(".")-1);
+								DataType type = frame.getVarType(s);
+								mexpr.type = type;
+								mexpr.retVar = fn.getArguments().get(0).getName();
+								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
+								args.add(mexpr);
+							}
+							int i=method?1:0;
+							for (Element e2 : es) {
 								String name = fn.getArguments().get(i).getName();
 								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
-								expr.addAll(expr2);
+								args.add(expr2);
 								i++;
+							}
+							for (Expression expr2 : args) {
+								expr.addAll(expr2);
 							}
 							ArrayList<Operation> fncode = compileFunction(pkg,  new ScopeFrame(pkg,frame), fn, errs);
 							for (Operation op: fncode) {
@@ -308,19 +335,27 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.END, e.range));
 						} else {
 							ArrayList<String> names = new ArrayList<>();
-							es = (ArrayList<Element>) e.args[1];
-							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
-								es = (ArrayList<Element>) es.get(0).args[0];
-							} else if (es.size()>1) {
-								errs.add(new SourceException(e.range, "Illegal function call format"));
+							if (method) {
+								Expression mexpr = new Expression();
+								String s = (String) e.args[0];
+								s = s.substring(0,s.indexOf("."));
+								DataType type = frame.getVarType(s);
+								mexpr.type = type;
+								mexpr.retVar = frame.newVarName();
+								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
+								names.add(mexpr.retVar);
+								args.add(mexpr);
 							}
 							for (Element e2 : es) {
 								String name = frame.newVarName();
 								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
-								expr.addAll(expr2);
+								args.add(expr2);
 								names.add(name);
 							}
-							names.add(0, (String) getFullyQualifiedName((String) e.args[0], fn));
+							for (Expression expr2 : args) {
+								expr.addAll(expr2);
+							}
+							names.add(0, (String) getFullyQualifiedName(fn, frame));
 							names.add(0,retVar);
 							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
@@ -487,10 +522,22 @@ public class SourceCompiler {
 		return name;
 	}
 	
-	public static String getFullyQualifiedName(String name, Function fn) {
-		if (!name.startsWith(fn.pkgName+".")) {
-			name = fn.pkgName+"."+name;
+	public static String getFullyQualifiedName(Function fn, ScopeFrame frame) {
+		return fn.pkgName+"."+fn.getName();
+	}
+	
+	public static Function getRealFunction(SourcePackage pkg, ScopeFrame frame, String name, ArrayList<SourceException> errs) {
+		if (name.contains(".")) {
+			String varName = name.substring(0,name.indexOf("."));
+			String funcName = name.substring(name.indexOf(".")+1);
+			DataType type = frame.getVarType(varName);
+			if (type==null) {
+				type = new DataType();
+			}
+			if (pkg.getFunction(type.type.name+"."+funcName)!=null) {
+				return pkg.getFunction(type.type.name+"."+funcName);
+			}
 		}
-		return name;
+		return null;
 	}
 }
