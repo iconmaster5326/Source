@@ -313,7 +313,7 @@ public class SourceCompiler {
 							}
 							TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 							if (highest==null) {
-								errs.add(new SourceException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; cannot convert to "+rtype));
+								errs.add(new SourceException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
 							}
 							i++;
 						}
