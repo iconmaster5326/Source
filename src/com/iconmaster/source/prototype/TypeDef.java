@@ -24,7 +24,7 @@ public class TypeDef {
 	
 	public TypeDef getHighestType(TypeDef other, boolean weak) {
 		if (this==TypeDef.UNKNOWN) {
-			return this;
+			return weak?other:this;
 		}
 		if (this==other) {
 			return this;

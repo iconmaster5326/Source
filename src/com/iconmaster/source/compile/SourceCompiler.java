@@ -126,11 +126,20 @@ public class SourceCompiler {
 								rexprs.add(expr2);
 								
 								//check data types
-								DataType ltype = lexprs.get(asni).type;
-								DataType rtype = expr2.type;
-								TypeDef highest = ltype.type.getHighestType(rtype.type, rtype.weak);
+								DataType rtype = lexprs.get(asni).type;
+								DataType ltype = expr2.type;
+								if (ltype==null) {
+									ltype = new DataType(true);
+								}
+								if (rtype==null) {
+									rtype = new DataType(true);
+								}
+								TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 								if (highest==null) {
-									errs.add(new SourceException(e.range,"Cannot convert data type "+rtype+" to "+ltype));
+									errs.add(new SourceException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
+								} else {
+									frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
+									frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
 								}
 							}
 						}
@@ -241,6 +250,7 @@ public class SourceCompiler {
 						errs.add(new SourceException(e.range, "Uninitialized variable"));
 					} else {
 						expr.add(new Operation(OpType.MOV, e.range, retVar, frame.getVariableName((String)e.args[0])));
+						expr.type = frame.getVarType(frame.getVariableName((String)e.args[0]));
 					}
 					break;
 			}
@@ -359,6 +369,9 @@ public class SourceCompiler {
 						break;
 				}
 			}
+		}
+		if (e.dataType!=null) {
+			expr.type = compileDataType(pkg, frame, e.dataType, errs);
 		}
 		return expr;
 	}
