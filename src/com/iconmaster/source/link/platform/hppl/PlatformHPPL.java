@@ -39,7 +39,6 @@ public class PlatformHPPL extends Platform {
 		sb.append("\n");
 		for (Field var : pkg.getFields()) {
 				sb.append(assembleField(pkg,var));
-				sb.append(";");
 		}
 		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
@@ -83,6 +82,7 @@ public class PlatformHPPL extends Platform {
 			sb.append(assembleCode(pkg,var.getValue()));
 		} else {
 			sb.append(var.getName());
+			sb.append(";");
 		}
 		return sb.toString();
 	}
