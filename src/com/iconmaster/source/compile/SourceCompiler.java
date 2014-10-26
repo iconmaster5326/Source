@@ -316,6 +316,9 @@ public class SourceCompiler {
 								args.add(expr2);
 								i++;
 							}
+							if (args.size()!=fn.getArguments().size()) {
+								errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+args.size()));
+							}
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
 							}
@@ -351,6 +354,9 @@ public class SourceCompiler {
 								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
 								args.add(expr2);
 								names.add(name);
+							}
+							if (args.size()!=fn.getArguments().size()) {
+								errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+args.size()));
 							}
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
