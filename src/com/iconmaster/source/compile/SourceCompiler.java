@@ -297,6 +297,26 @@ public class SourceCompiler {
 						} else if (es.size()>1) {
 							errs.add(new SourceException(e.range, "Illegal function call format"));
 						}
+						if (es.size()!=fn.getArguments().size()) {
+							errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+es.size()));
+						}
+						int i=0;
+						for (Element e2 : es) {
+							Expression expr2 = compileExpr(pkg, frame, "", e2, errs);
+							DataType ltype = fn.getArguments().get(i).getType();
+							DataType rtype = expr2.type;
+							if (ltype==null) {
+								ltype = new DataType(true);
+							}
+							if (rtype==null) {
+								rtype = new DataType(true);
+							}
+							TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
+							if (highest==null) {
+								errs.add(new SourceException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; cannot convert to "+rtype));
+							}
+							i++;
+						}
 						ArrayList<Expression> args = new ArrayList<>();
 						if (Directives.has(fn, "inline")) {
 							if (method) {
@@ -309,15 +329,12 @@ public class SourceCompiler {
 								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
 								args.add(mexpr);
 							}
-							int i=method?1:0;
+							int j=method?1:0;
 							for (Element e2 : es) {
-								String name = fn.getArguments().get(i).getName();
+								String name = fn.getArguments().get(j).getName();
 								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
 								args.add(expr2);
-								i++;
-							}
-							if (args.size()!=fn.getArguments().size()) {
-								errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+args.size()));
+								j++;
 							}
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
@@ -354,9 +371,6 @@ public class SourceCompiler {
 								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
 								args.add(expr2);
 								names.add(name);
-							}
-							if (args.size()!=fn.getArguments().size()) {
-								errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+args.size()));
 							}
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
