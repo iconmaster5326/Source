@@ -3,7 +3,6 @@ package com.iconmaster.source.prototype;
 import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.element.Element;
-import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
@@ -46,27 +45,24 @@ public class Function implements IDirectable {
 		return sb.toString();
 	}
 	
-	public static Function libraryFunction(String name, String[] args, String[] argTypes, String ret) {
+	public static Function libraryFunction(String name, String[] args, TypeDef[] argTypes, TypeDef ret) {
 		ArrayList<Field> argList = new ArrayList<>();
 		ArrayList<DataType> retList = new ArrayList<>();
 		
 		int i = 0;
 		for (String arg : args) {
 			Element e = null;
+			Field f = new Field(arg, null);
 			if (i<argTypes.length) {
-				e = new Element(null,TokenRule.WORD);
-				e.args[0] = argTypes[i];
+				f.setType(new DataType(argTypes[i],false));
 			}
-			argList.add(new Field(arg, e));
+			argList.add(f);
 			i++;
 		}
 		
-		Element e = null;
-		if (ret!=null) {
-			e = new Element(null,TokenRule.WORD);
-			e.args[0] = ret;
-		}
-		Function fn = new Function(name, argList, e);
+
+		Function fn = new Function(name, argList, null);
+		fn.setReturnType(new DataType(ret,false));
 		fn.library = true;
 		fn.compiled = true;
 		return fn;

@@ -17,8 +17,8 @@ public class LibraryCore extends SourcePackage {
 		this.addType(TypeDef.STRING);
 		this.addType(TypeDef.LIST);
 		
-		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new String[] {}, "null"));
-		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new String[] {"real","real"}, "list");
+		this.addFunction(Function.libraryFunction("print", new String[] {"item"}, new TypeDef[] {}, null));
+		Function fn = Function.libraryFunction("range", new String[] {"begin","end"}, new TypeDef[] {TypeDef.REAL,TypeDef.REAL}, TypeDef.LIST);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("MAKELIST(X,X,");
