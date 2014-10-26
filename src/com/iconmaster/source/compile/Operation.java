@@ -56,6 +56,8 @@ public class Operation {
 					return OpType.LE;
 				case GTE:
 					return OpType.GE;
+				case CONCAT:
+					return OpType.CONCAT;
 				default:
 					return null;
 			}

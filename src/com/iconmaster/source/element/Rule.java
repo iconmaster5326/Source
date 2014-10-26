@@ -113,6 +113,7 @@ public enum Rule implements IElementType {
 	GLOBAL_DIR(null,"r0"),
 	FCALL("F","w0!p1?"),
 	ICALL("I","w0!i1?"),
+	TO(null,"a@0'to'a@1"),
 	CAST(null,(a,i)->{
 		if (i>a.size()-2 || a.get(i+1).type != TokenRule.RESWORD || !((Token)a.get(i+1)).string().equals("as")) {
 			return null;
@@ -154,6 +155,7 @@ public enum Rule implements IElementType {
 	MOD(null,"a@0'%'a@1"),
 	ADD(null,"a@0'+'a@1"),
 	SUB(null,"A@0_1"),
+	CONCAT(null,"a@0'~'a@1"),
 	BIT_AND(null,"a@0'&'a@1"),
 	BIT_OR(null,"a@0'|'a@1"),
 	EQ(null,"a@0'=='a@1"),

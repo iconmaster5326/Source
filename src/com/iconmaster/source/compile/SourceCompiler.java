@@ -261,7 +261,7 @@ public class SourceCompiler {
 				expr.addAll(lexpr);
 				expr.addAll(rexpr);
 				expr.add(new Operation(OpType.MathToOpType((Rule) e.type), e.range, retVar, lexpr.retVar, rexpr.retVar));
-				//check data types
+				//check data types	
 				DataType rtype = lexpr.type;
 				DataType ltype = rexpr.type;
 				if (ltype==null) {
@@ -272,10 +272,11 @@ public class SourceCompiler {
 				}
 				TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak && rtype.weak);
 				if (highest==null) {
-					errs.add(new SourceException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
-				} else {
-					expr.type = new DataType(highest, ltype.weak && rtype.weak);
+					if (e.type!=Rule.CONCAT) {
+						errs.add(new SourceException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
+					}
 				}
+				expr.type = new DataType(highest, ltype.weak && rtype.weak);
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {

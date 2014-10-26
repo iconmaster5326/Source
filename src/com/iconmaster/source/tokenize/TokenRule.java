@@ -9,7 +9,7 @@ import com.iconmaster.source.element.IElementType;
 public enum TokenRule implements IElementType {
 	COMMENT(null,"\\/\\/[^\n]*\n"),
 	SPACE(" ","[\\s]+"),
-	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|this|extends)\\b"),
+	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|this|extends|to)\\b"),
 	WORD("w","[\\w\\?&&[^\\d]][\\w\\?\\.]*"),
 	NUMBER("n","[\\d\\.]+"),
 	STRING("s","\"[^\"]*\""),
