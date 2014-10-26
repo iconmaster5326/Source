@@ -97,6 +97,7 @@ public class Validator {
 				case GTE:
 				case AND:
 				case OR:
+				case CONCAT:
 					ensureScope(a,e,scope,Scope.RVALUE);
 					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
 					a.addAll(validateElement((Element) e.args[1],Scope.RVALUE));
