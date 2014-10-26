@@ -58,7 +58,7 @@ public class SourcePackage {
 					break;
 				case IMPORT:
 					String imp = ElementHelper.nameString((Element) e.args[0]);
-					if (name == null) {
+					if (imp == null) {
 						errors.add(new SourceException(e.range,"Invalid import package"));
 					} else {
 						imports.add(imp);

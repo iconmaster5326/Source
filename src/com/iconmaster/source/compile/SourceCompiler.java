@@ -324,6 +324,7 @@ public class SourceCompiler {
 							names.add(0,retVar);
 							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
+						expr.type = fn.getReturnType()==null?expr.type:fn.getReturnType();
 						break;
 					case ICALL:
 						ArrayList<String> names = new ArrayList<>();
