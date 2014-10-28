@@ -246,7 +246,9 @@ public class SourceCompiler {
 						if (e2==null) {
 							errs.add(new SourceException(e.range,"Constant "+e.args[0]+" not initialized"));
 						} else {
-							expr.addAll(compileExpr(pkg, frame, retVar, e2, errs));
+							Expression expr2 = compileExpr(pkg, frame, retVar, e2, errs);
+							expr.addAll(expr2);
+							expr.type = expr2.type;
 						}
 					} else if (!frame.isDefined((String)e.args[0])) {
 						errs.add(new SourceException(e.range, "Undefined variable"));
