@@ -39,6 +39,7 @@ public class SourceCompiler {
 			frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
 			if (v.getRawType()!=null) {
 				v.setType(compileDataType(pkg, frame, v.getRawType(), errs));
+				frame.setVarType(v.getName(), v.getType());
 			}
 		}
 		if (fn.getReturn()!=null) {
