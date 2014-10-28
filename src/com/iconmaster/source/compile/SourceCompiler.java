@@ -305,8 +305,8 @@ public class SourceCompiler {
 						} else if (es.size()>1) {
 							errs.add(new SourceException(e.range, "Illegal function call format"));
 						}
-						if (es.size()!=fn.getArguments().size()) {
-							errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+es.size()));
+						if ((es.size()+(method?1:0))!=fn.getArguments().size()) {
+							errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0))));
 						}
 						int i=0;
 						for (Element e2 : es) {
