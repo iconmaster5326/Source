@@ -281,10 +281,11 @@ public class SourceCompiler {
 					if (e.type!=Rule.CONCAT) {
 						errs.add(new SourceException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
 					} else {
-						highest = TypeDef.UNKNOWN;
+						expr.type = new DataType(TypeDef.UNKNOWN, ltype.weak && rtype.weak);
 					}
+				} else {
+					expr.type = new DataType(highest, ltype.weak && rtype.weak);
 				}
-				expr.type = new DataType(highest, ltype.weak && rtype.weak);
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
