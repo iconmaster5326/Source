@@ -310,7 +310,7 @@ public class SourceCompiler {
 						if ((es.size()+(method?1:0))!=fn.getArguments().size()) {
 							errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0))));
 						}
-						int i=0;
+						int i=(method?1:0);
 						for (Element e2 : es) {
 							Expression expr2 = compileExpr(pkg, frame, "", e2, errs);
 							DataType ltype = fn.getArguments().get(i).getType();

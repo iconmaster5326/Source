@@ -32,8 +32,11 @@ public class LibraryCore extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("list.size", new String[] {"item"}, new TypeDef[] {TypeDef.LIST}, TypeDef.REAL);
+		fn = Function.libraryFunction("list.size", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.REAL);
 		fn.compileName = "SIZE";
+		this.addFunction(fn);
+		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new TypeDef[] {TypeDef.LIST,TypeDef.UNKNOWN}, TypeDef.LIST);
+		fn.compileName = "CONCAT";
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("string._cast", new String[] {"item"}, new TypeDef[] {}, TypeDef.STRING);
