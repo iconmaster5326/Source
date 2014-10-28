@@ -105,6 +105,7 @@ public class SourceCompiler {
 					ArrayList<String> names = new ArrayList<>();
 					ArrayList<Expression> lexprs = new ArrayList<>();
 					ArrayList<Expression> rexprs = new ArrayList<>();
+					ArrayList<Operation> movs = new ArrayList<>();
 					ArrayList<Element> les = (ArrayList<Element>) e.args[0];
 					ArrayList<Element> res = (ArrayList<Element>) e.args[1];
 					for (Element e2 : res) {
@@ -121,7 +122,7 @@ public class SourceCompiler {
 								frame.putInline(name2, res.get(asni));
 							} else {
 								Expression expr2 = resolveLValue(pkg, frame, code, e2, errs);
-								code.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
+								movs.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
 								code.addAll(lexprs.get(asni));
 								rexprs.add(expr2);
 								
@@ -144,6 +145,9 @@ public class SourceCompiler {
 							}
 						}
 						asni++;
+					}
+					for (Operation mov : movs) {
+						code.add(mov);
 					}
 					for (Expression expr2 : rexprs) {
 						code.addAll(expr2);
