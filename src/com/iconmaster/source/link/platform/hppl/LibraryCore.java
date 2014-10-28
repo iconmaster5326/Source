@@ -36,6 +36,16 @@ public class LibraryCore extends SourcePackage {
 		fn.compileName = "SIZE";
 		this.addFunction(fn);
 		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new TypeDef[] {TypeDef.LIST,TypeDef.UNKNOWN}, TypeDef.LIST);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append("CONCAT(");
+			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[2], ctx.vs));
+			ctx.sb.append(",{");
+			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[3], ctx.vs));
+			return "})";
+		};
+		this.addFunction(fn);
+		fn = Function.libraryFunction("list.join", new String[] {"list1","list2"}, new TypeDef[] {TypeDef.LIST,TypeDef.LIST}, TypeDef.LIST);
 		fn.compileName = "CONCAT";
 		this.addFunction(fn);
 		
