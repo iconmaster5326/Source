@@ -23,6 +23,7 @@ public class Field implements IDirectable {
 	private DataType type;
 	
 	public String pkgName;
+	public String compileName;
 
 	public Field(String name) {
 		this(name,null);

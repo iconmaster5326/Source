@@ -1,6 +1,8 @@
 package com.iconmaster.source.link;
 
 import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
+import com.iconmaster.source.prototype.Field;
+import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +78,21 @@ public class Linker {
 		Linker linker = new Linker(plat);
 		linker.linkUserPackage(pkg);
 		linker.manageLinks();
+		linker.giveCompileNames();
 		return linker;
+	}
+	
+	public void giveCompileNames() {
+		for (Function fn : pkg.getFunctions()) {
+			if (fn.compileName==null) {
+				fn.compileName = platform.getCompileName(pkg, fn, fn.getName());
+			}
+		}
+		for (Field fn : pkg.getFields()) {
+			if (fn.compileName==null) {
+				fn.compileName = platform.getCompileName(pkg, fn, fn.getName());
+			}
+		}
 	}
 
 	@Override

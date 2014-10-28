@@ -1,5 +1,7 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.prototype.Field;
+import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.HashMap;
 
@@ -16,4 +18,12 @@ public abstract class Platform {
 	}
 
 	public abstract String assemble(SourcePackage pkg);
+	
+	public String getCompileName(SourcePackage pkg, Function fn, String name) {
+		return name;
+	}
+
+	public String getCompileName(SourcePackage pkg, Field fn, String name) {
+		return name;
+	}
 }

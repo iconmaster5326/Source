@@ -28,12 +28,30 @@ public class PlatformHPPL extends Platform {
 	}
 	
 	@Override
+	public String getCompileName(SourcePackage pkg, Function fn, String name) {
+		return name.replace(".", "_");
+	}
+	
+	@Override
+	public String getCompileName(SourcePackage pkg, Field fn, String name) {
+		return name.replace(".", "_");
+	}
+	
+	@Override
 	public String assemble(SourcePackage pkg) {
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n");
 		for (Function fn : pkg.getFunctions()) {
 			if (fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline")) {
-				sb.append(fn.getName());
-				sb.append("();");
+				sb.append(fn.compileName);
+				sb.append("(");
+				if (!fn.getArguments().isEmpty()) {
+					for (Field arg : fn.getArguments()) {
+						sb.append(arg.getName());
+						sb.append(',');
+					}
+					sb.deleteCharAt(sb.length()-1);
+				}
+				sb.append(");");
 			}
 		}
 		sb.append("\n");
@@ -54,7 +72,7 @@ public class PlatformHPPL extends Platform {
 		if (Directives.has(fn, "export")) {
 			sb.append("EXPORT ");
 		}
-		sb.append(fn.getName());
+		sb.append(fn.compileName);
 		sb.append("(");
 		if (!fn.getArguments().isEmpty()) {
 			for (Field arg : fn.getArguments()) {
@@ -81,7 +99,7 @@ public class PlatformHPPL extends Platform {
 		if (var.getValue()!=null) {
 			sb.append(assembleCode(pkg,var.getValue()));
 		} else {
-			sb.append(var.getName());
+			sb.append(var.compileName);
 			sb.append(";");
 		}
 		return sb.toString();
@@ -234,10 +252,7 @@ public class PlatformHPPL extends Platform {
 							}
 						}
 					}
-					String fs = op.args[1];
-					if (fs.contains(".")) {
-						fs = fs.substring(op.args[1].lastIndexOf('.')+1);
-					}
+					String fs = fn.compileName;
 					sb.append(fs);
 					if (op.args.length > 2) {
 						sb.append("(");
