@@ -29,12 +29,12 @@ public class PlatformHPPL extends Platform {
 	
 	@Override
 	public String getCompileName(SourcePackage pkg, Function fn, String name) {
-		return name.replace(".", "_");
+		return name.replace(".", "_").replace("?", "_");
 	}
 	
 	@Override
 	public String getCompileName(SourcePackage pkg, Field fn, String name) {
-		return name.replace(".", "_");
+		return name.replace(".", "_").replace("?", "_");
 	}
 	
 	@Override
