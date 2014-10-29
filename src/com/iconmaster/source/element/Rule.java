@@ -165,7 +165,7 @@ public enum Rule implements IElementType {
 	LTE(null,"a@0'<='a@1"),
 	GTE(null,"a@0'>='a@1"),
 	AND(null,"a@0'and'a@1"),
-	OR(null,"a@0'and'a@1"),
+	OR(null,"a@0'or'a@1"),
 	TUPLE("T", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
