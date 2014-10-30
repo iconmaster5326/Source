@@ -25,9 +25,9 @@ public class LibraryCore extends SourcePackage {
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("MAKELIST(X,X,");
-			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[2], ctx.vs));
+			ctx.sb.append(ctx.plat.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			ctx.sb.append(",");
-			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[3], ctx.vs));
+			ctx.sb.append(ctx.plat.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
 			return ")";
 		};
 		this.addFunction(fn);
@@ -39,9 +39,9 @@ public class LibraryCore extends SourcePackage {
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("CONCAT(");
-			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[2], ctx.vs));
+			ctx.sb.append(ctx.plat.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			ctx.sb.append(",{");
-			ctx.sb.append(ctx.plat.getInlineString(pkg, ctx.expr, ctx.op.args[3], ctx.vs));
+			ctx.sb.append(ctx.plat.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
 			return "})";
 		};
 		this.addFunction(fn);
