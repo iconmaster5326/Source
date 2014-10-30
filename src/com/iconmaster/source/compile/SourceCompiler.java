@@ -69,22 +69,14 @@ public class SourceCompiler {
 		for (Element e : es) {
 			switch ((Rule)e.type) {
 				case LOCAL:
-					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						String expr2 = resolveLValueRaw(pkg, frame, e2);
-						frame.putDefined(expr2);
-						if (Directives.has(e, "inline")) {
-							frame.putInline(expr2);
-						}
-						if (e2.dataType!=null) {
-							frame.setVarType(expr2, compileDataType(pkg, frame, e2.dataType, errs));
-						}
-					}
-					break;
 				case LOCAL_ASN:
 					if (Directives.has(e, "inline")) {
 						int asni = 0;
 						ArrayList<Element> les = (ArrayList<Element>) e.args[0];
 						ArrayList<Element> res = (ArrayList<Element>) e.args[1];
+						if (res==null) {
+							res = new ArrayList<>();
+						}
 						for (Element e2 : les) {
 							String expr2 = resolveLValueRaw(pkg, frame, e2);
 							frame.putInline(expr2);
@@ -109,6 +101,9 @@ public class SourceCompiler {
 					ArrayList<Operation> movs = new ArrayList<>();
 					ArrayList<Element> les = (ArrayList<Element>) e.args[0];
 					ArrayList<Element> res = (ArrayList<Element>) e.args[1];
+					if (res==null) {
+						res = new ArrayList<>();
+					}
 					for (Element e2 : res) {
 						String name2 = frame.newVarName();
 						Expression expr2 = compileExpr(pkg, frame, name2, e2, errs);
