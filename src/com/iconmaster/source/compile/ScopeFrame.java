@@ -78,6 +78,14 @@ public class ScopeFrame {
 		return a.toArray(new String[0]);
 	}
 	
+	public String[] getTypeStrings() {
+		ArrayList<String> a = new ArrayList<>();
+		for (String var : defined) {
+			a.add(types.getOrDefault(var,new DataType(true)).toString());
+		}
+		return a.toArray(new String[0]);
+	}
+	
 	public void putDefined(String name) {
 		defined.add(name);
 	}

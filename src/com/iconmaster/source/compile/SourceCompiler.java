@@ -222,6 +222,7 @@ public class SourceCompiler {
 					code.addAll(compileExpr(pkg, frame, frame.newVarName(), e, errs));
 			}
 		}
+		code.add(0, new Operation(OpType.TYPE, null, frame.getTypeStrings()));
 		code.add(0, new Operation(OpType.DEF, null, frame.getAllVars()));
 		return code;
 	}
