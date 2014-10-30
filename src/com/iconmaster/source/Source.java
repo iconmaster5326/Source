@@ -159,18 +159,6 @@ public class Source {
 				return;
 			}
 			System.out.println("Compiling done!");
-//			System.out.println("Checking types...");
-//			errs = TypeChecker.check(linker.pkg);
-//			if (!errs.isEmpty()) {
-//				System.out.println("There were errors detected:");
-//				for (SourceException err : errs) {
-//					System.out.print("\t");
-//					System.out.println(err);
-//				}
-//				System.out.println("Compilation could not be completed.");
-//				return;
-//			}
-//			System.out.println("Types checked. No errors found!");
 			System.out.println("Assembling...");
 			String outputStr = Assembler.assemble("HPPL", linker.pkg);
 			System.out.println("Got the following code:");
