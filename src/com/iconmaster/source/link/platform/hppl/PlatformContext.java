@@ -18,6 +18,7 @@ public class PlatformContext {
 		this.expr = expr;
 		this.op = op;
 		this.sb = sb;
+		this.plat = plat;
 		this.ad = ad;
 	}
 }
