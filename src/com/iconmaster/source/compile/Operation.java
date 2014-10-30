@@ -76,6 +76,7 @@ public class Operation {
 				case END:
 				case ENDB:
 				case MOVI:
+				case TYPE:
 					return false;
 				default:
 					return true;

@@ -5,21 +5,24 @@ import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.util.ElementHelper;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
 /**
  *
  * @author iconmaster
  */
-public class SourcePackage {	
+public class SourcePackage implements IDirectable {	
 	protected String name;
 	protected ArrayList<Field> fields = new ArrayList<>();
 	protected ArrayList<Function> functions = new ArrayList<>();
 	protected ArrayList<String> imports = new ArrayList<>();
-	private ArrayList<TypeDef> types = new ArrayList<>();
+	protected ArrayList<TypeDef> types = new ArrayList<>();
 	
 	protected boolean compiled = false;
 	public NameProvider nameProvider = new NameProvider();
+	
+	private ArrayList<String> directives = new ArrayList<>();
 
 	@Override
 	public String toString() {
@@ -73,6 +76,7 @@ public class SourcePackage {
 							var.rawValue = vals.get(i);
 						}
 						var.getDirectives().addAll(e.directives);
+						var.getDirectives().addAll(directives);
 						addField(var);
 						i++;
 					}
@@ -81,6 +85,7 @@ public class SourcePackage {
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
 						Field var = new Field((String)e2.args[0], e2.dataType);
 						var.getDirectives().addAll(e.directives);
+						var.getDirectives().addAll(directives);
 						addField(var);
 					}
 					break;
@@ -99,12 +104,14 @@ public class SourcePackage {
 					}
 					Function fn = new Function(fname,args,rets);
 					fn.getDirectives().addAll(e.directives);
+					fn.getDirectives().addAll(directives);
 					fn.rawCode = (ArrayList<Element>) e.args[2];
 					addFunction(fn);
 					break;
-				case ENUM:
-				case STRUCT:
 				case GLOBAL_DIR:
+					String s = (String) e.args[0];
+					directives.add(s.substring(1));
+					break;
 			}
 		}
 		return errors;
@@ -177,5 +184,10 @@ public class SourcePackage {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public ArrayList<String> getDirectives() {
+		return directives;
 	}
 }
