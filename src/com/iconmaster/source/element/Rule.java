@@ -101,14 +101,18 @@ public enum Rule implements IElementType {
 		return null;
 	}),
 	DIR(null,(a,i)->{ //local directive rule
-		if (i==a.size() || a.get(i).type != TokenRule.DIRECTIVE || ((Token)a.get(i)).string().startsWith("@")) {
-			return null;
+		ArrayList<String> dirs = new ArrayList<>();
+		int j = i;
+		while (j < a.size()) {
+			if (a.get(j).type == TokenRule.DIRECTIVE && !((Token)a.get(j)).string().startsWith("@")) {
+				dirs.add((String) a.get(j).args[0]);
+			} else {
+				a.get(j).getDirectives().addAll(dirs);
+				return new RuleResult(null, dirs.size());
+			}
+			j++;
 		}
-		Token dir = ((Token)a.get(i));
-		Element e = a.get(i+1);
-		e.directives.addAll(dir.directives);
-		e.directives.add(dir.string());
-		return new RuleResult(null,1);
+		return null;
 	}),
 	GLOBAL_DIR(null,"r0"),
 	FCALL("F","w0!p1?"),
