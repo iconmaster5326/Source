@@ -12,13 +12,11 @@ public class PlatformContext {
 	public Operation op;
 	public StringBuilder sb;
 	public AssemblyData ad;
-	public PlatformHPPL plat;
 
-	public PlatformContext(ArrayList<Operation> expr, Operation op, StringBuilder sb, PlatformHPPL plat, AssemblyData ad) {
+	public PlatformContext(ArrayList<Operation> expr, Operation op, StringBuilder sb, AssemblyData ad) {
 		this.expr = expr;
 		this.op = op;
 		this.sb = sb;
-		this.plat = plat;
 		this.ad = ad;
 	}
 }
