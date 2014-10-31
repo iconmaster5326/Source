@@ -28,13 +28,13 @@ public class SourceCompiler {
 		CompileData cd = new CompileData(pkg);
 		for (Field field : cd.pkg.getFields()) {
 			if (!field.isCompiled() && !field.isLibrary()) {
-				cd.frame = new ScopeFrame(cd);
+				cd.frame = new ScopeFrame(cd.pkg);
 				compileField(cd, field);
 			}
 		}
 		for (Function fn : cd.pkg.getFunctions()) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
-				cd.frame = new ScopeFrame(cd);
+				cd.frame = new ScopeFrame(cd.pkg);
 				compileFunction(cd, fn);
 			}
 		}
