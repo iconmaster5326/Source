@@ -4,7 +4,13 @@ import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.compile.ScopeFrame.Variable;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
+import com.iconmaster.source.exception.SourceDataTypeException;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.exception.SourceSafeModeException;
+import com.iconmaster.source.exception.SourceSyntaxException;
+import com.iconmaster.source.exception.SourceUndefinedFunctionException;
+import com.iconmaster.source.exception.SourceUndefinedVariableException;
+import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
@@ -97,7 +103,7 @@ public class SourceCompiler {
 							cd.frame.setVarType(expr2, compileDataType(cd, e2.dataType));
 						} else {
 							if (Directives.has(cd.dirs, "safe")) {
-								cd.errs.add(new SourceException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)"));
+								cd.errs.add(new SourceSafeModeException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)", expr2));
 							}
 						}
 					}
@@ -140,7 +146,7 @@ public class SourceCompiler {
 								}
 								TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 								if (highest==null) {
-									cd.errs.add(new SourceException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
 								} else {
 									cd.frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
 									cd.frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
@@ -252,16 +258,16 @@ public class SourceCompiler {
 					} else if (cd.frame.isInlined((String)e.args[0])) {
 						Element e2 = cd.frame.getInline((String)e.args[0]);
 						if (e2==null) {
-							cd.errs.add(new SourceException(e.range,"Constant "+e.args[0]+" not initialized"));
+							cd.errs.add(new SourceUninitializedVariableException(e.range,"Constant "+e.args[0]+" not initialized", (String) e.args[0]));
 						} else {
 							Expression expr2 = compileExpr(cd, retVar, e2);
 							expr.addAll(expr2);
 							expr.type = expr2.type;
 						}
 					} else if (!cd.frame.isDefined((String)e.args[0])) {
-						cd.errs.add(new SourceException(e.range, "Undefined variable"));
+						cd.errs.add(new SourceUndefinedVariableException(e.range, "Undefined variable "+e.args[0], (String) e.args[0]));
 					} else if (cd.frame.getVariable((String)e.args[0])==null) {
-						cd.errs.add(new SourceException(e.range, "Uninitialized variable"));
+						cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
 					} else {
 						expr.add(new Operation(OpType.MOV, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
 						expr.type = cd.frame.getVarType(cd.frame.getVariableName((String)e.args[0]));
@@ -287,7 +293,7 @@ public class SourceCompiler {
 				TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak && rtype.weak);
 				if (highest==null) {
 					if (e.type!=Rule.CONCAT) {
-						cd.errs.add(new SourceException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
+						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
 					} else {
 						expr.type = new DataType(TypeDef.UNKNOWN, ltype.weak && rtype.weak);
 					}
@@ -304,7 +310,7 @@ public class SourceCompiler {
 							fn = getRealFunction(cd, (String) e.args[0]);
 							method = true;
 							if (fn==null) {
-								cd.errs.add(new SourceException(e.range, "Undefined function "+e.args[0]));
+								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Undefined function "+e.args[0], (String) e.args[0]));
 								break;
 							}
 						}
@@ -312,10 +318,10 @@ public class SourceCompiler {
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()>1) {
-							cd.errs.add(new SourceException(e.range, "Illegal function call format"));
+							cd.errs.add(new SourceSyntaxException(e.range, "Illegal function call format"));
 						}
 						if ((es.size()+(method?1:0))!=fn.getArguments().size()) {
-							cd.errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0))));
+							cd.errs.add(new SourceUndefinedFunctionException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0)), (String) e.args[0]));
 						}
 						int i=(method?1:0);
 						for (Element e2 : es) {
@@ -330,7 +336,7 @@ public class SourceCompiler {
 							}
 							TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 							if (highest==null) {
-								cd.errs.add(new SourceException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
+								cd.errs.add(new SourceDataTypeException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
 							}
 							i++;
 						}
@@ -405,7 +411,7 @@ public class SourceCompiler {
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()!=1) {
-							cd.errs.add(new SourceException(e.range, "Illegal index format"));
+							cd.errs.add(new SourceSyntaxException(e.range, "Illegal index format"));
 						}
 						for (Element e2 : es) {
 							String name = cd.frame.newVarName();
@@ -414,9 +420,9 @@ public class SourceCompiler {
 							names.add(name);
 						}
 						if (!cd.frame.isDefined((String)e.args[0])) {
-							cd.errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
+							cd.errs.add(new SourceUndefinedVariableException(e.range, "Undefined variable "+e.args[0], (String) e.args[0]));
 						} else if (cd.frame.getVariable((String)e.args[0])==null) {
-							cd.errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
+							cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
 						} else {
 							names.add(0,cd.frame.getVariableName((String)e.args[0]));
 						}
@@ -429,7 +435,7 @@ public class SourceCompiler {
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()>1) {
-							cd.errs.add(new SourceException(e.range, "Illegal list format"));
+							cd.errs.add(new SourceSyntaxException(e.range, "Illegal list format"));
 						}
 						for (Element e2 : es) {
 							String name = cd.frame.newVarName();
@@ -443,7 +449,7 @@ public class SourceCompiler {
 					case PAREN:
 						es = (ArrayList<Element>) e.args[0];
 						if (es.size()!=1) {
-							cd.errs.add(new SourceException(e.range, "Illegal parenthesis format"));
+							cd.errs.add(new SourceSyntaxException(e.range, "Illegal parenthesis format"));
 						}
 						for (Element e2 : es) {
 							expr.addAll(compileExpr(cd, retVar, e2));
@@ -464,7 +470,7 @@ public class SourceCompiler {
 						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
 						if (cd.pkg.getFunction(fnName)==null) {
-							cd.errs.add(new SourceException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists"));
+							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
 						} else {
 							expr.add(new Operation(OpType.CALL, e.range, retVar, fnName, name));
 							expr.type = rtype;
@@ -486,17 +492,17 @@ public class SourceCompiler {
 				case WORD:
 					TypeDef def = cd.pkg.getType((String) e.args[0]);
 					if (def==null) {
-						cd.errs.add(new SourceException(e.range, "unknown data type "+e.args[0]));
+						cd.errs.add(new SourceDataTypeException(e.range, "unknown data type "+e.args[0]));
 					}
 					dt.type = def;
 					break;
 				default:
-					cd.errs.add(new SourceException(e.range, "Illegal data type format"));
+					cd.errs.add(new SourceSyntaxException(e.range, "Illegal data type format"));
 			}
 		} else {
 			switch ((Rule)e.type) {
 				default:
-					cd.errs.add(new SourceException(e.range, "Illegal data type format"));
+					cd.errs.add(new SourceSyntaxException(e.range, "Illegal data type format"));
 			}
 		}
 		return dt;
@@ -512,7 +518,7 @@ public class SourceCompiler {
 					if (cd.pkg.getField(name)!=null) {
 						
 					} else if (!cd.frame.isDefined(name)) {
-						cd.errs.add(new SourceException(e.range,"Variable "+name+" not declared local"));
+						cd.errs.add(new SourceUndefinedVariableException(e.range,"Variable "+name+" not declared local", (String) e.args[0]));
 					} else if (cd.frame.getVariable(name)==null) {
 						name = cd.frame.putVariable(name, false).name;
 					} else {
@@ -522,7 +528,7 @@ public class SourceCompiler {
 					expr.type = cd.frame.getVarType(name);
 					break;
 				default:
-					cd.errs.add(new SourceException(e.range,"Illegal L-value"));
+					cd.errs.add(new SourceSyntaxException(e.range,"Illegal L-value"));
 			}
 		} else {
 			switch ((Rule)e.type) {
@@ -532,7 +538,7 @@ public class SourceCompiler {
 					if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 						es = (ArrayList<Element>) es.get(0).args[0];
 					} else if (es.size()!=1) {
-						cd.errs.add(new SourceException(e.range, "Illegal index format"));
+						cd.errs.add(new SourceSyntaxException(e.range, "Illegal index format"));
 					}
 					for (Element e2 : es) {
 						String name2 = cd.frame.newVarName();
@@ -543,16 +549,16 @@ public class SourceCompiler {
 					expr.retVar = cd.frame.newVarName();
 					names.add(0,expr.retVar);
 					if (!cd.frame.isDefined((String)e.args[0])) {
-						cd.errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
+						cd.errs.add(new SourceUndefinedVariableException(e.range, "Undefined variable "+e.args[0], (String) e.args[0]));
 					} else if (cd.frame.getVariable((String)e.args[0])==null) {
-						cd.errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
+						cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
 					} else {
 						names.add(0,cd.frame.getVariableName((String)e.args[0]));
 					}
 					expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
 					break;
 				default:
-					cd.errs.add(new SourceException(e.range,"Illegal L-value"));
+					cd.errs.add(new SourceSyntaxException(e.range,"Illegal L-value"));
 			}
 		}
 		return expr;
