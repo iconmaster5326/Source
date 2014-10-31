@@ -19,51 +19,54 @@ import java.util.ArrayList;
  */
 public class SourceCompiler {
 	public static ArrayList<SourceException> compile(SourcePackage pkg) {
-		ArrayList<SourceException> errs = new ArrayList<>();
-		ScopeFrame sf = new ScopeFrame(pkg);
-		for (Field field : pkg.getFields()) {
+		CompileData cd = new CompileData(pkg);
+		for (Field field : cd.pkg.getFields()) {
 			if (!field.isCompiled() && !field.isLibrary()) {
-				compileField(pkg, new ScopeFrame(pkg, sf), field, errs);
+				cd.frame = new ScopeFrame(cd);
+				compileField(cd, field);
 			}
 		}
-		for (Function fn : pkg.getFunctions()) {
+		for (Function fn : cd.pkg.getFunctions()) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
-				compileFunction(pkg, new ScopeFrame(pkg, sf), fn, errs);
+				cd.frame = new ScopeFrame(cd);
+				compileFunction(cd, fn);
 			}
 		}
-		return errs;
+		return cd.errs;
 	}
 	
-	public static Expression compileFunction(SourcePackage pkg, ScopeFrame frame, Function fn, ArrayList<SourceException> errs) {
+	public static Expression compileFunction(CompileData cd, Function fn) {
+		cd.dirs = fn.getDirectives();
 		for (Field v : fn.getArguments()) {
-			frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
+			cd.frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
 			if (v.getRawType()!=null) {
-				v.setType(compileDataType(pkg, frame, v.getRawType(), errs));
-				frame.setVarType(v.getName(), v.getType());
+				v.setType(compileDataType(cd, v.getRawType()));
+				cd.frame.setVarType(v.getName(), v.getType());
 			}
 		}
 		if (fn.getReturn()!=null) {
-			fn.setReturnType(compileDataType(pkg, frame, fn.getReturn(), errs));
+			fn.setReturnType(compileDataType(cd, fn.getReturn()));
 		}
-		Expression code = compileCode(pkg, frame, fn.rawData(), errs);
+		Expression code = compileCode(cd, fn.rawData());
 		fn.setCompiled(code);
 		return code;
 	}
 	
-	public static Expression compileField(SourcePackage pkg, ScopeFrame frame, Field field, ArrayList<SourceException> errs) {
-		Variable v = frame.putVariable(field.getName(), false);
+	public static Expression compileField(CompileData cd, Field field) {
+		cd.dirs = field.getDirectives();
+		Variable v = cd.frame.putVariable(field.getName(), false);
 		if (field.getRawType()!=null) {
-			field.setType(compileDataType(pkg, frame, field.getRawType(), errs));
+			field.setType(compileDataType(cd, field.getRawType()));
 		}
 		if (field.rawData()!=null) {
-			Expression expr = compileExpr(pkg, frame, v.name, field.rawData(), errs);
+			Expression expr = compileExpr(cd, v.name, field.rawData());
 			field.setCompiled(expr);
 			return expr;
 		}
 		return null;
 	}
 	
-	public static Expression compileCode(SourcePackage pkg, ScopeFrame frame, ArrayList<Element> es, ArrayList<SourceException> errs) {
+	public static Expression compileCode(CompileData cd, ArrayList<Element> es) {
 		Expression code = new Expression();
 		OpType asnType = null;
 		for (Element e : es) {
@@ -78,20 +81,24 @@ public class SourceCompiler {
 							res = new ArrayList<>();
 						}
 						for (Element e2 : les) {
-							String expr2 = resolveLValueRaw(pkg, frame, e2);
-							frame.putInline(expr2);
+							String expr2 = resolveLValueRaw(cd, e2);
+							cd.frame.putInline(expr2);
 							if (asni<res.size()) {
-								frame.putInline(expr2, res.get(asni));
+								cd.frame.putInline(expr2, res.get(asni));
 							}
 							asni++;
 						}
 						break;
 					}
 					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						String expr2 = resolveLValueRaw(pkg, frame, e2);
-						frame.putDefined(expr2);
+						String expr2 = resolveLValueRaw(cd, e2);
+						cd.frame.putDefined(expr2);
 						if (e2.dataType!=null) {
-							frame.setVarType(expr2, compileDataType(pkg, frame, e2.dataType, errs));
+							cd.frame.setVarType(expr2, compileDataType(cd, e2.dataType));
+						} else {
+							if (Directives.has(cd.dirs, "safe")) {
+								cd.errs.add(new SourceException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)"));
+							}
 						}
 					}
 				case ASSIGN:
@@ -105,19 +112,19 @@ public class SourceCompiler {
 						res = new ArrayList<>();
 					}
 					for (Element e2 : res) {
-						String name2 = frame.newVarName();
-						Expression expr2 = compileExpr(pkg, frame, name2, e2, errs);
+						String name2 = cd.frame.newVarName();
+						Expression expr2 = compileExpr(cd, name2, e2);
 						names.add(name2);
 						lexprs.add(expr2);
 					}
 					int asni = 0;
 					for (Element e2 : les) {
 						if (asni<names.size()) {
-							String name2 = resolveLValueRaw(pkg, frame, e2);
-							if (name2!=null && frame.isInlined(name2)) {
-								frame.putInline(name2, res.get(asni));
+							String name2 = resolveLValueRaw(cd, e2);
+							if (name2!=null && cd.frame.isInlined(name2)) {
+								cd.frame.putInline(name2, res.get(asni));
 							} else {
-								Expression expr2 = resolveLValue(pkg, frame, code, e2, errs);
+								Expression expr2 = resolveLValue(cd, code, e2);
 								movs.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
 								code.addAll(lexprs.get(asni));
 								rexprs.add(expr2);
@@ -133,10 +140,10 @@ public class SourceCompiler {
 								}
 								TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 								if (highest==null) {
-									errs.add(new SourceException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
+									cd.errs.add(new SourceException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
 								} else {
-									frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
-									frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
+									cd.frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
+									cd.frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
 								}
 							}
 						}
@@ -150,36 +157,40 @@ public class SourceCompiler {
 					}
 					break;
 				case IF:
-					Expression cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					Expression cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 					code.addAll(cond);
 					code.add(new Operation(OpType.IF, e.range, cond.retVar));
 					code.add(new Operation(OpType.BEGIN, e.range));
-					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					cd.frame = new ScopeFrame(cd);
+					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
 					code.add(new Operation(OpType.END, e.range));
 					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				case ELSE:
 					code.add(new Operation(OpType.ELSE, e.range));
 					code.add(new Operation(OpType.BEGIN, e.range));
-					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					cd.frame = new ScopeFrame(cd);
+					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
 					code.add(new Operation(OpType.END, e.range));
 					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				case WHILE:
-					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 					code.addAll(cond);
 					code.add(new Operation(OpType.WHILE, e.range, cond.retVar));
 					code.add(new Operation(OpType.BEGIN, e.range));
-					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					cd.frame = new ScopeFrame(cd);
+					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
 					code.add(new Operation(OpType.END, e.range));
 					code.add(new Operation(OpType.ENDB, e.range));
 					break;
 				case REPEAT:
-					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 					code.addAll(cond);
 					code.add(new Operation(OpType.REP, e.range, cond.retVar));
 					code.add(new Operation(OpType.BEGIN, e.range));
-					code.addAll(compileCode(pkg, new ScopeFrame(pkg,frame), (ArrayList<Element>) e.args[2], errs));
+					cd.frame = new ScopeFrame(cd);
+					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
 					code.add(new Operation(OpType.END, e.range));
 					code.add(new Operation(OpType.ENDB, e.range));
 					break;
@@ -187,7 +198,7 @@ public class SourceCompiler {
 					code.add(new Operation(OpType.RET, e.range));
 					break;
 				case RETURN:
-					cond = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
+					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 					code.addAll(cond);
 					code.add(new Operation(OpType.RET, e.range, cond.retVar));
 					break;
@@ -205,24 +216,24 @@ public class SourceCompiler {
 					if (e.type==Rule.DIV_ASN) {
 						asnType = OpType.DIV;
 					}
-					Expression lexpr1 = resolveLValue(pkg, frame, code, (Element) e.args[0], errs);
-					Expression lexpr2 = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
-					Expression rexpr = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[1], errs);
+					Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
+					Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+					Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
 					code.addAll(rexpr);
 					code.addAll(lexpr2);
 					code.add(new Operation(asnType, e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
 					code.addAll(lexpr1);
 					break;
 				default:
-					code.addAll(compileExpr(pkg, frame, frame.newVarName(), e, errs));
+					code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
 			}
 		}
-		code.add(0, new Operation(OpType.TYPE, null, frame.getTypeStrings()));
-		code.add(0, new Operation(OpType.DEF, null, frame.getAllVars()));
+		code.add(0, new Operation(OpType.TYPE, null, cd.frame.getTypeStrings()));
+		code.add(0, new Operation(OpType.DEF, null, cd.frame.getAllVars()));
 		return code;
 	}
 	
-	public static Expression compileExpr(SourcePackage pkg, ScopeFrame frame, String retVar, Element e, ArrayList<SourceException> errs) {
+	public static Expression compileExpr(CompileData cd, String retVar, Element e) {
 		Expression expr = new Expression();
 		expr.retVar = retVar;
 		if (e.type instanceof TokenRule) {
@@ -236,31 +247,31 @@ public class SourceCompiler {
 					expr.type = new DataType(TypeDef.STRING,false);
 					break;
 				case WORD:
-					if (pkg.getField((String)e.args[0])!=null) {
+					if (cd.pkg.getField((String)e.args[0])!=null) {
 						expr.add(new Operation(OpType.MOV, e.range, retVar, (String)e.args[0]));
-					} else if (frame.isInlined((String)e.args[0])) {
-						Element e2 = frame.getInline((String)e.args[0]);
+					} else if (cd.frame.isInlined((String)e.args[0])) {
+						Element e2 = cd.frame.getInline((String)e.args[0]);
 						if (e2==null) {
-							errs.add(new SourceException(e.range,"Constant "+e.args[0]+" not initialized"));
+							cd.errs.add(new SourceException(e.range,"Constant "+e.args[0]+" not initialized"));
 						} else {
-							Expression expr2 = compileExpr(pkg, frame, retVar, e2, errs);
+							Expression expr2 = compileExpr(cd, retVar, e2);
 							expr.addAll(expr2);
 							expr.type = expr2.type;
 						}
-					} else if (!frame.isDefined((String)e.args[0])) {
-						errs.add(new SourceException(e.range, "Undefined variable"));
-					} else if (frame.getVariable((String)e.args[0])==null) {
-						errs.add(new SourceException(e.range, "Uninitialized variable"));
+					} else if (!cd.frame.isDefined((String)e.args[0])) {
+						cd.errs.add(new SourceException(e.range, "Undefined variable"));
+					} else if (cd.frame.getVariable((String)e.args[0])==null) {
+						cd.errs.add(new SourceException(e.range, "Uninitialized variable"));
 					} else {
-						expr.add(new Operation(OpType.MOV, e.range, retVar, frame.getVariableName((String)e.args[0])));
-						expr.type = frame.getVarType(frame.getVariableName((String)e.args[0]));
+						expr.add(new Operation(OpType.MOV, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
+						expr.type = cd.frame.getVarType(cd.frame.getVariableName((String)e.args[0]));
 					}
 					break;
 			}
 		} else {
 			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
-				Expression lexpr = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[0], errs);
-				Expression rexpr = compileExpr(pkg, frame, frame.newVarName(), (Element) e.args[1], errs);
+				Expression lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+				Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
 				expr.addAll(lexpr);
 				expr.addAll(rexpr);
 				expr.add(new Operation(OpType.MathToOpType((Rule) e.type), e.range, retVar, lexpr.retVar, rexpr.retVar));
@@ -276,7 +287,7 @@ public class SourceCompiler {
 				TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak && rtype.weak);
 				if (highest==null) {
 					if (e.type!=Rule.CONCAT) {
-						errs.add(new SourceException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
+						cd.errs.add(new SourceException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
 					} else {
 						expr.type = new DataType(TypeDef.UNKNOWN, ltype.weak && rtype.weak);
 					}
@@ -287,13 +298,13 @@ public class SourceCompiler {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
 					case FCALL:
-						Function fn = pkg.getFunction((String) e.args[0]);
+						Function fn = cd.pkg.getFunction((String) e.args[0]);
 						boolean method = false;
 						if (fn==null) {
-							fn = getRealFunction(pkg, frame, (String) e.args[0], errs);
+							fn = getRealFunction(cd, (String) e.args[0]);
 							method = true;
 							if (fn==null) {
-								errs.add(new SourceException(e.range, "Undefined function "+e.args[0]));
+								cd.errs.add(new SourceException(e.range, "Undefined function "+e.args[0]));
 								break;
 							}
 						}
@@ -301,14 +312,14 @@ public class SourceCompiler {
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()>1) {
-							errs.add(new SourceException(e.range, "Illegal function call format"));
+							cd.errs.add(new SourceException(e.range, "Illegal function call format"));
 						}
 						if ((es.size()+(method?1:0))!=fn.getArguments().size()) {
-							errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0))));
+							cd.errs.add(new SourceException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0))));
 						}
 						int i=(method?1:0);
 						for (Element e2 : es) {
-							Expression expr2 = compileExpr(pkg, frame, "", e2, errs);
+							Expression expr2 = compileExpr(cd, "", e2);
 							DataType ltype = fn.getArguments().get(i).getType();
 							DataType rtype = expr2.type;
 							if (ltype==null) {
@@ -319,7 +330,7 @@ public class SourceCompiler {
 							}
 							TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 							if (highest==null) {
-								errs.add(new SourceException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
+								cd.errs.add(new SourceException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
 							}
 							i++;
 						}
@@ -329,7 +340,7 @@ public class SourceCompiler {
 								Expression mexpr = new Expression();
 								String s = (String) e.args[0];
 								s = s.substring(0,s.indexOf(".")-1);
-								DataType type = frame.getVarType(s);
+								DataType type = cd.frame.getVarType(s);
 								mexpr.type = type;
 								mexpr.retVar = fn.getArguments().get(0).getName();
 								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
@@ -338,14 +349,15 @@ public class SourceCompiler {
 							int j=method?1:0;
 							for (Element e2 : es) {
 								String name = fn.getArguments().get(j).getName();
-								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+								Expression expr2 = compileExpr(cd, name, e2);
 								args.add(expr2);
 								j++;
 							}
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
 							}
-							ArrayList<Operation> fncode = compileFunction(pkg,  new ScopeFrame(pkg,frame), fn, errs);
+							cd.frame = new ScopeFrame(cd);
+							ArrayList<Operation> fncode = compileFunction(cd, fn);
 							for (Operation op: fncode) {
 								if (op.op==OpType.RET) {
 									if (op.args.length==0) {
@@ -365,23 +377,23 @@ public class SourceCompiler {
 								Expression mexpr = new Expression();
 								String s = (String) e.args[0];
 								s = s.substring(0,s.indexOf("."));
-								DataType type = frame.getVarType(s);
+								DataType type = cd.frame.getVarType(s);
 								mexpr.type = type;
-								mexpr.retVar = frame.newVarName();
+								mexpr.retVar = cd.frame.newVarName();
 								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
 								names.add(mexpr.retVar);
 								args.add(mexpr);
 							}
 							for (Element e2 : es) {
-								String name = frame.newVarName();
-								Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+								String name = cd.frame.newVarName();
+								Expression expr2 = compileExpr(cd, name, e2);
 								args.add(expr2);
 								names.add(name);
 							}
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
 							}
-							names.add(0, (String) getFullyQualifiedName(fn, frame));
+							names.add(0, (String) getFullyQualifiedName(cd, fn));
 							names.add(0,retVar);
 							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
@@ -393,20 +405,20 @@ public class SourceCompiler {
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()!=1) {
-							errs.add(new SourceException(e.range, "Illegal index format"));
+							cd.errs.add(new SourceException(e.range, "Illegal index format"));
 						}
 						for (Element e2 : es) {
-							String name = frame.newVarName();
-							Expression expr2 = compileExpr(pkg, frame, name, e2, errs);
+							String name = cd.frame.newVarName();
+							Expression expr2 = compileExpr(cd, name, e2);
 							expr.addAll(expr2);
 							names.add(name);
 						}
-						if (!frame.isDefined((String)e.args[0])) {
-							errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
-						} else if (frame.getVariable((String)e.args[0])==null) {
-							errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
+						if (!cd.frame.isDefined((String)e.args[0])) {
+							cd.errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
+						} else if (cd.frame.getVariable((String)e.args[0])==null) {
+							cd.errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
 						} else {
-							names.add(0,frame.getVariableName((String)e.args[0]));
+							names.add(0,cd.frame.getVariableName((String)e.args[0]));
 						}
 						names.add(0,retVar);
 						expr.add(new Operation(OpType.INDEX, e.range, names.toArray(new String[0])));
@@ -417,11 +429,11 @@ public class SourceCompiler {
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()>1) {
-							errs.add(new SourceException(e.range, "Illegal list format"));
+							cd.errs.add(new SourceException(e.range, "Illegal list format"));
 						}
 						for (Element e2 : es) {
-							String name = frame.newVarName();
-							expr.addAll(compileExpr(pkg, frame, name, e2, errs));
+							String name = cd.frame.newVarName();
+							expr.addAll(compileExpr(cd, name, e2));
 							names.add(name);
 						}
 						names.add(0,retVar);
@@ -431,10 +443,10 @@ public class SourceCompiler {
 					case PAREN:
 						es = (ArrayList<Element>) e.args[0];
 						if (es.size()!=1) {
-							errs.add(new SourceException(e.range, "Illegal parenthesis format"));
+							cd.errs.add(new SourceException(e.range, "Illegal parenthesis format"));
 						}
 						for (Element e2 : es) {
-							expr.addAll(compileExpr(pkg, frame, retVar, e2, errs));
+							expr.addAll(compileExpr(cd, retVar, e2));
 						}
 						break;
 					case TRUE:
@@ -446,13 +458,13 @@ public class SourceCompiler {
 						expr.type = new DataType(TypeDef.REAL,true);
 						break;
 					case TO:
-						String name = frame.newVarName();
-						Expression lexpr = compileExpr(pkg, frame, name, (Element) e.args[0], errs);
+						String name = cd.frame.newVarName();
+						Expression lexpr = compileExpr(cd, name, (Element) e.args[0]);
 						expr.addAll(lexpr);
-						DataType rtype = compileDataType(pkg, frame, (Element) e.args[1], errs);
+						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
-						if (pkg.getFunction(fnName)==null) {
-							errs.add(new SourceException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists"));
+						if (cd.pkg.getFunction(fnName)==null) {
+							cd.errs.add(new SourceException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists"));
 						} else {
 							expr.add(new Operation(OpType.CALL, e.range, retVar, fnName, name));
 							expr.type = rtype;
@@ -462,55 +474,55 @@ public class SourceCompiler {
 			}
 		}
 		if (e.dataType!=null) {
-			expr.type = compileDataType(pkg, frame, e.dataType, errs);
+			expr.type = compileDataType(cd, e.dataType);
 		}
 		return expr;
 	}
 	
-	public static DataType compileDataType(SourcePackage pkg, ScopeFrame frame, Element e, ArrayList<SourceException> errs) {
+	public static DataType compileDataType(CompileData cd, Element e) {
 		DataType dt = new DataType();
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case WORD:
-					TypeDef def = pkg.getType((String) e.args[0]);
+					TypeDef def = cd.pkg.getType((String) e.args[0]);
 					if (def==null) {
-						errs.add(new SourceException(e.range, "unknown data type "+e.args[0]));
+						cd.errs.add(new SourceException(e.range, "unknown data type "+e.args[0]));
 					}
 					dt.type = def;
 					break;
 				default:
-					errs.add(new SourceException(e.range, "Illegal data type format"));
+					cd.errs.add(new SourceException(e.range, "Illegal data type format"));
 			}
 		} else {
 			switch ((Rule)e.type) {
 				default:
-					errs.add(new SourceException(e.range, "Illegal data type format"));
+					cd.errs.add(new SourceException(e.range, "Illegal data type format"));
 			}
 		}
 		return dt;
 	}
 	
-	public static Expression resolveLValue(SourcePackage pkg, ScopeFrame frame, Expression code, Element e, ArrayList<SourceException> errs) {
+	public static Expression resolveLValue(CompileData cd, Expression code, Element e) {
 		Expression expr = new Expression();
 		String name;
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case WORD:
 					name = (String) e.args[0];
-					if (pkg.getField(name)!=null) {
+					if (cd.pkg.getField(name)!=null) {
 						
-					} else if (!frame.isDefined(name)) {
-						errs.add(new SourceException(e.range,"Variable "+name+" not declared local"));
-					} else if (frame.getVariable(name)==null) {
-						name = frame.putVariable(name, false).name;
+					} else if (!cd.frame.isDefined(name)) {
+						cd.errs.add(new SourceException(e.range,"Variable "+name+" not declared local"));
+					} else if (cd.frame.getVariable(name)==null) {
+						name = cd.frame.putVariable(name, false).name;
 					} else {
-						name = frame.getVariableName(name);
+						name = cd.frame.getVariableName(name);
 					}
 					expr.retVar = name;
-					expr.type = frame.getVarType(name);
+					expr.type = cd.frame.getVarType(name);
 					break;
 				default:
-					errs.add(new SourceException(e.range,"Illegal L-value"));
+					cd.errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		} else {
 			switch ((Rule)e.type) {
@@ -520,33 +532,33 @@ public class SourceCompiler {
 					if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 						es = (ArrayList<Element>) es.get(0).args[0];
 					} else if (es.size()!=1) {
-						errs.add(new SourceException(e.range, "Illegal index format"));
+						cd.errs.add(new SourceException(e.range, "Illegal index format"));
 					}
 					for (Element e2 : es) {
-						String name2 = frame.newVarName();
-						Expression expr2 = compileExpr(pkg, frame, name2, e2, errs);
+						String name2 = cd.frame.newVarName();
+						Expression expr2 = compileExpr(cd, name2, e2);
 						code.addAll(expr2);
 						names.add(name2);
 					}
-					expr.retVar = frame.newVarName();
+					expr.retVar = cd.frame.newVarName();
 					names.add(0,expr.retVar);
-					if (!frame.isDefined((String)e.args[0])) {
-						errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
-					} else if (frame.getVariable((String)e.args[0])==null) {
-						errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
+					if (!cd.frame.isDefined((String)e.args[0])) {
+						cd.errs.add(new SourceException(e.range, "Undefined variable "+e.args[0]));
+					} else if (cd.frame.getVariable((String)e.args[0])==null) {
+						cd.errs.add(new SourceException(e.range, "Uninitialized variable "+e.args[0]));
 					} else {
-						names.add(0,frame.getVariableName((String)e.args[0]));
+						names.add(0,cd.frame.getVariableName((String)e.args[0]));
 					}
 					expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
 					break;
 				default:
-					errs.add(new SourceException(e.range,"Illegal L-value"));
+					cd.errs.add(new SourceException(e.range,"Illegal L-value"));
 			}
 		}
 		return expr;
 	}
 	
-	public static String resolveLValueRaw(SourcePackage pkg, ScopeFrame frame, Element e) {
+	public static String resolveLValueRaw(CompileData cd, Element e) {
 		String name = null;
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
@@ -561,20 +573,20 @@ public class SourceCompiler {
 		return name;
 	}
 	
-	public static String getFullyQualifiedName(Function fn, ScopeFrame frame) {
+	public static String getFullyQualifiedName(CompileData cd, Function fn) {
 		return fn.pkgName+"."+fn.getName();
 	}
 	
-	public static Function getRealFunction(SourcePackage pkg, ScopeFrame frame, String name, ArrayList<SourceException> errs) {
+	public static Function getRealFunction(CompileData cd, String name) {
 		if (name.contains(".")) {
 			String varName = name.substring(0,name.indexOf("."));
 			String funcName = name.substring(name.indexOf(".")+1);
-			DataType type = frame.getVarType(varName);
+			DataType type = cd.frame.getVarType(varName);
 			if (type==null) {
 				type = new DataType();
 			}
-			if (pkg.getFunction(type.type.name+"."+funcName)!=null) {
-				return pkg.getFunction(type.type.name+"."+funcName);
+			if (cd.pkg.getFunction(type.type.name+"."+funcName)!=null) {
+				return cd.pkg.getFunction(type.type.name+"."+funcName);
 			}
 		}
 		return null;

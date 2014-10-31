@@ -36,6 +36,11 @@ public class ScopeFrame {
 		this(pkg,null);
 	}
 	
+	public ScopeFrame(CompileData cd) {
+		this.pkg = cd.pkg;
+		this.parent = cd.frame;
+	}
+	
 	public Variable putVariable(String name, boolean map) {
 		Variable v = new Variable();
 		v.realName = name;
