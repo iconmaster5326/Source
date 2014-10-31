@@ -173,4 +173,85 @@ public class Source {
 		}
 	}
 	
+	public static SourceOutput compile(String input, String platform, OutputStream output) {
+		PrintWriter out = new PrintWriter(output);
+		ArrayList<ErrorDetails> dets = new ArrayList<>();
+		ArrayList<SourceException> errs = new ArrayList<>();
+		SourceOutput so = new SourceOutput();
+		out.println("Tokenizing...");
+		ArrayList<Element> a = null;
+		try {
+			a = Tokenizer.tokenize(input);
+		} catch (Exception ex) {
+			if (ex instanceof SourceException) {
+				errs.add((SourceException) ex);
+			}
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Tokenization"));
+		}
+		out.println(a);
+		out.println("Parsing...");
+		try {
+			a = Parser.parse(a);
+		} catch (Exception ex) {
+			if (ex instanceof SourceException) {
+				errs.add((SourceException) ex);
+			}
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
+		}
+		out.println("Validating...");
+		try {
+			ArrayList<SourceException> errs2 = Validator.validate(a);
+			errs.addAll(errs2);
+			for (SourceException ex : errs2) {
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
+			}
+		} catch (Exception ex) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
+		}
+		out.println("Prototyping...");
+		Prototyper.PrototypeResult res = null;
+		try {
+			res = Prototyper.prototype(a);
+			errs.addAll(res.errors);
+			for (SourceException ex : res.errors) {
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
+			}
+		} catch (Exception ex) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
+		}
+		out.println(res.result);
+		out.println("Linking...");
+		Linker linker = null;
+		try {
+			linker = Linker.link(platform, res.result);
+		} catch (Exception ex) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
+		}
+		out.println(linker);
+		out.println("Compiling...");
+		try {
+			ArrayList<SourceException> errs2 = SourceCompiler.compile(linker.pkg);
+			errs.addAll(errs2);
+			for (SourceException ex : errs2) {
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+			}
+		} catch (Exception ex) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+		}
+		out.println(linker);
+		out.println("Assembling...");
+		try {
+			so.output = Assembler.assemble(platform, linker.pkg);
+		} catch (Exception ex) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+		}
+		out.println(so.output);
+		out.println("Done!");
+		so.errs = errs;
+		so.dets = dets;
+		out.flush();
+		out.close();
+		return null;
+	}
+	
 }
