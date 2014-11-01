@@ -40,6 +40,19 @@ public class PlatformHPPL extends Platform {
 	public String assemble(SourcePackage pkg) {
 		return HPPLAssembler.assemble(pkg);
 	}
-	
 
+	@Override
+	public boolean canAssemble() {
+		return true;
+	}
+
+	@Override
+	public boolean canRun() {
+		return false;
+	}
+
+	@Override
+	public void run(SourcePackage pkg) {
+		
+	}
 }

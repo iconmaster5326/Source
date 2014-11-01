@@ -16,8 +16,12 @@ public abstract class Platform {
 	protected void registerLibrary(SourcePackage pkg) {
 		pkgs.put(pkg.getName(),pkg);
 	}
+	
+	public abstract boolean canAssemble();
+	public abstract boolean canRun();
 
 	public abstract String assemble(SourcePackage pkg);
+	public abstract void run(SourcePackage pkg);
 	
 	public String getCompileName(SourcePackage pkg, Function fn, String name) {
 		return name;
