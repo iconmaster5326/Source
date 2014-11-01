@@ -25,9 +25,9 @@ public class CLAHelper {
 			} else {
 				if (flag==null) {
 					a.add(s);
-					flag = null;
 				} else {
 					cla.put(flag, s);
+					flag = null;
 				}
 			}
 		}

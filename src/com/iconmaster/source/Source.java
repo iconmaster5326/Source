@@ -5,6 +5,7 @@ import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.link.Linker;
+import com.iconmaster.source.link.platform.PlatformLoader;
 import com.iconmaster.source.parse.Parser;
 import com.iconmaster.source.prototype.Prototyper;
 import com.iconmaster.source.tokenize.Tokenizer;
@@ -35,6 +36,10 @@ public class Source {
 		if (cla.containsKey("d")) {
 			Debug.debugMode = true;
 		}
+		String platform = "HPPL";
+		if (cla.containsKey("p")) {
+			platform = cla.get("p");
+		}
 		if (cla.containsKey("o")) {
 			File f = new File(cla.get("o"));
 			try {
@@ -46,6 +51,16 @@ public class Source {
 				output = new FileOutputStream(f);
 			} catch (FileNotFoundException ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
+			}
+		}
+		if (cla.containsKey("libs")) {
+			File f = new File(cla.get("libs"));
+			for (File child : f.listFiles((File dir, String name) -> name.endsWith(".jar"))) {
+				try {
+					PlatformLoader.loadPlatform(child);
+				} catch (Exception ex) {
+					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error in loading library "+f, ex);
+				}
 			}
 		}
 		if (cla.unmatched.length == 0) {
@@ -66,15 +81,9 @@ public class Source {
 				while (fileScanner.hasNext()){
 				   input+="\n"+fileScanner.nextLine();
 				}
-				
-				
 			} catch (FileNotFoundException ex) {
 				System.out.println("ERROR: file "+input+" can't be read from!");
 				return;
-			}
-			String platform = "HPPL";
-			if (cla.containsKey("p")) {
-				platform = cla.get("p");
 			}
 			SourceOutput so = compile(input,platform,System.out);
 			if (output!=null) {
@@ -98,6 +107,8 @@ public class Source {
 		} catch (Exception ex) {
 			if (ex instanceof SourceException) {
 				errs.add((SourceException) ex);
+			} else {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			}
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Tokenization"));
 		}
@@ -108,6 +119,8 @@ public class Source {
 		} catch (Exception ex) {
 			if (ex instanceof SourceException) {
 				errs.add((SourceException) ex);
+			} else {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			}
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
 		}
@@ -119,6 +132,7 @@ public class Source {
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
 			}
 		} catch (Exception ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
 		}
 		out.println("Prototyping...");
@@ -131,6 +145,7 @@ public class Source {
 			}
 			out.println(res.result);
 		} catch (Exception ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
 		}
 		out.println("Linking...");
@@ -138,6 +153,7 @@ public class Source {
 		try {
 			linker = Linker.link(platform, res.result);
 		} catch (Exception ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
 		}
 		out.println(linker);
@@ -149,6 +165,7 @@ public class Source {
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 			}
 		} catch (Exception ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 		}
 		out.println(linker);
@@ -156,6 +173,7 @@ public class Source {
 		try {
 			so.output = Assembler.assemble(platform, linker.pkg);
 		} catch (Exception ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
 		}
 		out.println(so.output);
