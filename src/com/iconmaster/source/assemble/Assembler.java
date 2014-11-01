@@ -13,4 +13,9 @@ public class Assembler {
 		Platform p = Linker.platforms.get(platform);
 		return p.assemble(pkg);
 	}
+	
+	public static void run(String platform, SourcePackage pkg) {
+		Platform p = Linker.platforms.get(platform);
+		p.run(pkg);
+	}
 }
