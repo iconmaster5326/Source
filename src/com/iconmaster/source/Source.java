@@ -85,7 +85,7 @@ public class Source {
 				System.out.println("ERROR: file "+input+" can't be read from!");
 				return;
 			}
-			SourceOutput so = compile(input,platform,System.out);
+			SourceOutput so = execute(input,platform,System.out,cla.containsKey("run"));
 			if (output!=null) {
 				try (PrintWriter pw = new PrintWriter(output)) {
 					pw.print(so.output);
@@ -96,6 +96,14 @@ public class Source {
 	}
 	
 	public static SourceOutput compile(String input, String platform, OutputStream output) {
+		return execute(input, platform, output, false);
+	}
+	
+	public static SourceOutput run(String input, String platform, OutputStream output) {
+		return execute(input, platform, output, true);
+	}
+	
+	public static SourceOutput execute(String input, String platform, OutputStream output, boolean run) {
 		PrintWriter out = new PrintWriter(output);
 		ArrayList<ErrorDetails> dets = new ArrayList<>();
 		ArrayList<SourceException> errs = new ArrayList<>();
@@ -169,14 +177,24 @@ public class Source {
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 		}
 		out.println(linker);
-		out.println("Assembling...");
-		try {
-			so.output = Assembler.assemble(platform, linker.pkg);
-		} catch (Exception ex) {
-			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+		if (run) {
+			out.println("Running...");
+			try {
+				Assembler.run(platform, linker.pkg);
+			} catch (Exception ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
+			}
+		} else {
+			out.println("Assembling...");
+			try {
+				so.output = Assembler.assemble(platform, linker.pkg);
+			} catch (Exception ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+			}
+			out.println(so.output);
 		}
-		out.println(so.output);
 		out.println("Done!");
 		so.errs = errs;
 		so.dets = dets;
