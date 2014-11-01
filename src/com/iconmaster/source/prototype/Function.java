@@ -23,6 +23,7 @@ public class Function implements IDirectable {
 	private DataType returns;
 	
 	public OnCompile onCompile;
+	public OnRun onRun;
 	public String pkgName;
 	public String compileName;
 
@@ -126,5 +127,9 @@ public class Function implements IDirectable {
 
 	public static interface OnCompile {
 		public String compile(SourcePackage pkg, Object... args);
+	}
+	
+	public static interface OnRun {
+		public Object run(SourcePackage pkg, Object... args);
 	}
 }
