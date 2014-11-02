@@ -22,7 +22,7 @@ public class CompileUtils {
 		ArrayList<Operation> whileBlock = null;
 		
 		boolean isRep = false;
-		String repCond;
+		String repCond = null;
 		ArrayList<Operation> repBlock = null;
 		
 		for (int i=0;i<code.size();i++) {
@@ -62,7 +62,7 @@ public class CompileUtils {
 						old.addAll(repBlock);
 						old.addAll(doBlock);
 						temp = pkg.nameProvider.getTempName();
-						old.add(new Operation(OpType.NOT, op.range, temp, op.args[0]));
+						old.add(new Operation(OpType.NOT, op.range, temp, repCond));
 						old.add(new Operation(OpType.GOTOIF, op.range, temp, begin));
 						old.add(new Operation(OpType.LABEL, op.range, end));
 						a = old;
