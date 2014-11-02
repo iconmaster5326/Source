@@ -36,6 +36,7 @@ public class CompileUtils {
 					String temp = pkg.nameProvider.getTempName();
 					old.add(new Operation(OpType.NOT, op.range, temp, op.args[0]));
 					old.add(new Operation(OpType.GOTOIF, op.range, temp, whileEnd));
+					a = whileBlock;
 					break;
 				case ENDB:
 					if (isWhile) {
@@ -57,24 +58,4 @@ public class CompileUtils {
 		ArrayList<Operation> a = new ArrayList<>();
 		return a;
 	}
-	
-//	public static ArrayList<Operation> getBlock(SourcePackage pkg, ArrayList<Operation> code, int i) {
-//		ArrayList<Operation> a = new ArrayList<>();
-//		int depth = 0;
-//		for (int j = i+1;j<code.size();j++) {
-//			Operation op = code.get(j);
-//			if (op.op.isBlockStarter()) {
-//				depth++;
-//			} else if (op.op == OpType.ENDB) {
-//				depth--;
-//			}
-//			
-//			if (depth==-1) {
-//				return a;
-//			}
-//			
-//			a.add(op);
-//		}
-//		return a;
-//	}
 }
