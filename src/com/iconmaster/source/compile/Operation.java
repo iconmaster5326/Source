@@ -12,8 +12,9 @@ public class Operation {
 	public enum OpType {
 		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
 		DEF,BEGIN,END,PROP,NOP,TYPE,
-		IF,ELSE,FORR,FORE,FORP,WHILE,REP,
+		IF,ELSE,FORR,FORE,FORP,DO,WHILE,REP,
 		ENDB,
+		LABEL,GOTO,GOTOIF,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
 
 		public static OpType MathToOpType(Rule e) {
@@ -77,6 +78,10 @@ public class Operation {
 				case ENDB:
 				case MOVI:
 				case TYPE:
+				case DO:
+				case LABEL:
+				case GOTO:
+				case GOTOIF:
 					return false;
 				default:
 					return true;
