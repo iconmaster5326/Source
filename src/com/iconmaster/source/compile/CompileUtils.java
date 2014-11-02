@@ -24,17 +24,27 @@ public class CompileUtils {
 		boolean isRep = false;
 		String repCond = null;
 		ArrayList<Operation> repBlock = null;
+		int depth = 0;
 		
 		for (int i=0;i<code.size();i++) {
 			Operation op = code.get(i);
 			switch (op.op) {
 				case DO:
+					if (isWhile || isRep) {
+						depth++;
+						a.add(op);
+						break;
+					}
 					begin = pkg.nameProvider.getTempName();
 					doBlock = new ArrayList<>();
 					a.add(new Operation(OpType.LABEL, op.range, begin));
 					a = doBlock;
 					break;
 				case WHILE:
+					if (isWhile || isRep) {
+						a.add(op);
+						break;
+					}
 					isWhile = true;
 					end = pkg.nameProvider.getTempName();
 					whileBlock = new ArrayList<>();
@@ -45,12 +55,21 @@ public class CompileUtils {
 					a = whileBlock;
 					break;
 				case REP:
+					if (isWhile || isRep) {
+						a.add(op);
+						break;
+					}
 					isRep = true;
 					repCond = op.args[0];
 					repBlock = new ArrayList<>();
 					a = repBlock;
 					break;
 				case ENDB:
+					if (depth>0) {
+						depth--;
+						a.add(op);
+						break;
+					}
 					if (isWhile) {
 						old.addAll(replaceWithGotos(pkg, whileBlock));
 						old.add(new Operation(OpType.GOTO, op.range, begin));
@@ -59,12 +78,11 @@ public class CompileUtils {
 						isWhile = false;
 					}
 					if (isRep) {
-						old.addAll(repBlock);
-						old.addAll(doBlock);
+						old.addAll(replaceWithGotos(pkg, repBlock));
+						old.addAll(replaceWithGotos(pkg, doBlock));
 						temp = pkg.nameProvider.getTempName();
 						old.add(new Operation(OpType.NOT, op.range, temp, repCond));
 						old.add(new Operation(OpType.GOTOIF, op.range, temp, begin));
-						old.add(new Operation(OpType.LABEL, op.range, end));
 						a = old;
 						isRep = false;
 					}
