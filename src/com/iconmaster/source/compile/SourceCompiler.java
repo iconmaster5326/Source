@@ -193,6 +193,7 @@ public class SourceCompiler {
 					break;
 				case REPEAT:
 					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+					code.add(new Operation(OpType.DO, e.range));
 					code.addAll(cond);
 					code.add(new Operation(OpType.REP, e.range, cond.retVar));
 					code.add(new Operation(OpType.BEGIN, e.range));
