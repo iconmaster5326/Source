@@ -162,24 +162,40 @@ public class SourceCompiler {
 						code.addAll(expr2);
 					}
 					break;
-				case IF:
-					Expression cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
-					code.add(new Operation(OpType.DO, e.range));
+				case IFBLOCK:
+					Element ifBlock = (Element) e.args[0];
+					Expression cond = compileExpr(cd, cd.frame.newVarName(), (Element) ifBlock.args[0]);
+					code.add(new Operation(OpType.DO, ifBlock.range));
 					code.addAll(cond);
-					code.add(new Operation(OpType.IF, e.range, cond.retVar));
-					code.add(new Operation(OpType.BEGIN, e.range));
+					code.add(new Operation(OpType.IF, ifBlock.range, cond.retVar));
+					code.add(new Operation(OpType.BEGIN, ifBlock.range));
 					cd.frame = new ScopeFrame(cd);
-					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END, e.range));
-					code.add(new Operation(OpType.ENDB, e.range));
-					break;
-				case ELSE:
-					code.add(new Operation(OpType.ELSE, e.range));
-					code.add(new Operation(OpType.BEGIN, e.range));
-					cd.frame = new ScopeFrame(cd);
-					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END, e.range));
-					code.add(new Operation(OpType.ENDB, e.range));
+					code.addAll(compileCode(cd, (ArrayList<Element>) ifBlock.args[2]));
+					code.add(new Operation(OpType.END, ifBlock.range));
+					int ends = 1;
+					for (Element elif : (ArrayList<Element>) e.args[1]) {
+						cond = compileExpr(cd, cd.frame.newVarName(), (Element) elif.args[0]);
+						code.add(new Operation(OpType.ELSE, elif.range));
+						code.add(new Operation(OpType.DO, elif.range));
+						code.addAll(cond);
+						code.add(new Operation(OpType.IF, elif.range, cond.retVar));
+						code.add(new Operation(OpType.BEGIN, elif.range));
+						cd.frame = new ScopeFrame(cd);
+						code.addAll(compileCode(cd, (ArrayList<Element>) elif.args[2]));
+						code.add(new Operation(OpType.END, elif.range));
+						ends++;
+					}
+					if (e.args[2]!=null) {
+						Element elseBlock = (Element) e.args[2];
+						code.add(new Operation(OpType.ELSE, elseBlock.range));
+						code.add(new Operation(OpType.BEGIN, elseBlock.range));
+						cd.frame = new ScopeFrame(cd);
+						code.addAll(compileCode(cd, (ArrayList<Element>) elseBlock.args[2]));
+						code.add(new Operation(OpType.END, elseBlock.range));
+					}
+					for (int i=0;i<ends;i++) {
+						code.add(new Operation(OpType.ENDB, e.range));
+					}
 					break;
 				case WHILE:
 					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);

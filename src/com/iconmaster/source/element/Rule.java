@@ -204,6 +204,32 @@ public enum Rule implements IElementType {
 	IF(null,"'if'!a@0c2"),
 	ELSEIF(null,"'elseif'!a@0c2"),
 	ELSE(null,"'else'!c2"),
+	IFBLOCK(null,(a,i)->{
+		if (a.get(i).type!=Rule.IF) {
+			return null;
+		}
+		Element e = new Element(null, IFBLOCK);
+		e.args[0] = a.get(i);
+		ArrayList<Element> es = new ArrayList<>(); 
+		e.args[1] = es;
+		Range endr = e.range;
+		int n = 1;
+		for (int j=i+1;j<a.size();j++) {
+			if (a.get(j).type==Rule.ELSEIF) {
+				es.add(a.get(j));
+				n++;
+				endr = a.get(j).range;
+			} else if (a.get(j).type==Rule.ELSE) {
+				e.args[2] = a.get(j);
+				n++;
+				endr = a.get(j).range;
+			} else {
+				break;
+			}
+		}
+		e.range = Range.from(a.get(i).range, endr);
+		return new RuleResult(e, n);
+	}),
 	FOR(null,"'for'!t0'in't1c2"),
 	WHILE(null,"'while'!a@0c2"),
 	REPEAT(null,"'repeat'!c2'until'a@0"),

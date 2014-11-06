@@ -126,16 +126,24 @@ public class Validator {
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
 					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
 					break;
-				case IF:
-				case ELSEIF:
+				case IFBLOCK:
+					ensureScope(a,e,scope,Scope.CODE);
+					Element e3 = (Element) e.args[0];
+					a.addAll(validateElement((Element) e3.args[0],Scope.RVALUE));
+					a.addAll(validate((ArrayList<Element>) e3.args[2],Scope.CODE));
+					e3 = (Element) e.args[2];
+					if (e3!=null) {
+						a.addAll(validate((ArrayList<Element>) e3.args[2],Scope.CODE));
+					}
+					for (Element e4 : (ArrayList<Element>) e.args[1]) {
+						a.addAll(validateElement((Element) e4.args[0],Scope.RVALUE));
+						a.addAll(validate((ArrayList<Element>) e4.args[2], Scope.CODE));
+					}
+					break;
 				case WHILE:
 				case REPEAT:
 					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
-					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
-					break;
-				case ELSE:
-					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
 					break;
 				case FOR:
@@ -187,6 +195,9 @@ public class Validator {
 					break;
 					
 				//always not OK
+				case IF:
+				case ELSE:
+				case ELSEIF:
 				case EXTEND:
 					a.add(genScopeError(e,scope));
 					break;
