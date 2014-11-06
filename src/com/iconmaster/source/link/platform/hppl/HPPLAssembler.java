@@ -227,6 +227,12 @@ public class HPPLAssembler {
 					}
 					sb.append("}");
 					break;
+				case TRUE:
+					sb.append("1");
+					break;
+				case FALSE:
+					sb.append("0");
+					break;
 				case CALL:
 					Function fn = ad.pkg.getFunction(op.args[1]);
 					if (fn!=null) {

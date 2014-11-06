@@ -383,18 +383,25 @@ public class SourceCompiler {
 							}
 							cd.frame = new ScopeFrame(cd);
 							ArrayList<Operation> fncode = compileFunction(cd, fn);
+							ArrayList<Operation> newcode = new ArrayList<>();
+							String label = cd.pkg.nameProvider.getTempName();
+							boolean lUsed = false;
 							for (Operation op: fncode) {
 								if (op.op==OpType.RET) {
-									if (op.args.length==0) {
-										op.op = OpType.NOP;
-									} else {
-										op.op = OpType.MOV;
-										op.args = new String[] {retVar, op.args[0]};
+									if (op.args.length!=0) {
+										newcode.add(new Operation(OpType.MOV, op.range, retVar, op.args[0]));
 									}
+									newcode.add(new Operation(OpType.GOTO, op.range, label));
+									lUsed = true;
+								} else {
+									newcode.add(op);
 								}
 							}
 							expr.add(new Operation(OpType.BEGIN, e.range));
-							expr.addAll(fncode);
+							expr.addAll(newcode);
+							if (lUsed) {
+								expr.add(new Operation(OpType.LABEL, e.range, label));
+							}
 							expr.add(new Operation(OpType.END, e.range));
 						} else {
 							ArrayList<String> names = new ArrayList<>();
@@ -475,11 +482,11 @@ public class SourceCompiler {
 						}
 						break;
 					case TRUE:
-						expr.add(new Operation(OpType.MOVN, e.range, retVar, "1"));
+						expr.add(new Operation(OpType.TRUE, e.range, retVar));
 						expr.type = new DataType(TypeDef.REAL,true);
 						break;
 					case FALSE:
-						expr.add(new Operation(OpType.MOVN, e.range, retVar, "0"));
+						expr.add(new Operation(OpType.FALSE, e.range, retVar));
 						expr.type = new DataType(TypeDef.REAL,true);
 						break;
 					case TO:

@@ -56,9 +56,7 @@ public class CompileUtils {
 					end = pkg.nameProvider.getTempName();
 					whileBlock = new ArrayList<>();
 					old.addAll(replaceWithGotos(pkg, doBlock));
-					String temp = pkg.nameProvider.getTempName();
-					old.add(new Operation(OpType.NOT, op.range, temp, op.args[0]));
-					old.add(new Operation(OpType.GOTOIF, op.range, temp, end));
+					old.add(new Operation(OpType.GOTOF, op.range, op.args[0], end));
 					a = whileBlock;
 					break;
 				case REP:
@@ -87,9 +85,7 @@ public class CompileUtils {
 					if (isRep) {
 						old.addAll(replaceWithGotos(pkg, repBlock));
 						old.addAll(replaceWithGotos(pkg, doBlock));
-						temp = pkg.nameProvider.getTempName();
-						old.add(new Operation(OpType.NOT, op.range, temp, repCond));
-						old.add(new Operation(OpType.GOTOIF, op.range, temp, begin));
+						old.add(new Operation(OpType.GOTOF, op.range, repCond, begin));
 						a = old;
 						isRep = false;
 					}
@@ -116,9 +112,7 @@ public class CompileUtils {
 					old.addAll(replaceWithGotos(pkg, doBlock));
 					elseLabel = pkg.nameProvider.getTempName();
 					endLabel = pkg.nameProvider.getTempName();
-					temp = pkg.nameProvider.getTempName();
-					old.add(new Operation(OpType.NOT, op.range, temp, op.args[0]));
-					old.add(new Operation(OpType.GOTOIF, op.range, temp, elseLabel));
+					old.add(new Operation(OpType.GOTOF, op.range, op.args[0], elseLabel));
 					a = ifBlock;
 					break;
 				case ELSE:

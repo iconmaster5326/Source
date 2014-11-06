@@ -14,7 +14,7 @@ public class Operation {
 		DEF,BEGIN,END,PROP,NOP,TYPE,
 		IF,ELSE,FORR,FORE,FORP,DO,WHILE,REP,
 		ENDB,
-		LABEL,GOTO,GOTOIF,
+		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
 
 		public static OpType MathToOpType(Rule e) {
@@ -81,7 +81,8 @@ public class Operation {
 				case DO:
 				case LABEL:
 				case GOTO:
-				case GOTOIF:
+				case GOTOT:
+				case GOTOF:
 					return false;
 				default:
 					return true;
