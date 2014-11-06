@@ -133,8 +133,6 @@ public class HPPLAssembler {
 						blockOp.push(op);
 						break;
 					case ELSE:
-//						int di = sb.lastIndexOf("END;");
-//						sb.delete(di-1,di+4);
 						sb.append("ELSE\n");
 						append = false;
 						blockOp.push(op);

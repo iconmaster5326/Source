@@ -24,13 +24,20 @@ public class CompileUtils {
 		boolean isRep = false;
 		String repCond = null;
 		ArrayList<Operation> repBlock = null;
+		
+		boolean isIf = false;
+		ArrayList<Operation> ifBlock = null;
+		ArrayList<Operation> elseBlock = null;
+		String elseLabel = null;
+		String endLabel = null;
+		
 		int depth = 0;
 		
 		for (int i=0;i<code.size();i++) {
 			Operation op = code.get(i);
 			switch (op.op) {
 				case DO:
-					if (isWhile || isRep) {
+					if (isWhile || isRep || isIf) {
 						depth++;
 						a.add(op);
 						break;
@@ -41,7 +48,7 @@ public class CompileUtils {
 					a = doBlock;
 					break;
 				case WHILE:
-					if (isWhile || isRep) {
+					if (isWhile || isRep || isIf) {
 						a.add(op);
 						break;
 					}
@@ -55,7 +62,7 @@ public class CompileUtils {
 					a = whileBlock;
 					break;
 				case REP:
-					if (isWhile || isRep) {
+					if (isWhile || isRep || isIf) {
 						a.add(op);
 						break;
 					}
@@ -85,6 +92,47 @@ public class CompileUtils {
 						old.add(new Operation(OpType.GOTOIF, op.range, temp, begin));
 						a = old;
 						isRep = false;
+					}
+					if (isIf) {
+						if (elseBlock!=null) {
+							old.addAll(replaceWithGotos(pkg, elseBlock));
+						} else {
+							old.addAll(replaceWithGotos(pkg, ifBlock));
+							old.add(new Operation(OpType.LABEL, op.range, elseLabel));
+						}
+						old.add(new Operation(OpType.LABEL, op.range, endLabel));
+						a = old;
+						isIf = false;
+					}
+					break;
+				case IF:
+					if (isWhile || isRep || isIf) {
+						a.add(op);
+						break;
+					}
+					isIf = true;
+					ifBlock = new ArrayList<>();
+					elseBlock = null;
+					old.addAll(replaceWithGotos(pkg, doBlock));
+					elseLabel = pkg.nameProvider.getTempName();
+					endLabel = pkg.nameProvider.getTempName();
+					temp = pkg.nameProvider.getTempName();
+					old.add(new Operation(OpType.NOT, op.range, temp, op.args[0]));
+					old.add(new Operation(OpType.GOTOIF, op.range, temp, elseLabel));
+					a = ifBlock;
+					break;
+				case ELSE:
+					if (isWhile || isRep || isIf) {
+						if (depth==0) {
+							old.addAll(replaceWithGotos(pkg, ifBlock));
+							old.add(new Operation(OpType.GOTO, op.range, endLabel));
+							old.add(new Operation(OpType.LABEL, op.range, elseLabel));
+							elseBlock = new ArrayList<>();
+							a = elseBlock;
+						} else {
+							a.add(op);
+						}
+						break;
 					}
 					break;
 				default:
