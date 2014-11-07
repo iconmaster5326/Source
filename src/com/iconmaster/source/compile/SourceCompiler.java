@@ -19,6 +19,7 @@ import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -633,23 +634,40 @@ public class SourceCompiler {
 	public static RealFunction getRealFunction(CompileData cd, FunctionCall call) {
 		String[] subs = call.name.split("\\.");
 		String fnToCall = call.name;
-		String method = null;
-		if (subs.length==1) {
+		for (int i = subs.length-1;i>=0;i--) {
+			String pkgName = "";
+			for (String str : Arrays.copyOfRange(subs, 0, i)) {
+				if (!pkgName.isEmpty()) {
+					pkgName+=".";
+				}
+				pkgName+=str;
+			}
+			String fnName = "";
+			for (String str : Arrays.copyOfRange(subs, i, subs.length)) {
+				if (!fnName.isEmpty()) {
+					fnName+=".";
+				}
+				fnName+=str;
+			}
 			
-		} else if (subs.length==2) {
-			String pkgName = subs[0];
-			String fnName = subs[1];
 			if (cd.frame.isDefined(pkgName)) {
 				DataType type = cd.frame.getVarType(pkgName);
 				if (type==null) {
 					type = new DataType(true);
 				}
-				method = pkgName;
 				fnToCall = type.type.name+"."+fnName;
+				call.args.add(0,type);
+				if (cd.pkg.getFunction(fnToCall,call)!=null) {
+					return new RealFunction(cd.pkg.getFunction(fnToCall,call),true,true);
+				}
+				call.args.remove(0);
+			} else {
+				fnToCall = (!pkgName.isEmpty()?(pkgName+"."):"")+fnName;
+				if (cd.pkg.getFunction(fnToCall,call)!=null) {
+					return new RealFunction(cd.pkg.getFunction(fnToCall,call),false,true);
+				}
 			}
-		} else {
-			
 		}
-		return new RealFunction(cd.pkg.getFunction(fnToCall,call),method!=null,cd.pkg.getFunction(fnToCall)!=null);
+		return new RealFunction(null,false,cd.pkg.getFunction(fnToCall)!=null);
 	}
 }
