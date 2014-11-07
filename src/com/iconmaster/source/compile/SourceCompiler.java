@@ -289,6 +289,7 @@ public class SourceCompiler {
 				case WORD:
 					if (cd.pkg.getField((String)e.args[0])!=null) {
 						expr.add(new Operation(OpType.MOV, e.range, retVar, (String)e.args[0]));
+						expr.type = cd.pkg.getField((String)e.args[0]).getType();
 					} else if (cd.frame.isInlined((String)e.args[0])) {
 						Element e2 = cd.frame.getInline((String)e.args[0]);
 						if (e2==null) {

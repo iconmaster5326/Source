@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
@@ -24,5 +25,8 @@ public class LibraryPrimeDraw extends SourcePackage {
 			return ")";
 		};
 		this.addFunction(fn);
+		
+		Field f = Field.libraryField("screen", GROB_TYPE);
+		this.addField(f);
 	}
 }
