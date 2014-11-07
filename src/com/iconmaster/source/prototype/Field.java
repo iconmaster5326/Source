@@ -98,6 +98,7 @@ public class Field implements IDirectable {
 		if (type!=null) {
 			f.setType(new DataType(type,false));
 		}
+		f.library = true;
 		return f;
 	}
 	

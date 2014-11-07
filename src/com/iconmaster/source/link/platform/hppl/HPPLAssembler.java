@@ -113,8 +113,19 @@ public class HPPLAssembler {
 				} else {
 					if (!ditchLValue(ad, expr, op)) {
 						addLocal(ad, expr, op, sb);
-						sb.append(op.args[0]);
-						sb.append(":=");
+						Field f = ad.pkg.getField(op.args[0]);
+						if (f!=null) {
+							if (f.onCompile==null) {
+								sb.append(op.args[0]);
+								sb.append(":=");
+							} else {
+								sb.append(f.onCompile.compile(ad.pkg, false, ad));
+								sb.append(":=");
+							}
+						} else {
+							sb.append(op.args[0]);
+							sb.append(":=");
+						}
 					}
 					sb.append(s);
 				}
@@ -432,6 +443,6 @@ public class HPPLAssembler {
 	}
 	
 	public static boolean shouldIncludeField(Field fn) {
-		return fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
+		return !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
 	}
 }
