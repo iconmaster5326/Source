@@ -350,7 +350,11 @@ public class SourceCompiler {
 						}
 						RealFunction rfn = getRealFunction(cd, new FunctionCall((String) e.args[0], argdts, compileDataType(cd, e.dataType), e.directives));
 						if (rfn.fn==null) {
-							cd.errs.add(new SourceUndefinedFunctionException(e.range, "Undefined function "+e.args[0], (String) e.args[0]));
+							if (rfn.nameFound) {
+								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Function "+e.args[0]+" has no overload", (String) e.args[0]));
+							} else {
+								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Undefined function "+e.args[0], (String) e.args[0]));
+							}
 							break;
 						}
 						if ((es.size()+(rfn.method?1:0))!=rfn.fn.getArguments().size()) {
@@ -646,6 +650,6 @@ public class SourceCompiler {
 		} else {
 			
 		}
-		return new RealFunction(cd.pkg.getFunction(fnToCall,call),method!=null);
+		return new RealFunction(cd.pkg.getFunction(fnToCall,call),method!=null,cd.pkg.getFunction(fnToCall)!=null);
 	}
 }
