@@ -36,11 +36,13 @@ public class HPPLAssembler {
 		}
 		sb.append("\n");
 		for (Field var : pkg.getFields()) {
+			if (shouldIncludeField(var)) {
 				ad.workingOn = var;
 				ad.dirs = var.getDirectives();
 				ad.vs.add(new AssembleVarSpace());
 				sb.append(assembleField(ad,var));
 				ad.vs.pop();
+			}
 		}
 		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
@@ -379,6 +381,14 @@ public class HPPLAssembler {
 	}
 	
 	public static String getInlineString(AssemblyData ad, ArrayList<Operation> code, String var) {
+		Field f = ad.pkg.getField(var);
+		if (f!=null) {
+			if (f.onCompile==null) {
+				return var;
+			} else {
+				return f.onCompile.compile(ad.pkg, true, ad);
+			}
+		}
 		if (isInlinable(ad, code, var)) {
 			ArrayList<Operation> a = AssemblyUtils.getLReferences(ad.pkg, code, var);
 			if (a.isEmpty()) {
@@ -418,6 +428,10 @@ public class HPPLAssembler {
 	}
 	
 	public static boolean shouldIncludeFunction(Function fn) {
+		return fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
+	}
+	
+	public static boolean shouldIncludeField(Field fn) {
 		return fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
 	}
 }

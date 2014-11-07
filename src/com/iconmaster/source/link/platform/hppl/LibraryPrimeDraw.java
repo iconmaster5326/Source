@@ -27,6 +27,9 @@ public class LibraryPrimeDraw extends SourcePackage {
 		this.addFunction(fn);
 		
 		Field f = Field.libraryField("screen", GROB_TYPE);
+		f.onCompile = (pkg,isGet,args)->{
+			return "G0";
+		};
 		this.addField(f);
 	}
 }

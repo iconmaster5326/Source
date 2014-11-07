@@ -44,6 +44,14 @@ public class PlatformHPPL extends Platform {
 	
 	@Override
 	public String getCompileName(SourcePackage pkg, Field fn, String name) {
+		if (Directives.has(fn, "native")) {
+			ArrayList<String> a = Directives.getValues(fn, "native");
+			if (a.isEmpty()) {
+				return name;
+			} else {
+				return a.get(0);
+			}
+		}
 		name = name.replace(".", "_").replace("?", "_");
 		if (name.startsWith("_")) {
 			name = "a"+name;
