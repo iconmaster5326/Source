@@ -24,6 +24,9 @@ public class Field implements IDirectable {
 	
 	public String pkgName;
 	public String compileName;
+	
+	public OnCompile onCompile;
+	public OnRun onRun;
 
 	public Field(String name) {
 		this(name,null);
@@ -88,5 +91,21 @@ public class Field implements IDirectable {
 
 	public void setType(DataType type) {
 		this.type = type;
+	}
+	
+	public static Field libraryField(String name, TypeDef type) {
+		Field f = new Field(name);
+		if (type!=null) {
+			f.setType(new DataType(type,false));
+		}
+		return f;
+	}
+	
+	public static interface OnCompile {
+		public String compile(SourcePackage pkg, boolean isGet, Object... args);
+	}
+	
+	public static interface OnRun {
+		public Object run(SourcePackage pkg, boolean isGet, Object... args);
 	}
 }
