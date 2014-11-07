@@ -4,6 +4,8 @@ import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.util.Directives;
+import java.util.ArrayList;
 
 /**
  *
@@ -20,6 +22,14 @@ public class PlatformHPPL extends Platform {
 	
 	@Override
 	public String getCompileName(SourcePackage pkg, Function fn, String name) {
+		if (Directives.has(fn, "native")) {
+			ArrayList<String> a = Directives.getValues(fn, "native");
+			if (a.isEmpty()) {
+				return name;
+			} else {
+				return a.get(0);
+			}
+		}
 		name = name.replace(".", "_").replace("?", "_");
 		if (name.startsWith("_")) {
 			name = "a"+name;

@@ -21,7 +21,7 @@ public class HPPLAssembler {
 		ad.vs = new Stack<>();
 		ad.vs.add(new AssembleVarSpace());
 		for (Function fn : pkg.getFunctions()) {
-			if (fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline")) {
+			if (shouldIncludeFunction(fn)) {
 				sb.append(fn.compileName);
 				sb.append("(");
 				if (!fn.getArguments().isEmpty()) {
@@ -44,7 +44,7 @@ public class HPPLAssembler {
 		}
 		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
-			if (fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline")) {
+			if (shouldIncludeFunction(fn)) {
 				ad.workingOn = fn;
 				ad.dirs = fn.getDirectives();
 				ad.vs.add(new AssembleVarSpace());
@@ -410,5 +410,9 @@ public class HPPLAssembler {
 			return true;
 		}
 		return false;
+	}
+	
+	public static boolean shouldIncludeFunction(Function fn) {
+		return fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
 	}
 }
