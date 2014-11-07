@@ -26,6 +26,8 @@ public class Function implements IDirectable {
 	public OnRun onRun;
 	public String pkgName;
 	public String compileName;
+	
+	public int order = 0;
 
 	public Function(String name, ArrayList<Field> args, Element returns) {
 		this.name = name;
@@ -35,7 +37,7 @@ public class Function implements IDirectable {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(name+args+" as "+returns);
+		StringBuilder sb = new StringBuilder(getFullName()+args+" as "+returns);
 		if (code!=null) {
 			sb.append(". CODE:");
 			
@@ -85,6 +87,10 @@ public class Function implements IDirectable {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public String getFullName() {
+		return ((pkgName==null || pkgName.isEmpty())?"":(pkgName+"."))+name+(order==0?"":("%"+order));
 	}
 
 	public ArrayList<Operation> getCode() {

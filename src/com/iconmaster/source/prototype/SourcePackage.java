@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
@@ -126,6 +127,7 @@ public class SourcePackage implements IDirectable {
 	
 	public void addFunction(Function fn) {
 		fn.pkgName = this.getName();
+		fn.order = getFunctions(fn.name).size();
 		functions.add(fn);
 	}
 	
@@ -146,6 +148,16 @@ public class SourcePackage implements IDirectable {
 		return functions;
 	}
 	
+	public ArrayList<Function> getFunctions(String name) {
+		ArrayList<Function> a = new ArrayList<>();
+		for (Function v : functions) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
+				a.add(v);
+			}
+		}
+		return a;
+	}
+	
 	public ArrayList<Field> getFields() {
 		return fields;
 	}
@@ -160,6 +172,15 @@ public class SourcePackage implements IDirectable {
 	}
 
 	public Function getFunction(String name) {
+		for (Function v : functions) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
+				return v;
+			}
+		}
+		return null;
+	}
+	
+	public Function getFunction(String name, ArrayList<DataType> argTypes, DataType retType) {
 		for (Function v : functions) {
 			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
 				return v;

@@ -34,6 +34,9 @@ public class PlatformHPPL extends Platform {
 		if (name.startsWith("_")) {
 			name = "a"+name;
 		}
+		if (fn.order!=0) {
+			name+="_"+fn.order;
+		}
 		return name;
 	}
 	
