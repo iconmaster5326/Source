@@ -4,6 +4,7 @@ import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.ElementHelper;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
@@ -183,7 +184,16 @@ public class SourcePackage implements IDirectable {
 		for (Function v : functions) {
 			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
 				if (call.args.size()==v.args.size()) {
-					return v;
+					boolean dirsMatch = true;
+					for (String dir : call.dirs) {
+						if (!Directives.has(v, dir)) {
+							dirsMatch = false;
+							break;
+						}
+					}
+					if (dirsMatch) {
+						return v;
+					}
 				}
 			}
 		}
