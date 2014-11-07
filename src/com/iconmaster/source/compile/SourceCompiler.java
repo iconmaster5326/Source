@@ -13,6 +13,7 @@ import com.iconmaster.source.exception.SourceUndefinedVariableException;
 import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.FunctionCall;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
@@ -336,29 +337,29 @@ public class SourceCompiler {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
 					case FCALL:
-						Function fn = cd.pkg.getFunction((String) e.args[0]);
-						boolean method = false;
-						if (fn==null) {
-							fn = getRealFunction(cd, (String) e.args[0]);
-							method = true;
-							if (fn==null) {
-								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Undefined function "+e.args[0], (String) e.args[0]));
-								break;
-							}
-						}
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
 						} else if (es.size()>1) {
 							cd.errs.add(new SourceSyntaxException(e.range, "Illegal function call format"));
 						}
-						if ((es.size()+(method?1:0))!=fn.getArguments().size()) {
-							cd.errs.add(new SourceUndefinedFunctionException(e.range, "function "+fn.getName()+" requires "+fn.getArguments().size()+" arguments; got "+(es.size()+(method?1:0)), (String) e.args[0]));
-						}
-						int i=(method?1:0);
+						ArrayList<DataType> argdts = new ArrayList<>();
 						for (Element e2 : es) {
 							Expression expr2 = compileExpr(cd, "", e2);
-							DataType ltype = fn.getArguments().get(i).getType();
+							argdts.add(expr2.type);
+						}
+						RealFunction rfn = getRealFunction(cd, new FunctionCall((String) e.args[0], argdts, compileDataType(cd, e.dataType), e.directives));
+						if (rfn.fn==null) {
+							cd.errs.add(new SourceUndefinedFunctionException(e.range, "Undefined function "+e.args[0], (String) e.args[0]));
+							break;
+						}
+						if ((es.size()+(rfn.method?1:0))!=rfn.fn.getArguments().size()) {
+							cd.errs.add(new SourceUndefinedFunctionException(e.range, "function "+rfn.fn.getName()+" requires "+rfn.fn.getArguments().size()+" arguments; got "+(es.size()+(rfn.method?1:0)), (String) e.args[0]));
+						}
+						int i=(rfn.method?1:0);
+						for (Element e2 : es) {
+							Expression expr2 = compileExpr(cd, "", e2);
+							DataType ltype = rfn.fn.getArguments().get(i).getType();
 							DataType rtype = expr2.type;
 							if (ltype==null) {
 								ltype = new DataType(true);
@@ -368,25 +369,25 @@ public class SourceCompiler {
 							}
 							TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
 							if (highest==null) {
-								cd.errs.add(new SourceDataTypeException(e2.range,"Argument "+fn.getArguments().get(i).getName()+" of function "+fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
+								cd.errs.add(new SourceDataTypeException(e2.range,"Argument "+rfn.fn.getArguments().get(i).getName()+" of function "+rfn.fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
 							}
 							i++;
 						}
 						ArrayList<Expression> args = new ArrayList<>();
-						if (Directives.has(fn, "inline")) {
-							if (method) {
+						if (Directives.has(rfn.fn, "inline")) {
+							if (rfn.method) {
 								Expression mexpr = new Expression();
 								String s = (String) e.args[0];
 								s = s.substring(0,s.indexOf(".")-1);
 								DataType type = cd.frame.getVarType(s);
 								mexpr.type = type;
-								mexpr.retVar = fn.getArguments().get(0).getName();
+								mexpr.retVar = rfn.fn.getArguments().get(0).getName();
 								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
 								args.add(mexpr);
 							}
-							int j=method?1:0;
+							int j=rfn.method?1:0;
 							for (Element e2 : es) {
-								String name = fn.getArguments().get(j).getName();
+								String name = rfn.fn.getArguments().get(j).getName();
 								Expression expr2 = compileExpr(cd, name, e2);
 								args.add(expr2);
 								j++;
@@ -395,7 +396,7 @@ public class SourceCompiler {
 								expr.addAll(expr2);
 							}
 							cd.frame = new ScopeFrame(cd);
-							ArrayList<Operation> fncode = compileFunction(cd, fn);
+							ArrayList<Operation> fncode = compileFunction(cd, rfn.fn);
 							ArrayList<Operation> newcode = new ArrayList<>();
 							String label = cd.pkg.nameProvider.getTempName();
 							boolean lUsed = false;
@@ -418,7 +419,7 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.END, e.range));
 						} else {
 							ArrayList<String> names = new ArrayList<>();
-							if (method) {
+							if (rfn.method) {
 								Expression mexpr = new Expression();
 								String s = (String) e.args[0];
 								s = s.substring(0,s.indexOf("."));
@@ -438,11 +439,11 @@ public class SourceCompiler {
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
 							}
-							names.add(0, (String) getFullyQualifiedName(cd, fn));
+							names.add(0, (String) getFullyQualifiedName(cd, rfn.fn));
 							names.add(0,retVar);
 							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
-						expr.type = fn.getReturnType()==null?expr.type:fn.getReturnType();
+						expr.type = rfn.fn.getReturnType()==null?expr.type:rfn.fn.getReturnType();
 						break;
 					case ICALL:
 						ArrayList<String> names = new ArrayList<>();
@@ -508,7 +509,7 @@ public class SourceCompiler {
 						expr.addAll(lexpr);
 						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
-						if (cd.pkg.getFunction(fnName)==null) {
+						if (getRealFunction(cd, new FunctionCall(fnName, new ArrayList<>(), rtype, e.directives))==null) {
 							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
 						} else {
 							expr.add(new Operation(OpType.CALL, e.range, retVar, fnName, name));
@@ -525,6 +526,9 @@ public class SourceCompiler {
 	}
 	
 	public static DataType compileDataType(CompileData cd, Element e) {
+		if (e==null) {
+			return new DataType(true);
+		}
 		DataType dt = new DataType();
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
@@ -619,21 +623,29 @@ public class SourceCompiler {
 	}
 	
 	public static String getFullyQualifiedName(CompileData cd, Function fn) {
-		return fn.pkgName+"."+fn.getName();
+		return fn.pkgName+"."+fn.getName()+"%"+fn.order;
 	}
 	
-	public static Function getRealFunction(CompileData cd, String name) {
-		if (name.contains(".")) {
-			String varName = name.substring(0,name.indexOf("."));
-			String funcName = name.substring(name.indexOf(".")+1);
-			DataType type = cd.frame.getVarType(varName);
-			if (type==null) {
-				type = new DataType();
+	public static RealFunction getRealFunction(CompileData cd, FunctionCall call) {
+		String[] subs = call.name.split("\\.");
+		String fnToCall = call.name;
+		String method = null;
+		if (subs.length==1) {
+			
+		} else if (subs.length==2) {
+			String pkgName = subs[0];
+			String fnName = subs[1];
+			if (cd.frame.isDefined(pkgName)) {
+				DataType type = cd.frame.getVarType(pkgName);
+				if (type==null) {
+					type = new DataType(true);
+				}
+				method = pkgName;
+				fnToCall = type.type.name+"."+fnName;
 			}
-			if (cd.pkg.getFunction(type.type.name+"."+funcName)!=null) {
-				return cd.pkg.getFunction(type.type.name+"."+funcName);
-			}
+		} else {
+			
 		}
-		return null;
+		return new RealFunction(cd.pkg.getFunction(fnToCall,call),method!=null);
 	}
 }

@@ -1,6 +1,5 @@
 package com.iconmaster.source.prototype;
 
-import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
@@ -173,17 +172,19 @@ public class SourcePackage implements IDirectable {
 
 	public Function getFunction(String name) {
 		for (Function v : functions) {
-			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name)) {
 				return v;
 			}
 		}
 		return null;
 	}
 	
-	public Function getFunction(String name, ArrayList<DataType> argTypes, DataType retType) {
+	public Function getFunction(String name, FunctionCall call) {
 		for (Function v : functions) {
 			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
-				return v;
+				if (call.args.size()==v.args.size()) {
+					return v;
+				}
 			}
 		}
 		return null;
