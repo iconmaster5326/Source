@@ -193,6 +193,11 @@ public class HPPLAssembler {
 							sb.append(op.args[1]);
 							sb.append("  ");
 							append = false;
+						} else if (op.args[0].equalsIgnoreCase("comment")) {
+							sb.append("//");
+							sb.append(op.args[1]);
+							sb.append("\n");
+							append = false;
 						} else {
 							sb.append("//Native code in unknown language ").append(op.args[0]).append(" specified here\n");
 							append = false;
