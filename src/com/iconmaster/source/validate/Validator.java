@@ -5,6 +5,7 @@ import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Debug;
+import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 
@@ -39,7 +40,9 @@ public class Validator {
 					ensureScope(a,e,scope,Scope.RVALUE);
 					break;
 				case STRING:
-					ensureScope(a,e,scope,Scope.RVALUE);
+					if (!Directives.has(e, "lang")) {
+						ensureScope(a,e,scope,Scope.RVALUE);
+					}
 					break;
 				case RESWORD:
 					a.add(new SourceException(e.range,"invalid keyword "+e.args[0]));

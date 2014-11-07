@@ -76,181 +76,194 @@ public class SourceCompiler {
 		Expression code = new Expression();
 		OpType asnType = null;
 		for (Element e : es) {
-			switch ((Rule)e.type) {
-				case LOCAL:
-				case LOCAL_ASN:
-					if (Directives.has(e, "inline")) {
-						int asni = 0;
+			if (e.type==TokenRule.STRING) {
+				//native code
+				ArrayList<String> a = Directives.getValues(e.directives, "lang");
+				if (a.isEmpty()) {
+					cd.errs.add(new SourceException(e.range,"String has @lang, but no language is specified"));
+				} else if (a.size()>1) {
+					cd.errs.add(new SourceException(e.range,"More than 1 @lang string specified"));
+				} else {
+					String lang = a.get(0);
+					code.add(new Operation(OpType.NATIVE, e.range, lang, (String) e.args[0]));
+				}
+			} else {
+				switch ((Rule)e.type) {
+					case LOCAL:
+					case LOCAL_ASN:
+						if (Directives.has(e, "inline")) {
+							int asni = 0;
+							ArrayList<Element> les = (ArrayList<Element>) e.args[0];
+							ArrayList<Element> res = (ArrayList<Element>) e.args[1];
+							if (res==null) {
+								res = new ArrayList<>();
+							}
+							for (Element e2 : les) {
+								String expr2 = resolveLValueRaw(cd, e2);
+								cd.frame.putInline(expr2);
+								if (asni<res.size()) {
+									cd.frame.putInline(expr2, res.get(asni));
+								}
+								asni++;
+							}
+							break;
+						}
+						for (Element e2 : (ArrayList<Element>) e.args[0]) {
+							String expr2 = resolveLValueRaw(cd, e2);
+							cd.frame.putDefined(expr2);
+							if (e2.dataType!=null) {
+								cd.frame.setVarType(expr2, compileDataType(cd, e2.dataType));
+							} else {
+								if (Directives.has(cd.dirs, "safe")) {
+									cd.errs.add(new SourceSafeModeException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)", expr2));
+								}
+							}
+						}
+					case ASSIGN:
+						ArrayList<String> names = new ArrayList<>();
+						ArrayList<Expression> lexprs = new ArrayList<>();
+						ArrayList<Expression> rexprs = new ArrayList<>();
+						ArrayList<Operation> movs = new ArrayList<>();
 						ArrayList<Element> les = (ArrayList<Element>) e.args[0];
 						ArrayList<Element> res = (ArrayList<Element>) e.args[1];
 						if (res==null) {
 							res = new ArrayList<>();
 						}
+						for (Element e2 : res) {
+							String name2 = cd.frame.newVarName();
+							Expression expr2 = compileExpr(cd, name2, e2);
+							names.add(name2);
+							lexprs.add(expr2);
+						}
+						int asni = 0;
 						for (Element e2 : les) {
-							String expr2 = resolveLValueRaw(cd, e2);
-							cd.frame.putInline(expr2);
-							if (asni<res.size()) {
-								cd.frame.putInline(expr2, res.get(asni));
+							if (asni<names.size()) {
+								String name2 = resolveLValueRaw(cd, e2);
+								if (name2!=null && cd.frame.isInlined(name2)) {
+									cd.frame.putInline(name2, res.get(asni));
+								} else {
+									Expression expr2 = resolveLValue(cd, code, e2);
+									movs.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
+									code.addAll(lexprs.get(asni));
+									rexprs.add(expr2);
+
+									//check data types
+									DataType rtype = lexprs.get(asni).type;
+									DataType ltype = expr2.type;
+									if (ltype==null) {
+										ltype = new DataType(true);
+									}
+									if (rtype==null) {
+										rtype = new DataType(true);
+									}
+									TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
+									if (highest==null) {
+										cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
+									} else {
+										cd.frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
+										cd.frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
+									}
+								}
 							}
 							asni++;
 						}
+						for (Operation mov : movs) {
+							code.add(mov);
+						}
+						for (Expression expr2 : rexprs) {
+							code.addAll(expr2);
+						}
 						break;
-					}
-					for (Element e2 : (ArrayList<Element>) e.args[0]) {
-						String expr2 = resolveLValueRaw(cd, e2);
-						cd.frame.putDefined(expr2);
-						if (e2.dataType!=null) {
-							cd.frame.setVarType(expr2, compileDataType(cd, e2.dataType));
-						} else {
-							if (Directives.has(cd.dirs, "safe")) {
-								cd.errs.add(new SourceSafeModeException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)", expr2));
-							}
-						}
-					}
-				case ASSIGN:
-					ArrayList<String> names = new ArrayList<>();
-					ArrayList<Expression> lexprs = new ArrayList<>();
-					ArrayList<Expression> rexprs = new ArrayList<>();
-					ArrayList<Operation> movs = new ArrayList<>();
-					ArrayList<Element> les = (ArrayList<Element>) e.args[0];
-					ArrayList<Element> res = (ArrayList<Element>) e.args[1];
-					if (res==null) {
-						res = new ArrayList<>();
-					}
-					for (Element e2 : res) {
-						String name2 = cd.frame.newVarName();
-						Expression expr2 = compileExpr(cd, name2, e2);
-						names.add(name2);
-						lexprs.add(expr2);
-					}
-					int asni = 0;
-					for (Element e2 : les) {
-						if (asni<names.size()) {
-							String name2 = resolveLValueRaw(cd, e2);
-							if (name2!=null && cd.frame.isInlined(name2)) {
-								cd.frame.putInline(name2, res.get(asni));
-							} else {
-								Expression expr2 = resolveLValue(cd, code, e2);
-								movs.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
-								code.addAll(lexprs.get(asni));
-								rexprs.add(expr2);
-								
-								//check data types
-								DataType rtype = lexprs.get(asni).type;
-								DataType ltype = expr2.type;
-								if (ltype==null) {
-									ltype = new DataType(true);
-								}
-								if (rtype==null) {
-									rtype = new DataType(true);
-								}
-								TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
-								if (highest==null) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
-								} else {
-									cd.frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
-									cd.frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
-								}
-							}
-						}
-						asni++;
-					}
-					for (Operation mov : movs) {
-						code.add(mov);
-					}
-					for (Expression expr2 : rexprs) {
-						code.addAll(expr2);
-					}
-					break;
-				case IFBLOCK:
-					Element ifBlock = (Element) e.args[0];
-					Expression cond = compileExpr(cd, cd.frame.newVarName(), (Element) ifBlock.args[0]);
-					code.add(new Operation(OpType.DO, ifBlock.range));
-					code.addAll(cond);
-					code.add(new Operation(OpType.IF, ifBlock.range, cond.retVar));
-					code.add(new Operation(OpType.BEGIN, ifBlock.range));
-					cd.frame = new ScopeFrame(cd);
-					code.addAll(compileCode(cd, (ArrayList<Element>) ifBlock.args[2]));
-					code.add(new Operation(OpType.END, ifBlock.range));
-					int ends = 1;
-					for (Element elif : (ArrayList<Element>) e.args[1]) {
-						cond = compileExpr(cd, cd.frame.newVarName(), (Element) elif.args[0]);
-						code.add(new Operation(OpType.ELSE, elif.range));
-						code.add(new Operation(OpType.DO, elif.range));
+					case IFBLOCK:
+						Element ifBlock = (Element) e.args[0];
+						Expression cond = compileExpr(cd, cd.frame.newVarName(), (Element) ifBlock.args[0]);
+						code.add(new Operation(OpType.DO, ifBlock.range));
 						code.addAll(cond);
-						code.add(new Operation(OpType.IF, elif.range, cond.retVar));
-						code.add(new Operation(OpType.BEGIN, elif.range));
+						code.add(new Operation(OpType.IF, ifBlock.range, cond.retVar));
+						code.add(new Operation(OpType.BEGIN, ifBlock.range));
 						cd.frame = new ScopeFrame(cd);
-						code.addAll(compileCode(cd, (ArrayList<Element>) elif.args[2]));
-						code.add(new Operation(OpType.END, elif.range));
-						ends++;
-					}
-					if (e.args[2]!=null) {
-						Element elseBlock = (Element) e.args[2];
-						code.add(new Operation(OpType.ELSE, elseBlock.range));
-						code.add(new Operation(OpType.BEGIN, elseBlock.range));
+						code.addAll(compileCode(cd, (ArrayList<Element>) ifBlock.args[2]));
+						code.add(new Operation(OpType.END, ifBlock.range));
+						int ends = 1;
+						for (Element elif : (ArrayList<Element>) e.args[1]) {
+							cond = compileExpr(cd, cd.frame.newVarName(), (Element) elif.args[0]);
+							code.add(new Operation(OpType.ELSE, elif.range));
+							code.add(new Operation(OpType.DO, elif.range));
+							code.addAll(cond);
+							code.add(new Operation(OpType.IF, elif.range, cond.retVar));
+							code.add(new Operation(OpType.BEGIN, elif.range));
+							cd.frame = new ScopeFrame(cd);
+							code.addAll(compileCode(cd, (ArrayList<Element>) elif.args[2]));
+							code.add(new Operation(OpType.END, elif.range));
+							ends++;
+						}
+						if (e.args[2]!=null) {
+							Element elseBlock = (Element) e.args[2];
+							code.add(new Operation(OpType.ELSE, elseBlock.range));
+							code.add(new Operation(OpType.BEGIN, elseBlock.range));
+							cd.frame = new ScopeFrame(cd);
+							code.addAll(compileCode(cd, (ArrayList<Element>) elseBlock.args[2]));
+							code.add(new Operation(OpType.END, elseBlock.range));
+						}
+						for (int i=0;i<ends;i++) {
+							code.add(new Operation(OpType.ENDB, e.range));
+						}
+						break;
+					case WHILE:
+						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						code.add(new Operation(OpType.DO, e.range));
+						code.addAll(cond);
+						code.add(new Operation(OpType.WHILE, e.range, cond.retVar));
+						code.add(new Operation(OpType.BEGIN, e.range));
 						cd.frame = new ScopeFrame(cd);
-						code.addAll(compileCode(cd, (ArrayList<Element>) elseBlock.args[2]));
-						code.add(new Operation(OpType.END, elseBlock.range));
-					}
-					for (int i=0;i<ends;i++) {
+						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+						code.add(new Operation(OpType.END, e.range));
 						code.add(new Operation(OpType.ENDB, e.range));
-					}
-					break;
-				case WHILE:
-					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
-					code.add(new Operation(OpType.DO, e.range));
-					code.addAll(cond);
-					code.add(new Operation(OpType.WHILE, e.range, cond.retVar));
-					code.add(new Operation(OpType.BEGIN, e.range));
-					cd.frame = new ScopeFrame(cd);
-					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END, e.range));
-					code.add(new Operation(OpType.ENDB, e.range));
-					break;
-				case REPEAT:
-					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
-					code.add(new Operation(OpType.DO, e.range));
-					code.addAll(cond);
-					code.add(new Operation(OpType.REP, e.range, cond.retVar));
-					code.add(new Operation(OpType.BEGIN, e.range));
-					cd.frame = new ScopeFrame(cd);
-					code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-					code.add(new Operation(OpType.END, e.range));
-					code.add(new Operation(OpType.ENDB, e.range));
-					break;
-				case RETURN_NULL:
-					code.add(new Operation(OpType.RET, e.range));
-					break;
-				case RETURN:
-					cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
-					code.addAll(cond);
-					code.add(new Operation(OpType.RET, e.range, cond.retVar));
-					break;
-				case ADD_ASN:
-					asnType = OpType.ADD;
-				case SUB_ASN:
-					if (e.type==Rule.SUB_ASN) {
-						asnType = OpType.SUB;
-					}
-				case MUL_ASN:
-					if (e.type==Rule.MUL_ASN) {
-						asnType = OpType.MUL;
-					}
-				case DIV_ASN:
-					if (e.type==Rule.DIV_ASN) {
-						asnType = OpType.DIV;
-					}
-					Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
-					Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
-					Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
-					code.addAll(rexpr);
-					code.addAll(lexpr2);
-					code.add(new Operation(asnType, e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
-					code.addAll(lexpr1);
-					break;
-				default:
-					code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
+						break;
+					case REPEAT:
+						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						code.add(new Operation(OpType.DO, e.range));
+						code.addAll(cond);
+						code.add(new Operation(OpType.REP, e.range, cond.retVar));
+						code.add(new Operation(OpType.BEGIN, e.range));
+						cd.frame = new ScopeFrame(cd);
+						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+						code.add(new Operation(OpType.END, e.range));
+						code.add(new Operation(OpType.ENDB, e.range));
+						break;
+					case RETURN_NULL:
+						code.add(new Operation(OpType.RET, e.range));
+						break;
+					case RETURN:
+						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						code.addAll(cond);
+						code.add(new Operation(OpType.RET, e.range, cond.retVar));
+						break;
+					case ADD_ASN:
+						asnType = OpType.ADD;
+					case SUB_ASN:
+						if (e.type==Rule.SUB_ASN) {
+							asnType = OpType.SUB;
+						}
+					case MUL_ASN:
+						if (e.type==Rule.MUL_ASN) {
+							asnType = OpType.MUL;
+						}
+					case DIV_ASN:
+						if (e.type==Rule.DIV_ASN) {
+							asnType = OpType.DIV;
+						}
+						Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
+						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+						code.addAll(rexpr);
+						code.addAll(lexpr2);
+						code.add(new Operation(asnType, e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
+						code.addAll(lexpr1);
+						break;
+					default:
+						code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
+				}
 			}
 		}
 		code.add(0, new Operation(OpType.TYPE, null, cd.frame.getTypeStrings()));

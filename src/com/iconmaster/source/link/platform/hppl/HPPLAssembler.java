@@ -15,7 +15,7 @@ import java.util.Stack;
  */
 public class HPPLAssembler {
 	public static String assemble(SourcePackage pkg) {
-		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n");
+		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n//This program compiled with Source: www.github.com/iconmaster5326/Source\n\n");
 		AssemblyData ad = new AssemblyData();
 		ad.pkg = pkg;
 		ad.vs = new Stack<>();
@@ -187,6 +187,16 @@ public class HPPLAssembler {
 						sb.append("]");
 						sb.append(":=");
 						sb.append(getInlineString(ad, expr, op.args[1]));
+						break;
+					case NATIVE:
+						if (op.args[0].equalsIgnoreCase("hppl")) {
+							sb.append(op.args[1]);
+							sb.append("  ");
+							append = false;
+						} else {
+							sb.append("//Native code in unknown language ").append(op.args[0]).append(" specified here\n");
+							append = false;
+						}
 						break;
 					default:
 						append = false;

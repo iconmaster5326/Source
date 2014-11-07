@@ -31,4 +31,18 @@ public class Directives {
 	public static ArrayList<String> getAll(IDirectable obj) {
 		return obj.getDirectives();
 	}
+	
+	public static ArrayList<String> getValues(IDirectable obj, String dir) {
+		return getValues(obj.getDirectives(),dir);
+	}
+	
+	public static ArrayList<String> getValues(ArrayList<String> dirs, String dir) {
+		ArrayList<String> a = new ArrayList<>();
+		for (String dir2 : dirs) {
+			if (dir2.startsWith(dir+"=")) {
+				a.add(dir2.substring(dir2.indexOf("=")+1));
+			}
+		}
+		return a;
+	}
 }

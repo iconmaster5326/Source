@@ -13,7 +13,7 @@ public class Operation {
 		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
 		DEF,BEGIN,END,PROP,NOP,TYPE,
 		IF,ELSE,FORR,FORE,FORP,DO,WHILE,REP,
-		ENDB,
+		ENDB,NATIVE,
 		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
 
@@ -83,6 +83,7 @@ public class Operation {
 				case GOTO:
 				case GOTOT:
 				case GOTOF:
+				case NATIVE:
 					return false;
 				default:
 					return true;
