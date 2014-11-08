@@ -29,9 +29,9 @@ public class CompileUtils {
 			for (int i=0;i<code.size();i++) {
 				Operation op = code.get(i);
 				if (op.op == OpType.CALL && op.args[1].equals(function.getFullName())) {
-					code.addAll(onCall(pkg, workingOn, code, op));
+					a.addAll(onCall(pkg, workingOn, code, op));
 				} else {
-					code.add(op);
+					a.add(op);
 				}
 			}
 			return a;
@@ -207,6 +207,7 @@ public class CompileUtils {
 					args.add(type);
 					op.args = args.toArray(op.args);
 				}
+				return;
 			}
 		}
 	}

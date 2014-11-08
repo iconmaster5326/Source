@@ -1,5 +1,8 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.compile.CompileUtils;
+import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
@@ -62,6 +65,32 @@ public class PlatformHPPL extends Platform {
 
 	@Override
 	public String assemble(SourcePackage pkg) {
+		//apply transforms
+		CompileUtils.transform(pkg, new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose1) {
+			
+			@Override
+			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op) {
+				ArrayList<Operation> a = new ArrayList<>();
+				String temp = pkg.nameProvider.getTempName();
+				a.add(new Operation(OpType.MOVN, op.range, op.args[0], "0"));
+				a.add(new Operation(OpType.CALL, op.range, temp, op.args[1], op.args[0], op.args[2]));
+				CompileUtils.addNewDefinition(pkg, code, temp, "real");
+				return a;
+			}
+		});
+		CompileUtils.transform(pkg, new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose2) {
+			
+			@Override
+			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op) {
+				ArrayList<Operation> a = new ArrayList<>();
+				String temp = pkg.nameProvider.getTempName();
+				a.add(new Operation(OpType.MOVN, op.range, op.args[0], "0"));
+				a.add(new Operation(OpType.CALL, op.range, temp, op.args[1], op.args[0], op.args[2], op.args[3]));
+				CompileUtils.addNewDefinition(pkg, code, temp, "real");
+				return a;
+			}
+		});
+		//actually assemble
 		return HPPLAssembler.assemble(pkg);
 	}
 

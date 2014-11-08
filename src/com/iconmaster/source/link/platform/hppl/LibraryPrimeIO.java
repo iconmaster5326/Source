@@ -10,6 +10,9 @@ import com.iconmaster.source.prototype.TypeDef;
  */
 public class LibraryPrimeIO extends SourcePackage {
 	public static final double TIME_DELTA = Double.MIN_VALUE;
+	
+	public static Function fnChoose1;
+	public static Function fnChoose2;
 
 	public LibraryPrimeIO() {
 		
@@ -66,5 +69,31 @@ public class LibraryPrimeIO extends SourcePackage {
 		fn = Function.libraryFunction("getMouse", new String[] {}, new TypeDef[] {}, TypeDef.LIST);
 		fn.compileName = "MOUSE";
 		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("choose", new String[] {"items"}, new TypeDef[] {TypeDef.LIST}, TypeDef.REAL);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append("CHOOSE(");
+			ctx.sb.append(ctx.op.args[2]);
+			ctx.sb.append(",\"\",");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+			return ")";
+		};
+		this.addFunction(fn);
+		fnChoose1 = fn;
+		
+		fn = Function.libraryFunction("choose", new String[] {"title","items"}, new TypeDef[] {TypeDef.STRING, TypeDef.LIST}, TypeDef.REAL);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append("CHOOSE(");
+			ctx.sb.append(ctx.op.args[2]);
+			ctx.sb.append(",");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+			ctx.sb.append(",");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[4]));
+			return ")";
+		};
+		this.addFunction(fn);
+		fnChoose2 = fn;
 	}
 }
