@@ -265,6 +265,10 @@ public class HPPLAssembler {
 					sb.append("NOT ");
 					sb.append(getInlineString(ad, expr, op.args[1]));
 					break;
+				case NEG:
+					sb.append(HPPLCharacters.NEG);
+					sb.append(getInlineString(ad, expr, op.args[1]));
+					break;
 				case CALL:
 					Function fn = ad.pkg.getFunction(op.args[1]);
 					if (fn!=null) {

@@ -515,6 +515,12 @@ public class SourceCompiler {
 						expr.add(new Operation(OpType.NOT, e.range, retVar, nexpr.retVar));
 						expr.type = new DataType(TypeDef.REAL,true);
 						break;
+					case NEG:
+						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
+						expr.addAll(nexpr);
+						expr.add(new Operation(OpType.NEG, e.range, retVar, nexpr.retVar));
+						expr.type = new DataType(TypeDef.REAL,true);
+						break;
 					case TO:
 						String name = cd.frame.newVarName();
 						Expression lexpr = compileExpr(cd, name, (Element) e.args[0]);
