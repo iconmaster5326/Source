@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
@@ -61,9 +62,31 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("list.join", new String[] {"list1","list2"}, new TypeDef[] {TypeDef.LIST,TypeDef.LIST}, TypeDef.LIST);
 		fn.compileName = "CONCAT";
 		this.addFunction(fn);
+		fn = Function.libraryFunction("list.first", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.UNKNOWN);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+			return "[1]";
+		};
+		this.addFunction(fn);
+		fn = Function.libraryFunction("list.last", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.UNKNOWN);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+			ctx.sb.append("[SIZE(");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+			return ")]";
+		};
+		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("string._cast", new String[] {"item"}, new TypeDef[] {}, TypeDef.STRING);
 		fn.compileName = "STRING";
 		this.addFunction(fn);
+		
+		Field f = Field.libraryField("list.start", TypeDef.REAL);
+		f.onCompile = (pkg,isGet,args) -> {
+			return "1";
+		};
+		this.addField(f);
 	}
 }

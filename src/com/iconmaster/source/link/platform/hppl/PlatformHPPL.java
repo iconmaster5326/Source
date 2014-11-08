@@ -67,7 +67,6 @@ public class PlatformHPPL extends Platform {
 	public String assemble(SourcePackage pkg) {
 		//apply transforms
 		CompileUtils.transform(pkg, new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose1) {
-			
 			@Override
 			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op) {
 				ArrayList<Operation> a = new ArrayList<>();
@@ -79,7 +78,6 @@ public class PlatformHPPL extends Platform {
 			}
 		});
 		CompileUtils.transform(pkg, new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose2) {
-			
 			@Override
 			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op) {
 				ArrayList<Operation> a = new ArrayList<>();
