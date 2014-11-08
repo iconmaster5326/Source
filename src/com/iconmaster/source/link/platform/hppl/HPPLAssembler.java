@@ -230,9 +230,11 @@ public class HPPLAssembler {
 	private static String assembleExpression(AssemblyData ad, ArrayList<Operation> expr, Operation op) {
 		StringBuilder sb = new StringBuilder();
 		if (op.op.isMathOp()) {
+			sb.append("(");
 			sb.append(getInlineString(ad, expr, op.args[1]));
 			sb.append(getMathOp(op.op));
 			sb.append(getInlineString(ad, expr, op.args[2]));
+			sb.append(")");
 		} else {
 			switch (op.op) {
 				case MOVN:
