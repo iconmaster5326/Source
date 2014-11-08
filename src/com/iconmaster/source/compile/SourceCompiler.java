@@ -651,10 +651,18 @@ public class SourceCompiler {
 				fnName+=str;
 			}
 			
-			if (cd.frame.isDefined(pkgName)) {
-				DataType type = cd.frame.getVarType(pkgName);
-				if (type==null) {
-					type = new DataType(true);
+			if (cd.frame.isDefined(pkgName) || cd.pkg.getField(pkgName)!=null) {
+				DataType type;
+				if (cd.frame.isDefined(pkgName)) {
+					type = cd.frame.getVarType(pkgName);
+					if (type==null) {
+						type = new DataType(true);
+					}
+				} else {
+					type = cd.pkg.getField(pkgName).getType();
+					if (type==null) {
+						type = new DataType(true);
+					}
 				}
 				fnToCall = type.type.name+"."+fnName;
 				call.args.add(0,type);
