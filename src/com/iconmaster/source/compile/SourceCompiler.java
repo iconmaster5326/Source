@@ -498,7 +498,9 @@ public class SourceCompiler {
 							cd.errs.add(new SourceSyntaxException(e.range, "Illegal parenthesis format"));
 						}
 						for (Element e2 : es) {
-							expr.addAll(compileExpr(cd, retVar, e2));
+							Expression pexpr = compileExpr(cd, retVar, e2);
+							expr.addAll(pexpr);
+							expr.type = pexpr.type;
 						}
 						break;
 					case TRUE:
