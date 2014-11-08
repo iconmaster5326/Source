@@ -20,6 +20,7 @@ public class PlatformHPPL extends Platform {
 		this.registerLibrary(new LibraryMath());
 		
 		this.registerLibrary(new LibraryPrimeDraw());
+		this.registerLibrary(new LibraryPrimeIO());
 	}
 	
 	@Override
