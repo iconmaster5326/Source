@@ -445,7 +445,7 @@ public class SourceCompiler {
 							for (Expression expr2 : args) {
 								expr.addAll(expr2);
 							}
-							names.add(0, (String) getFullyQualifiedName(cd, rfn.fn));
+							names.add(0, (String) rfn.fn.getFullName());
 							names.add(0,retVar);
 							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						}
@@ -640,10 +640,6 @@ public class SourceCompiler {
 			}
 		}
 		return name;
-	}
-	
-	public static String getFullyQualifiedName(CompileData cd, Function fn) {
-		return fn.pkgName+"."+fn.getName()+"%"+fn.order;
 	}
 	
 	public static RealFunction getRealFunction(CompileData cd, FunctionCall call) {

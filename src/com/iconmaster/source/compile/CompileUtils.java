@@ -15,6 +15,30 @@ public class CompileUtils {
 		public ArrayList<Operation> transform(SourcePackage pkg, Object workingOn, ArrayList<Operation> code);
 	}
 	
+	public static abstract class FunctionCallTransformer implements CodeTransformer {
+		public Function function;
+
+		public FunctionCallTransformer(Function function) {
+			this.function = function;
+		}
+		
+		@Override
+		public ArrayList<Operation> transform(SourcePackage pkg, Object workingOn, ArrayList<Operation> code) {
+			ArrayList<Operation> a = new ArrayList<>();
+			for (int i=0;i<code.size();i++) {
+				Operation op = code.get(i);
+				if (op.op == OpType.CALL && op.args[1].equals(function.getFullName())) {
+					code.addAll(onCall(pkg, workingOn, code, op));
+				} else {
+					code.add(op);
+				}
+			}
+			return a;
+		}
+		
+		public abstract ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op);
+	}
+	
 	public static final CodeTransformer gotoReplacer = (pkg, workingOn, code) -> replaceWithGotos(pkg, code);
 	
 	public static void transform(SourcePackage pkg, CodeTransformer ct) {
