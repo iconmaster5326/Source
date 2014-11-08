@@ -35,16 +35,10 @@ public class Operation {
 					return OpType.AND;
 				case OR:
 					return OpType.OR;
-				case NOT:
-					return OpType.NOT;
-				case NEG:
-					return OpType.NEG;
 				case BIT_AND:
 					return OpType.BAND;
 				case BIT_OR:
 					return OpType.BOR;
-				case BIT_NOT:
-					return OpType.BNOT;
 				case EQ:
 					return OpType.EQ;
 				case NEQ:

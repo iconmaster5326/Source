@@ -261,6 +261,10 @@ public class HPPLAssembler {
 				case FALSE:
 					sb.append("0");
 					break;
+				case NOT:
+					sb.append("NOT ");
+					sb.append(getInlineString(ad, expr, op.args[1]));
+					break;
 				case CALL:
 					Function fn = ad.pkg.getFunction(op.args[1]);
 					if (fn!=null) {
