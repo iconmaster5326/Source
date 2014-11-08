@@ -1,6 +1,8 @@
 package com.iconmaster.source.compile;
 
 import com.iconmaster.source.compile.Operation.OpType;
+import com.iconmaster.source.prototype.Field;
+import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
 
@@ -9,6 +11,30 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class CompileUtils {
+	public static interface CodeTransformer {
+		public ArrayList<Operation> transform(SourcePackage pkg, Object workingOn, ArrayList<Operation> code);
+	}
+	
+	public static final CodeTransformer gotoReplacer = (pkg, workingOn, code) -> replaceWithGotos(pkg, code);
+	
+	public static void transform(SourcePackage pkg, CodeTransformer ct) {
+		for (Function f : pkg.getFunctions()) {
+			if (f.getCode()!=null) {
+				ArrayList<Operation> code = ct.transform(pkg, f, f.getCode());
+				f.setCompiled(code);
+			}
+		}
+		
+		for (Field f : pkg.getFields()) {
+			if (f.getValue()!=null) {
+				ArrayList<Operation> code = ct.transform(pkg, f, f.getValue());
+				Expression e = new Expression();
+				e.addAll(code);
+				f.setCompiled(e);
+			}
+		}
+	}
+	
 	public static ArrayList<Operation> replaceWithGotos(SourcePackage pkg, ArrayList<Operation> code) {
 		ArrayList<Operation> a = new ArrayList<>();
 		ArrayList<Operation> old = a;
