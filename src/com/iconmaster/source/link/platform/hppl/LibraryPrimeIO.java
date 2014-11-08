@@ -25,14 +25,13 @@ public class LibraryPrimeIO extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("keywait", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
+		fn = Function.libraryFunction("waitForKey", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
 		fn.onCompile = (pkg,args)->{
 			return "WAIT(0)";
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("keywait", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
-		fn.getDirectives().add("mouse");
+		fn = Function.libraryFunction("waitForInput", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
 		fn.onCompile = (pkg,args)->{
 			return "WAIT(-1)";
 		};
