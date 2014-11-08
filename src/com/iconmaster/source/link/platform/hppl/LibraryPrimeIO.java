@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
@@ -95,5 +96,11 @@ public class LibraryPrimeIO extends SourcePackage {
 		};
 		this.addFunction(fn);
 		fnChoose2 = fn;
+		
+		Field f = Field.libraryField("key.esc", TypeDef.REAL);
+		f.onCompile = (pkg,isGet,args)->{
+			return "4";
+		};
+		this.addField(f);
 	}
 }
