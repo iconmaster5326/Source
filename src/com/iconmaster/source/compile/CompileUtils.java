@@ -5,6 +5,7 @@ import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -189,5 +190,24 @@ public class CompileUtils {
 	public static ArrayList<Operation> replaceBlockScopes(SourcePackage pkg, ArrayList<Operation> code) {
 		ArrayList<Operation> a = new ArrayList<>();
 		return a;
+	}
+	
+	public static void addNewDefinition(SourcePackage pkg, ArrayList<Operation> code, String name, String type) {
+		for (int i=0;i<code.size();i++) {
+			Operation op = code.get(i);
+			if (op.op==OpType.DEF) {
+				ArrayList<String> args = new ArrayList<>();
+				args.addAll(Arrays.asList(op.args));
+				args.add(name);
+				op.args = args.toArray(op.args);
+				op = code.get(i+1);
+				if (op.op==OpType.TYPE) {
+					args = new ArrayList<>();
+					args.addAll(Arrays.asList(op.args));
+					args.add(type);
+					op.args = args.toArray(op.args);
+				}
+			}
+		}
 	}
 }
