@@ -651,12 +651,20 @@ public class SourceCompiler {
 				fnName+=str;
 			}
 			
-			if (cd.frame.isDefined(pkgName) || cd.pkg.getField(pkgName)!=null) {
+			if (cd.frame.isDefined(pkgName) || cd.frame.isInlined(pkgName) || cd.pkg.getField(pkgName)!=null) {
 				DataType type;
 				if (cd.frame.isDefined(pkgName)) {
 					type = cd.frame.getVarType(pkgName);
 					if (type==null) {
 						type = new DataType(true);
+					}
+				} else if (cd.frame.isInlined(pkgName)) {
+					type = cd.frame.getVarType(pkgName);
+					if (type==null) {
+						type = compileExpr(cd,"",cd.frame.getInline(pkgName)).type;
+						if (type==null) {
+							type = new DataType(true);
+						}
 					}
 				} else {
 					type = cd.pkg.getField(pkgName).getType();
