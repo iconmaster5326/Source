@@ -12,6 +12,7 @@ public class FunctionCall {
 	public ArrayList<DataType> args;
 	public DataType ret;
 	public ArrayList<String> dirs;
+	public boolean dirsMatter = true;
 
 	public FunctionCall(String name, ArrayList<DataType> args, DataType ret, ArrayList<String> dirs) {
 		this.name = name;

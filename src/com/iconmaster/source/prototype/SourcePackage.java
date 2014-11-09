@@ -186,7 +186,7 @@ public class SourcePackage implements IDirectable {
 				if (call.args.size()==v.args.size()) {
 					boolean dirsMatch = true;
 					for (String dir : call.dirs) {
-						if (!Directives.has(v, dir)) {
+						if (!Directives.has(v, dir) && call.dirsMatter) {
 							dirsMatch = false;
 							break;
 						}
@@ -196,6 +196,10 @@ public class SourcePackage implements IDirectable {
 					}
 				}
 			}
+		}
+		if (call.dirsMatter) {
+			call.dirsMatter = false;
+			return getFunction(name, call);
 		}
 		return null;
 	}
