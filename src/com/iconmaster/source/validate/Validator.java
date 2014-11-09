@@ -207,7 +207,7 @@ public class Validator {
 				
 				//other cases
 
-				case REF_ICALL:
+				case REF_CALL:
 				case FCALL:
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.CODE);
 					break;

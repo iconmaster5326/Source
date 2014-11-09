@@ -195,7 +195,7 @@ public enum Rule implements IElementType {
 	FIELD("G","'field'!t0?"),
 	FIELD_ASN(null,"G0!?'='t1"),
 	REF_INDEX(null,"A@0i1"),
-	REF_ICALL(null,"A@0p1"),
+	REF_CALL(null,"A@0p1"),
 	ADD_ASN(null,"a@0'+='a@1"),
 	SUB_ASN(null,"a@0'-='a@1"),
 	MUL_ASN(null,"a@0'*='a@1"),
