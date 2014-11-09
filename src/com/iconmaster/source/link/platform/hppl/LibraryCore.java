@@ -89,7 +89,7 @@ public class LibraryCore extends SourcePackage {
 		fn.compileName = "EXPR";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("real._cast", new String[] {"item"}, new TypeDef[] {TypeDef.REAL}, TypeDef.REAL);
+		fn = Function.libraryFunction("real._cast", new String[] {"item"}, new TypeDef[] {TypeDef.INT}, TypeDef.REAL);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			return HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]);
