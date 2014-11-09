@@ -44,6 +44,9 @@ public class SourceCompiler {
 					}
 				}
 			}
+			if (fn.getReturn()!=null) {
+				fn.setReturnType(compileDataType(cd, fn.getReturn()));
+			}
 		}
 		//now comp functions for real
 		for (Function fn : cd.pkg.getFunctions()) {
@@ -63,9 +66,6 @@ public class SourceCompiler {
 				v.setType(compileDataType(cd, v.getRawType()));
 				cd.frame.setVarType(v.getName(), v.getType());
 			}
-		}
-		if (fn.getReturn()!=null) {
-			fn.setReturnType(compileDataType(cd, fn.getReturn()));
 		}
 		Expression code = compileCode(cd, fn.rawData());
 		fn.setCompiled(code);
