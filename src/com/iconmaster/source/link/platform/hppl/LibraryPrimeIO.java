@@ -19,7 +19,7 @@ public class LibraryPrimeIO extends SourcePackage {
 		
 		this.name = "prime.io";
 		
-		Function fn = Function.libraryFunction("wait", new String[] {"time"}, new TypeDef[] {TypeDef.REAL}, null);
+		Function fn = Function.libraryFunction("wait", new String[] {"time"}, new TypeDef[] {TypeDef.INT}, null);
 		fn.compileName = "WAIT";
 		this.addFunction(fn);
 		
@@ -29,13 +29,13 @@ public class LibraryPrimeIO extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("waitForKey", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
+		fn = Function.libraryFunction("waitForKey", new String[] {}, new TypeDef[] {}, TypeDef.INT);
 		fn.onCompile = (pkg,args)->{
 			return "WAIT(0)";
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("waitForInput", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
+		fn = Function.libraryFunction("waitForInput", new String[] {}, new TypeDef[] {}, TypeDef.INT);
 		fn.onCompile = (pkg,args)->{
 			return "WAIT(-1)";
 		};
@@ -45,7 +45,7 @@ public class LibraryPrimeIO extends SourcePackage {
 		fn.compileName = "MSGBOX";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("msgbox", new String[] {"message"}, new TypeDef[] {TypeDef.UNKNOWN}, TypeDef.REAL);
+		fn = Function.libraryFunction("msgbox", new String[] {"message"}, new TypeDef[] {TypeDef.UNKNOWN}, TypeDef.INT);
 		fn.getDirectives().add("yesno");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
@@ -59,11 +59,11 @@ public class LibraryPrimeIO extends SourcePackage {
 		fn.compileName = "PRINT";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("getKey", new String[] {}, new TypeDef[] {}, TypeDef.REAL);
+		fn = Function.libraryFunction("getKey", new String[] {}, new TypeDef[] {}, TypeDef.INT);
 		fn.compileName = "GETKEY";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("isKeyDown", new String[] {"key"}, new TypeDef[] {TypeDef.REAL}, TypeDef.REAL);
+		fn = Function.libraryFunction("isKeyDown", new String[] {"key"}, new TypeDef[] {TypeDef.INT}, TypeDef.INT);
 		fn.compileName = "ISKEYDOWN";
 		this.addFunction(fn);
 		
@@ -71,7 +71,7 @@ public class LibraryPrimeIO extends SourcePackage {
 		fn.compileName = "MOUSE";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("choose", new String[] {"items"}, new TypeDef[] {TypeDef.LIST}, TypeDef.REAL);
+		fn = Function.libraryFunction("choose", new String[] {"items"}, new TypeDef[] {TypeDef.LIST}, TypeDef.INT);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("CHOOSE(");
@@ -83,7 +83,7 @@ public class LibraryPrimeIO extends SourcePackage {
 		this.addFunction(fn);
 		fnChoose1 = fn;
 		
-		fn = Function.libraryFunction("choose", new String[] {"title","items"}, new TypeDef[] {TypeDef.STRING, TypeDef.LIST}, TypeDef.REAL);
+		fn = Function.libraryFunction("choose", new String[] {"title","items"}, new TypeDef[] {TypeDef.STRING, TypeDef.LIST}, TypeDef.INT);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("CHOOSE(");
@@ -97,7 +97,7 @@ public class LibraryPrimeIO extends SourcePackage {
 		this.addFunction(fn);
 		fnChoose2 = fn;
 		
-		Field f = Field.libraryField("key.esc", TypeDef.REAL);
+		Field f = Field.libraryField("key.esc", TypeDef.INT);
 		f.onCompile = (pkg,isGet,args)->{
 			return "4";
 		};
