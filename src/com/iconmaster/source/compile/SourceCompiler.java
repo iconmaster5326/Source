@@ -326,18 +326,23 @@ public class SourceCompiler {
 				Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
 				expr.addAll(lexpr);
 				expr.addAll(rexpr);
-				expr.add(new Operation(OpType.MathToOpType((Rule) e.type), e.range, retVar, lexpr.retVar, rexpr.retVar));
+				OpType opt = OpType.MathToOpType((Rule) e.type);
+				expr.add(new Operation(opt, e.range, retVar, lexpr.retVar, rexpr.retVar));
 				//check data types	
 				DataType rtype = lexpr.type;
 				DataType ltype = rexpr.type;
 				if (!DataType.canCastTo(ltype,rtype) && !DataType.canCastTo(rtype,ltype)) {
-					if (e.type!=Rule.CONCAT) {
+					if (opt!=OpType.CONCAT) {
 						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
 					} else {
 						expr.type = new DataType(TypeDef.STRING);
 					}
 				} else {
-					expr.type = DataType.commonType(ltype, rtype);
+					if (opt.isBooleanMathOp()) {
+						expr.type = new DataType(TypeDef.BOOLEAN);
+					} else {
+						expr.type = DataType.commonType(ltype, rtype);
+					}
 				}
 			} else {
 				ArrayList<Element> es;
@@ -530,17 +535,17 @@ public class SourceCompiler {
 						break;
 					case TRUE:
 						expr.add(new Operation(OpType.TRUE, e.range, retVar));
-						expr.type = new DataType(TypeDef.REAL,true);
+						expr.type = new DataType(TypeDef.BOOLEAN,true);
 						break;
 					case FALSE:
 						expr.add(new Operation(OpType.FALSE, e.range, retVar));
-						expr.type = new DataType(TypeDef.REAL,true);
+						expr.type = new DataType(TypeDef.BOOLEAN,true);
 						break;
 					case NOT:
 						Expression nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
 						expr.add(new Operation(OpType.NOT, e.range, retVar, nexpr.retVar));
-						expr.type = nexpr.type;
+						expr.type = new DataType(TypeDef.BOOLEAN);
 						break;
 					case NEG:
 						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);

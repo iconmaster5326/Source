@@ -7,9 +7,10 @@ package com.iconmaster.source.prototype;
 public class TypeDef {
 	public static final TypeDef UNKNOWN = new TypeDef();
 	public static final TypeDef REAL = new TypeDef("real");
-	public static final TypeDef INT = new TypeDef("int", TypeDef.REAL);
+	public static final TypeDef INT = new TypeDef("int");
 	public static final TypeDef STRING = new TypeDef("string").setIndexSettings(new TypeDef[] {TypeDef.INT}, false);
 	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, false);
+	public static final TypeDef BOOLEAN = new TypeDef("bool");
 	
 	public String name;
 	public String pkgName;

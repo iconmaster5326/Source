@@ -123,6 +123,23 @@ public class Operation {
 					return false;
 			}
 		}
+		
+		public boolean isBooleanMathOp() {
+			switch (this) {
+				case AND:
+				case OR:
+				case NOT:
+				case EQ:
+				case NEQ:
+				case LT:
+				case GT:
+				case LE:
+				case GE:
+					return true;
+				default:
+					return false;
+			}
+		}
 	}
 	
 	public OpType op;
