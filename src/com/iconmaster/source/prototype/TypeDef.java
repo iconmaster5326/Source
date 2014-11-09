@@ -9,27 +9,34 @@ public class TypeDef {
 	public static final TypeDef REAL = new TypeDef("real");
 	public static final TypeDef INT = new TypeDef("int", TypeDef.REAL);
 	public static final TypeDef STRING = new TypeDef("string");
-	public static final TypeDef LIST = new TypeDef("list");
+	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(TypeDef.INT, 1);
 	
 	public String name;
 	public String pkgName;
 	
 	public TypeDef parent = null;
+	public TypeDef indexableBy = null;
+	public int indices = -1;
 	
 	public TypeDef() {
 		this.name = "?";
 	}
 
 	public TypeDef(String name) {
-		this.name = name;
-		this.parent = TypeDef.UNKNOWN;
+		this(name,TypeDef.UNKNOWN);
 	}
 	
 	public TypeDef(String name, TypeDef parent) {
 		this.name = name;
 		this.parent = parent;
 	}
-
+	
+	public TypeDef setIndexSettings(TypeDef indexableBy, int indicies) {
+		this.indexableBy = indexableBy;
+		this.indices = indicies;
+		return this;
+	}
+	
 	@Override
 	public String toString() {
 		return name;

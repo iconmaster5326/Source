@@ -426,27 +426,34 @@ public class SourceCompiler {
 						break;
 					case ICALL:
 						ArrayList<String> names = new ArrayList<>();
+						ArrayList<Expression> exprs = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
-						} else if (es.size()!=1) {
-							cd.errs.add(new SourceSyntaxException(e.range, "Illegal index format"));
 						}
 						for (Element e2 : es) {
 							String name = cd.frame.newVarName();
 							Expression expr2 = compileExpr(cd, name, e2);
-							expr.addAll(expr2);
+							exprs.add(expr2);
 							names.add(name);
 						}
-						if (!cd.frame.isDefined((String)e.args[0])) {
-							cd.errs.add(new SourceUndefinedVariableException(e.range, "Undefined variable "+e.args[0], (String) e.args[0]));
-						} else if (cd.frame.getVariable((String)e.args[0])==null) {
-							cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
+						Element listE = new Element(e.range, TokenRule.WORD);
+						listE.args[0] = e.args[0];
+						Expression listExpr = resolveLValue(cd, expr, listE);
+						if (listExpr.type!=null && listExpr.type.type.indexableBy!=null) {
+							for (Expression expr3 : exprs) {
+								if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy))) {
+									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+								}
+								expr.addAll(expr3);
+							}
+							names.add(0,listExpr.retVar);
+							names.add(0,retVar);
+							expr.add(new Operation(OpType.INDEX, e.range, names.toArray(new String[0])));
+							expr.addAll(listExpr);
 						} else {
-							names.add(0,cd.frame.getVariableName((String)e.args[0]));
+							cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
 						}
-						names.add(0,retVar);
-						expr.add(new Operation(OpType.INDEX, e.range, names.toArray(new String[0])));
 						break;
 					case INDEX:
 						names = new ArrayList<>();
@@ -573,28 +580,36 @@ public class SourceCompiler {
 			switch ((Rule)e.type) {
 				case ICALL:
 					ArrayList<String> names = new ArrayList<>();
+					ArrayList<Expression> exprs = new ArrayList<>();
 					ArrayList<Element> es = (ArrayList<Element>) e.args[1];
 					if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 						es = (ArrayList<Element>) es.get(0).args[0];
-					} else if (es.size()!=1) {
-						cd.errs.add(new SourceSyntaxException(e.range, "Illegal index format"));
 					}
 					for (Element e2 : es) {
 						String name2 = cd.frame.newVarName();
 						Expression expr2 = compileExpr(cd, name2, e2);
-						code.addAll(expr2);
+						exprs.add(expr2);
 						names.add(name2);
 					}
-					expr.retVar = cd.frame.newVarName();
-					names.add(0,expr.retVar);
-					if (!cd.frame.isDefined((String)e.args[0])) {
-						cd.errs.add(new SourceUndefinedVariableException(e.range, "Undefined variable "+e.args[0], (String) e.args[0]));
-					} else if (cd.frame.getVariable((String)e.args[0])==null) {
-						cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
+					Element listE = new Element(e.range, TokenRule.WORD);
+					listE.args[0] = e.args[0];
+					Expression listExpr = resolveLValue(cd, expr, listE);
+					if (listExpr.type!=null && listExpr.type.type.indexableBy!=null) {
+						for (Expression expr3 : exprs) {
+							if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy))) {
+								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+							}
+							code.addAll(expr3);
+						}
+						expr.retVar = cd.pkg.nameProvider.getTempName();
+						expr.type = new DataType(true);
+						names.add(0,expr.retVar);
+						names.add(0,listExpr.retVar);
+						expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
+						expr.addAll(listExpr);
 					} else {
-						names.add(0,cd.frame.getVariableName((String)e.args[0]));
+						cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
 					}
-					expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
 					break;
 				default:
 					cd.errs.add(new SourceSyntaxException(e.range,"Illegal L-value"));
