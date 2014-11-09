@@ -18,6 +18,7 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
+import com.iconmaster.source.util.ElementHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -274,7 +275,12 @@ public class SourceCompiler {
 			switch ((TokenRule)e.type) {
 				case NUMBER:
 					expr.add(new Operation(OpType.MOVN, e.range, retVar, (String)e.args[0]));
-					expr.type = new DataType(TypeDef.REAL,true);
+					if (ElementHelper.isReal((String) e.args[0])) {
+						expr.type = new DataType(TypeDef.REAL,true);
+					} else {
+						expr.type = new DataType(TypeDef.INT,true);
+					}
+					
 					break;
 				case STRING:
 					expr.add(new Operation(OpType.MOVS, e.range, retVar, (String)e.args[0]));

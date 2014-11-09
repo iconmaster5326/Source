@@ -15,6 +15,7 @@ public class LibraryCore extends SourcePackage {
 		
 		this.addType(TypeDef.UNKNOWN);
 		this.addType(TypeDef.REAL);
+		this.addType(TypeDef.INT);
 		this.addType(TypeDef.STRING);
 		this.addType(TypeDef.LIST);
 		

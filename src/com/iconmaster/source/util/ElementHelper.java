@@ -28,4 +28,8 @@ public class ElementHelper {
 		}
 		return null;
 	}
+	
+	public static boolean isReal(String n) {
+		return n.contains(".");
+	}
 }

@@ -1,8 +1,10 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -12,6 +14,7 @@ import java.util.HashMap;
 public abstract class Platform {
 	public String name;
 	public HashMap<String,SourcePackage> pkgs = new HashMap<>();
+	public ArrayList<CodeTransformer> transforms = new ArrayList<>();
 	
 	protected void registerLibrary(SourcePackage pkg) {
 		pkgs.put(pkg.getName(),pkg);
@@ -29,5 +32,9 @@ public abstract class Platform {
 
 	public String getCompileName(SourcePackage pkg, Field fn, String name) {
 		return name;
+	}
+	
+	public void registerCoreTypeHeirarchy() {
+		
 	}
 }
