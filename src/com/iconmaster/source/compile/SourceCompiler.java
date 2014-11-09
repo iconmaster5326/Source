@@ -502,10 +502,13 @@ public class SourceCompiler {
 						expr.addAll(lexpr);
 						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
-						if (getRealFunction(cd, new FunctionCall(fnName, new ArrayList<>(), rtype, e.directives))==null) {
+						ArrayList<DataType> argl = new ArrayList<>();
+						argl.add(lexpr.type);
+						rfn = getRealFunction(cd, new FunctionCall(fnName, argl, rtype, e.directives));
+						if (rfn.fn==null) {
 							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
 						} else {
-							expr.add(new Operation(OpType.CALL, e.range, retVar, fnName, name));
+							expr.add(new Operation(OpType.CALL, e.range, retVar, rfn.fn.getFullName(), name));
 							expr.type = rtype;
 						}
 						break;
