@@ -23,6 +23,10 @@ public class LibraryPrimeIO extends SourcePackage {
 		fn.compileName = "WAIT";
 		this.addFunction(fn);
 		
+		fn = Function.libraryFunction("wait", new String[] {"time"}, new TypeDef[] {TypeDef.INT}, null);
+		fn.compileName = "WAIT";
+		this.addFunction(fn);
+		
 		fn = Function.libraryFunction("wait", new String[] {}, new TypeDef[] {}, null);
 		fn.onCompile = (pkg,args)->{
 			return "WAIT("+TIME_DELTA+")";
