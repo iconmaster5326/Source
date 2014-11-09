@@ -31,4 +31,35 @@ public class DataType {
 		type = def;
 		weak = w;
 	}
+	
+	public static DataType getNewType(DataType thisType, DataType other) {
+		if (thisType==null) {
+			return other;
+		}
+		if (other==null) {
+			other = new DataType(true);
+		}
+		if (!thisType.weak) {
+			return thisType;
+		}
+		return commonType(thisType, other);
+	}
+	
+	public static DataType commonType(DataType type1, DataType type2) {
+		return new DataType(TypeDef.getCommonParent(type1.type, type2.type),true);
+	}
+	
+	public static boolean canCastTo(DataType thisType, DataType other) {
+		if (thisType==null) {
+			thisType = new DataType(true);
+		}
+		if (other==null) {
+			other = new DataType(true);
+		}
+//		if (thisType.weak) {
+//			return TypeDef.getCommonParent(thisType.type, other.type)!=null;
+//		} else {
+			return TypeDef.getCommonParent(thisType.type, other.type)==thisType.type;
+//		}
+	}
 }

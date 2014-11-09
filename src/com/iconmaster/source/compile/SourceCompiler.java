@@ -152,18 +152,12 @@ public class SourceCompiler {
 									//check data types
 									DataType rtype = lexprs.get(asni).type;
 									DataType ltype = expr2.type;
-									if (ltype==null) {
-										ltype = new DataType(true);
-									}
-									if (rtype==null) {
-										rtype = new DataType(true);
-									}
-									TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
-									if (highest==null) {
+									if (!DataType.canCastTo(ltype,rtype)) {
 										cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
 									} else {
-										cd.frame.setVarType(expr2.retVar, new DataType(highest,ltype.weak));
-										cd.frame.setVarType(lexprs.get(asni).retVar, new DataType(highest,ltype.weak));
+										DataType newType = DataType.getNewType(ltype, rtype);
+										cd.frame.setVarType(expr2.retVar, newType);
+										cd.frame.setVarType(lexprs.get(asni).retVar, newType);
 									}
 								}
 							}
@@ -284,7 +278,7 @@ public class SourceCompiler {
 					break;
 				case STRING:
 					expr.add(new Operation(OpType.MOVS, e.range, retVar, (String)e.args[0]));
-					expr.type = new DataType(TypeDef.STRING,false);
+					expr.type = new DataType(TypeDef.STRING,true);
 					break;
 				case WORD:
 					if (cd.pkg.getField((String)e.args[0])!=null) {
@@ -319,21 +313,14 @@ public class SourceCompiler {
 				//check data types	
 				DataType rtype = lexpr.type;
 				DataType ltype = rexpr.type;
-				if (ltype==null) {
-					ltype = new DataType(true);
-				}
-				if (rtype==null) {
-					rtype = new DataType(true);
-				}
-				TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak && rtype.weak);
-				if (highest==null) {
+				if (!DataType.canCastTo(ltype,rtype) && !DataType.canCastTo(rtype,ltype)) {
 					if (e.type!=Rule.CONCAT) {
 						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
 					} else {
-						expr.type = new DataType(TypeDef.UNKNOWN, ltype.weak && rtype.weak);
+						expr.type = new DataType(TypeDef.STRING);
 					}
 				} else {
-					expr.type = new DataType(highest, ltype.weak && rtype.weak);
+					expr.type = DataType.commonType(ltype, rtype);
 				}
 			} else {
 				ArrayList<Element> es;
@@ -373,8 +360,7 @@ public class SourceCompiler {
 							if (rtype==null) {
 								rtype = new DataType(true);
 							}
-							TypeDef highest = ltype.type.getHighestType(rtype.type, ltype.weak);
-							if (highest==null) {
+							if (!DataType.canCastTo(ltype,rtype)) {
 								cd.errs.add(new SourceDataTypeException(e2.range,"Argument "+rfn.fn.getArguments().get(i).getName()+" of function "+rfn.fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
 							}
 							i++;
@@ -490,7 +476,7 @@ public class SourceCompiler {
 						}
 						names.add(0,retVar);
 						expr.add(new Operation(OpType.MOVL, e.range, names.toArray(new String[0])));
-						expr.type = new DataType(TypeDef.LIST,false);
+						expr.type = new DataType(TypeDef.LIST,true);
 						break;
 					case PAREN:
 						es = (ArrayList<Element>) e.args[0];
@@ -515,13 +501,13 @@ public class SourceCompiler {
 						Expression nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
 						expr.add(new Operation(OpType.NOT, e.range, retVar, nexpr.retVar));
-						expr.type = new DataType(TypeDef.REAL,true);
+						expr.type = nexpr.type;
 						break;
 					case NEG:
 						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
 						expr.add(new Operation(OpType.NEG, e.range, retVar, nexpr.retVar));
-						expr.type = new DataType(TypeDef.REAL,true);
+						expr.type = nexpr.type;
 						break;
 					case TO:
 						String name = cd.frame.newVarName();
