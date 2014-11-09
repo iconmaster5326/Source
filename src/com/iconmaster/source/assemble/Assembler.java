@@ -22,6 +22,9 @@ public class Assembler {
 	
 	public static void run(String platform, SourcePackage pkg) {
 		Platform p = Linker.platforms.get(platform);
+		for (CodeTransformer t : p.transforms) {
+			CompileUtils.transform(pkg, t);
+		}
 		p.run(pkg);
 	}
 }
