@@ -7,7 +7,6 @@ import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 
@@ -105,13 +104,5 @@ public class PlatformHPPL extends Platform {
 	@Override
 	public void run(SourcePackage pkg) {
 		
-	}
-	
-	@Override
-	public void registerCoreTypeHeirarchy() {
-		TypeDef.REAL.parent = TypeDef.UNKNOWN;
-		TypeDef.INT.parent = TypeDef.REAL;
-		TypeDef.STRING.parent = TypeDef.UNKNOWN;
-		TypeDef.LIST.parent = TypeDef.UNKNOWN;
 	}
 }

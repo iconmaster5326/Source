@@ -33,8 +33,4 @@ public abstract class Platform {
 	public String getCompileName(SourcePackage pkg, Field fn, String name) {
 		return name;
 	}
-	
-	public void registerCoreTypeHeirarchy() {
-		
-	}
 }
