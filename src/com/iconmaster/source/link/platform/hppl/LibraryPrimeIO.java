@@ -19,7 +19,7 @@ public class LibraryPrimeIO extends SourcePackage {
 		
 		this.name = "prime.io";
 		
-		Function fn = Function.libraryFunction("wait", new String[] {"time"}, new TypeDef[] {TypeDef.INT}, null);
+		Function fn = Function.libraryFunction("wait", new String[] {"time"}, new TypeDef[] {TypeDef.REAL}, null);
 		fn.compileName = "WAIT";
 		this.addFunction(fn);
 		
