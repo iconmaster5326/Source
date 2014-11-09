@@ -35,6 +35,17 @@ public class SourceCompiler {
 				compileField(cd, field);
 			}
 		}
+		//compile data types first, it's important
+		for (Function fn : cd.pkg.getFunctions()) {
+			if (!fn.isCompiled() && !fn.isLibrary()) {
+				for (Field v : fn.getArguments()) {
+					if (v.getRawType()!=null) {
+						v.setType(compileDataType(cd, v.getRawType()));
+					}
+				}
+			}
+		}
+		//now comp functions for real
 		for (Function fn : cd.pkg.getFunctions()) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
 				cd.frame = new ScopeFrame(cd.pkg);
@@ -440,7 +451,31 @@ public class SourceCompiler {
 						Element listE = new Element(e.range, TokenRule.WORD);
 						listE.args[0] = e.args[0];
 						Expression listExpr = resolveLValue(cd, expr, listE);
-						if (listExpr.type!=null && listExpr.type.type.indexable) {
+						ArrayList<DataType> arga = new ArrayList<>();
+						arga.add(listExpr.type);
+						for (Expression expr3 : exprs) {
+							arga.add(expr3.type);
+						}
+						rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, null, e.directives));
+						if (rfn.fn!=null) {
+							int i = 0;
+							if (rfn.fn.getArguments().size()-1!=exprs.size()) {
+								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-1)+" indices, got "+exprs.size()));
+							} else {
+								for (Expression expr3 : exprs) {
+									if (!DataType.canCastTo(expr3.type, rfn.fn.getArguments().get(i+1).getType())) {
+										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+									}
+									expr.addAll(expr3);
+									i++;
+								}
+							}
+							names.add(0,listExpr.retVar);
+							names.add(0,rfn.fn.getFullName());
+							names.add(0,retVar);
+							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
+							expr.addAll(listExpr);
+						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
 							int i = 0;
 							if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
 								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
@@ -458,7 +493,11 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.INDEX, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else {
-							cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
+							if (rfn.nameFound) {
+								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+"; no overload _getindex found"));
+							} else {
+								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
+							}
 						}
 						break;
 					case INDEX:
@@ -600,7 +639,35 @@ public class SourceCompiler {
 					Element listE = new Element(e.range, TokenRule.WORD);
 					listE.args[0] = e.args[0];
 					Expression listExpr = resolveLValue(cd, expr, listE);
-					if (listExpr.type!=null && listExpr.type.type.indexable) {
+					ArrayList<DataType> arga = new ArrayList<>();
+					arga.add(listExpr.type);
+					arga.add(new DataType(true)); //TODO: make it so we KNOW this
+					for (Expression expr3 : exprs) {
+						arga.add(expr3.type);
+					}
+					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, null, e.directives));
+					if (rfn.fn!=null) {
+						int i = 0;
+						if (rfn.fn.getArguments().size()-2!=exprs.size()) {
+							cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-2)+" indices, got "+exprs.size()));
+						} else {
+							for (Expression expr3 : exprs) {
+								if (!DataType.canCastTo(expr3.type, rfn.fn.getArguments().get(i+2).getType())) {
+									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+								}
+								code.addAll(expr3);
+								i++;
+							}
+						}
+						expr.retVar = cd.pkg.nameProvider.getTempName();
+						expr.type = new DataType(true);
+						names.add(0,expr.retVar);
+						names.add(0,listExpr.retVar);
+						names.add(0,rfn.fn.getFullName());
+						names.add(0,expr.retVar);
+						expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
+						expr.addAll(listExpr);
+					} else if (listExpr.type!=null && listExpr.type.type.indexable) {
 						if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
 							cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
 						} else {
@@ -620,7 +687,11 @@ public class SourceCompiler {
 						expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else {
-						cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
+						if (rfn.nameFound) {
+							cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+"; no overload _setindex found"));
+						} else {
+							cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
+						}
 					}
 					break;
 				default:
