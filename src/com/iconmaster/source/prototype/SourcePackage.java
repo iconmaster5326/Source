@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
@@ -192,7 +193,18 @@ public class SourcePackage implements IDirectable {
 						}
 					}
 					if (dirsMatch) {
-						return v;
+						int i = 0;
+						boolean argsMatch = true;
+						for (Field arg : v.args) {
+							if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
+								argsMatch = false;
+								break;
+							}
+							i++;
+						}
+						if (argsMatch) {
+							return v;
+						}
 					}
 				}
 			}

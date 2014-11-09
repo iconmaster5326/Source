@@ -352,25 +352,6 @@ public class SourceCompiler {
 							}
 							break;
 						}
-						if ((es.size()+(rfn.method?1:0))!=rfn.fn.getArguments().size()) {
-							cd.errs.add(new SourceUndefinedFunctionException(e.range, "function "+rfn.fn.getName()+" requires "+rfn.fn.getArguments().size()+" arguments; got "+(es.size()+(rfn.method?1:0)), (String) e.args[0]));
-						}
-						int i=(rfn.method?1:0);
-						for (Element e2 : es) {
-							Expression expr2 = compileExpr(cd, "", e2);
-							DataType ltype = rfn.fn.getArguments().get(i).getType();
-							DataType rtype = expr2.type;
-							if (ltype==null) {
-								ltype = new DataType(true);
-							}
-							if (rtype==null) {
-								rtype = new DataType(true);
-							}
-							if (!DataType.canCastTo(ltype,rtype)) {
-								cd.errs.add(new SourceDataTypeException(e2.range,"Argument "+rfn.fn.getArguments().get(i).getName()+" of function "+rfn.fn.getName()+" is of type "+ltype+"; got an argument of type "+rtype));
-							}
-							i++;
-						}
 						ArrayList<Expression> args = new ArrayList<>();
 						if (Directives.has(rfn.fn, "inline")) {
 							if (rfn.method) {
