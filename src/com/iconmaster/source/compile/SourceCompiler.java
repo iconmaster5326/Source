@@ -161,20 +161,21 @@ public class SourceCompiler {
 									cd.frame.putInline(name2, res.get(asni));
 								} else {
 									Expression expr2 = resolveLValue(cd, code, e2);
-									movs.add(new Operation(OpType.MOV, e2.range, expr2.retVar, names.get(asni)));
-									code.addAll(lexprs.get(asni));
-									rexprs.add(expr2);
-
+									
 									//check data types
 									DataType rtype = lexprs.get(asni).type;
 									DataType ltype = expr2.type;
+									DataType newType = DataType.getNewType(ltype, rtype);
 									if (!DataType.canCastTo(ltype,rtype)) {
 										cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rtype+" to variable "+expr2.retVar+" of type "+ltype));
 									} else {
-										DataType newType = DataType.getNewType(ltype, rtype);
 										cd.frame.setVarType(expr2.retVar, newType);
 										cd.frame.setVarType(lexprs.get(asni).retVar, newType);
 									}
+									
+									movs.add(new Operation(OpType.MOV, newType.type, e2.range, expr2.retVar, names.get(asni)));
+									code.addAll(lexprs.get(asni));
+									rexprs.add(expr2);
 								}
 							}
 							asni++;
@@ -264,7 +265,7 @@ public class SourceCompiler {
 						if (!DataType.canCastTo(retType, cond.type)) {
 							cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
 						}
-						code.add(new Operation(OpType.RET, e.range, cond.retVar));
+						code.add(new Operation(OpType.RET, TypeDef.getCommonParent(retType.type, cond.type.type),e.range, cond.retVar));
 						break;
 					case ADD_ASN:
 						asnType = OpType.ADD;
@@ -290,7 +291,7 @@ public class SourceCompiler {
 									
 						code.addAll(rexpr);
 						code.addAll(lexpr2);
-						code.add(new Operation(asnType, e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
+						code.add(new Operation(asnType, TypeDef.getCommonParent(lexpr2.type.type,rexpr.type.type), e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
 						code.addAll(lexpr1);
 						break;
 					default:
@@ -309,22 +310,21 @@ public class SourceCompiler {
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case NUMBER:
-					expr.add(new Operation(OpType.MOVN, e.range, retVar, (String)e.args[0]));
 					if (ElementHelper.isReal((String) e.args[0])) {
 						expr.type = new DataType(TypeDef.REAL,true);
 					} else {
 						expr.type = new DataType(TypeDef.INT,true);
 					}
-					
+					expr.add(new Operation(OpType.MOVN, expr.type.type, e.range, retVar, (String)e.args[0]));
 					break;
 				case STRING:
-					expr.add(new Operation(OpType.MOVS, e.range, retVar, (String)e.args[0]));
+					expr.add(new Operation(OpType.MOVS,TypeDef.STRING, e.range, retVar, (String)e.args[0]));
 					expr.type = new DataType(TypeDef.STRING,true);
 					break;
 				case WORD:
 					if (cd.pkg.getField((String)e.args[0])!=null) {
-						expr.add(new Operation(OpType.MOV, e.range, retVar, (String)e.args[0]));
 						expr.type = cd.pkg.getField((String)e.args[0]).getType();
+						expr.add(new Operation(OpType.MOV, expr.type.type, e.range, retVar, (String)e.args[0]));
 					} else if (cd.frame.isInlined((String)e.args[0])) {
 						Element e2 = cd.frame.getInline((String)e.args[0]);
 						if (e2==null) {
@@ -339,8 +339,8 @@ public class SourceCompiler {
 					} else if (cd.frame.getVariable((String)e.args[0])==null) {
 						cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
 					} else {
-						expr.add(new Operation(OpType.MOV, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
 						expr.type = cd.frame.getVarType(cd.frame.getVariableName((String)e.args[0]));
+						expr.add(new Operation(OpType.MOV, expr.type.type, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
 					}
 					break;
 			}
@@ -351,8 +351,7 @@ public class SourceCompiler {
 				expr.addAll(lexpr);
 				expr.addAll(rexpr);
 				OpType opt = OpType.MathToOpType((Rule) e.type);
-				expr.add(new Operation(opt, e.range, retVar, lexpr.retVar, rexpr.retVar));
-				//check data types	
+					
 				DataType rtype = lexpr.type;
 				DataType ltype = rexpr.type;
 				if (!DataType.canCastTo(ltype,rtype) && !DataType.canCastTo(rtype,ltype)) {
@@ -368,6 +367,8 @@ public class SourceCompiler {
 						expr.type = DataType.commonType(ltype, rtype);
 					}
 				}
+				
+				expr.add(new Operation(opt, expr.type.type, e.range, retVar, lexpr.retVar, rexpr.retVar));
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
@@ -401,7 +402,7 @@ public class SourceCompiler {
 								DataType type = cd.frame.getVarType(s);
 								mexpr.type = type;
 								mexpr.retVar = rfn.fn.getArguments().get(0).getName();
-								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
+								mexpr.add(new Operation(OpType.MOV,mexpr.type.type, e.range, mexpr.retVar, s));
 								args.add(mexpr);
 							}
 							int j=rfn.method?1:0;
@@ -422,7 +423,7 @@ public class SourceCompiler {
 							for (Operation op: fncode) {
 								if (op.op==OpType.RET) {
 									if (op.args.length!=0) {
-										newcode.add(new Operation(OpType.MOV, op.range, retVar, op.args[0]));
+										newcode.add(new Operation(OpType.MOV, expr.type.type, op.range, retVar, op.args[0]));
 									}
 									newcode.add(new Operation(OpType.GOTO, op.range, label));
 									lUsed = true;
@@ -445,7 +446,7 @@ public class SourceCompiler {
 								DataType type = cd.frame.getVarType(s);
 								mexpr.type = type;
 								mexpr.retVar = cd.frame.newVarName();
-								mexpr.add(new Operation(OpType.MOV, e.range, mexpr.retVar, s));
+								mexpr.add(new Operation(OpType.MOV, mexpr.type.type, e.range, mexpr.retVar, s));
 								names.add(mexpr.retVar);
 								args.add(mexpr);
 							}
@@ -460,7 +461,7 @@ public class SourceCompiler {
 							}
 							names.add(0, (String) rfn.fn.getFullName());
 							names.add(0,retVar);
-							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
+							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 						}
 						expr.type = rfn.fn.getReturnType()==null?expr.type:rfn.fn.getReturnType();
 						break;
@@ -502,7 +503,7 @@ public class SourceCompiler {
 							names.add(0,listExpr.retVar);
 							names.add(0,rfn.fn.getFullName());
 							names.add(0,retVar);
-							expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
+							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
 							int i = 0;
@@ -519,7 +520,7 @@ public class SourceCompiler {
 							}
 							names.add(0,listExpr.retVar);
 							names.add(0,retVar);
-							expr.add(new Operation(OpType.INDEX, e.range, names.toArray(new String[0])));
+							expr.add(new Operation(OpType.INDEX, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else {
 							if (rfn.nameFound) {
@@ -543,7 +544,7 @@ public class SourceCompiler {
 							names.add(name);
 						}
 						names.add(0,retVar);
-						expr.add(new Operation(OpType.MOVL, e.range, names.toArray(new String[0])));
+						expr.add(new Operation(OpType.MOVL, TypeDef.LIST, e.range, names.toArray(new String[0])));
 						expr.type = new DataType(TypeDef.LIST,true);
 						break;
 					case PAREN:
@@ -558,23 +559,23 @@ public class SourceCompiler {
 						}
 						break;
 					case TRUE:
-						expr.add(new Operation(OpType.TRUE, e.range, retVar));
+						expr.add(new Operation(OpType.TRUE, TypeDef.BOOLEAN, e.range, retVar));
 						expr.type = new DataType(TypeDef.BOOLEAN,true);
 						break;
 					case FALSE:
-						expr.add(new Operation(OpType.FALSE, e.range, retVar));
+						expr.add(new Operation(OpType.FALSE, TypeDef.BOOLEAN, e.range, retVar));
 						expr.type = new DataType(TypeDef.BOOLEAN,true);
 						break;
 					case NOT:
 						Expression nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.NOT, e.range, retVar, nexpr.retVar));
+						expr.add(new Operation(OpType.NOT, TypeDef.BOOLEAN, e.range, retVar, nexpr.retVar));
 						expr.type = new DataType(TypeDef.BOOLEAN);
 						break;
 					case NEG:
 						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.NEG, e.range, retVar, nexpr.retVar));
+						expr.add(new Operation(OpType.NEG, nexpr.type.type, e.range, retVar, nexpr.retVar));
 						expr.type = nexpr.type;
 						break;
 					case TO:
@@ -589,7 +590,7 @@ public class SourceCompiler {
 						if (rfn.fn==null) {
 							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
 						} else {
-							expr.add(new Operation(OpType.CALL, e.range, retVar, rfn.fn.getFullName(), name));
+							expr.add(new Operation(OpType.CALL, rtype.type, e.range, retVar, rfn.fn.getFullName(), name));
 							expr.type = rtype;
 						}
 						break;
@@ -694,7 +695,7 @@ public class SourceCompiler {
 						names.add(0,listExpr.retVar);
 						names.add(0,rfn.fn.getFullName());
 						names.add(0,listExpr.retVar);
-						expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
+						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else if (listExpr.type!=null && listExpr.type.type.indexable) {
 						if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
@@ -713,7 +714,7 @@ public class SourceCompiler {
 						expr.type = new DataType(true);
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
-						expr.add(new Operation(OpType.MOVI, e.range, names.toArray(new String[0])));
+						expr.add(new Operation(OpType.MOVI, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else {
 						if (rfn.nameFound) {

@@ -1,6 +1,7 @@
 package com.iconmaster.source.compile;
 
 import com.iconmaster.source.element.Rule;
+import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 
@@ -145,19 +146,38 @@ public class Operation {
 	public OpType op;
 	public String[] args;
 	public Range range;
+	public TypeDef type;
 
+	public Operation(OpType op, String... args) {
+		this.op = op;
+		this.args = args;
+	}
+	
 	public Operation(OpType op, Range range, String... args) {
 		this.op = op;
+		this.range = range;
+		this.args = args;
+	}
+	
+	public Operation(OpType op, TypeDef type, Range range, String... args) {
+		this.op = op;
+		this.type = type;
 		this.range = range;
 		this.args = args;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(op.toString());
+		StringBuilder sb = new StringBuilder();
+		sb.append(op.toString());
 		sb.append("\t");
 		for (String arg : args) {
 			sb.append(arg).append("\t");
+		}
+		if (type!=null) {
+			sb.append("(");
+			sb.append(type);
+			sb.append(")");
 		}
 		return sb.toString();
 	}
