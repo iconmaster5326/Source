@@ -276,6 +276,11 @@ public class SourceCompiler {
 						Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
 						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+						
+						if (!DataType.canCastTo(lexpr2.type,rexpr.type)) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rexpr.type+" to variable "+lexpr1.retVar+" of type "+lexpr1.type));
+						}
+									
 						code.addAll(rexpr);
 						code.addAll(lexpr2);
 						code.add(new Operation(asnType, e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
