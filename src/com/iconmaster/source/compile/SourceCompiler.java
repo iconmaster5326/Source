@@ -664,7 +664,7 @@ public class SourceCompiler {
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						names.add(0,rfn.fn.getFullName());
-						names.add(0,cd.pkg.nameProvider.getTempName());
+						names.add(0,expr.retVar);
 						expr.add(new Operation(OpType.CALL, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else if (listExpr.type!=null && listExpr.type.type.indexable) {
