@@ -95,6 +95,10 @@ public class LibraryCore extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
+		fn = Function.libraryFunction("real.abs", new String[] {"item"}, new TypeDef[] {TypeDef.REAL}, TypeDef.REAL);
+		fn.compileName = "ABS";
+		this.addFunction(fn);
+		
 		Field f = Field.libraryField("list.start", TypeDef.REAL);
 		f.onCompile = (pkg,isGet,args) -> {
 			return "1";

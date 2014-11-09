@@ -658,12 +658,18 @@ public class SourceCompiler {
 						type = new DataType(true);
 					}
 				}
-				fnToCall = type.type.name+"."+fnName;
-				call.args.add(0,type);
-				if (cd.pkg.getFunction(fnToCall,call)!=null) {
-					return new RealFunction(cd.pkg.getFunction(fnToCall,call),true,true);
+				TypeDef otype = type.type;
+				while (type.type!=null) {
+					fnToCall = type.type.name+"."+fnName;
+					call.args.add(0,type);
+					if (cd.pkg.getFunction(fnToCall,call)!=null) {
+						type.type = otype;
+						return new RealFunction(cd.pkg.getFunction(fnToCall,call),true,true);
+					}
+					call.args.remove(0);
+					type.type = type.type.parent;
 				}
-				call.args.remove(0);
+				type.type = otype;
 			} else {
 				fnToCall = (!pkgName.isEmpty()?(pkgName+"."):"")+fnName;
 				if (cd.pkg.getFunction(fnToCall,call)!=null) {
