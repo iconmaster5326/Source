@@ -281,17 +281,18 @@ public class HPPLAssembler {
 								break;
 							}
 						}
-					}
-					String fs = fn.compileName;
-					sb.append(fs);
-					if (op.args.length > 2) {
-						sb.append("(");
-						for (int i=2;i<op.args.length;i++) {
-							sb.append(getInlineString(ad, expr, op.args[i]));
-							sb.append(",");
+						
+						String fs = fn.compileName;
+						sb.append(fs);
+						if (op.args.length > 2) {
+							sb.append("(");
+							for (int i=2;i<op.args.length;i++) {
+								sb.append(getInlineString(ad, expr, op.args[i]));
+								sb.append(",");
+							}
+							sb.deleteCharAt(sb.length()-1);
+							sb.append(")");
 						}
-						sb.deleteCharAt(sb.length()-1);
-						sb.append(")");
 					}
 					break;
 				case INDEX:

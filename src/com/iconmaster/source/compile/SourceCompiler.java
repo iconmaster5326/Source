@@ -478,7 +478,7 @@ public class SourceCompiler {
 						for (Expression expr3 : exprs) {
 							arga.add(expr3.type);
 						}
-						rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, null, e.directives));
+						rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, new DataType(true), e.directives));
 						if (rfn.fn!=null) {
 							int i = 0;
 							if (rfn.fn.getArguments().size()-1!=exprs.size()) {
@@ -667,7 +667,7 @@ public class SourceCompiler {
 					for (Expression expr3 : exprs) {
 						arga.add(expr3.type);
 					}
-					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, null, e.directives));
+					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, listExpr.type, e.directives));
 					if (rfn.fn!=null) {
 						int i = 0;
 						if (rfn.fn.getArguments().size()-2!=exprs.size()) {

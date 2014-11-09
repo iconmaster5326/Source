@@ -174,7 +174,7 @@ public class SourcePackage implements IDirectable {
 
 	public Function getFunction(String name) {
 		for (Function v : functions) {
-			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name)) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name) || (v.getName()+"%"+v.order).equals(name)) {
 				return v;
 			}
 		}
@@ -183,27 +183,29 @@ public class SourcePackage implements IDirectable {
 	
 	public Function getFunction(String name, FunctionCall call) {
 		for (Function v : functions) {
-			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
-				if (call.args.size()==v.args.size()) {
-					boolean dirsMatch = true;
-					for (String dir : call.dirs) {
-						if (!Directives.has(v, dir) && call.dirsMatter) {
-							dirsMatch = false;
-							break;
-						}
-					}
-					if (dirsMatch) {
-						int i = 0;
-						boolean argsMatch = true;
-						for (Field arg : v.args) {
-							if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
-								argsMatch = false;
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name) || (v.getName()+"%"+v.order).equals(name)) {
+				if (call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType())) {
+					if (call.args.size()==v.args.size()) {
+						boolean dirsMatch = true;
+						for (String dir : call.dirs) {
+							if (!Directives.has(v, dir) && call.dirsMatter) {
+								dirsMatch = false;
 								break;
 							}
-							i++;
 						}
-						if (argsMatch) {
-							return v;
+						if (dirsMatch) {
+							int i = 0;
+							boolean argsMatch = true;
+							for (Field arg : v.args) {
+								if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
+									argsMatch = false;
+									break;
+								}
+								i++;
+							}
+							if (argsMatch) {
+								return v;
+							}
 						}
 					}
 				}
