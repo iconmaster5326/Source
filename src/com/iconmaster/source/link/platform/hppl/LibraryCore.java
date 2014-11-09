@@ -96,6 +96,24 @@ public class LibraryCore extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
+		fn = Function.libraryFunction("int._cast", new String[] {"item"}, new TypeDef[] {TypeDef.STRING}, TypeDef.INT);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append("IP(EXPR(");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+			return "))";
+		};
+		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("int._cast", new String[] {"item"}, new TypeDef[] {TypeDef.REAL}, TypeDef.INT);
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append("IP(");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+			return "))";
+		};
+		this.addFunction(fn);
+		
 		Field f = Field.libraryField("list.start", TypeDef.REAL);
 		f.onCompile = (pkg,isGet,args) -> {
 			return "1";
