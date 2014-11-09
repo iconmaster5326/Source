@@ -185,6 +185,9 @@ public class SourceCompiler {
 					case IFBLOCK:
 						Element ifBlock = (Element) e.args[0];
 						Expression cond = compileExpr(cd, cd.frame.newVarName(), (Element) ifBlock.args[0]);
+						if (cond.type.type!=TypeDef.BOOLEAN) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Condition must be a boolean, got an item of type "+cond.type));
+						}
 						code.add(new Operation(OpType.DO, ifBlock.range));
 						code.addAll(cond);
 						code.add(new Operation(OpType.IF, ifBlock.range, cond.retVar));
@@ -195,6 +198,9 @@ public class SourceCompiler {
 						int ends = 1;
 						for (Element elif : (ArrayList<Element>) e.args[1]) {
 							cond = compileExpr(cd, cd.frame.newVarName(), (Element) elif.args[0]);
+							if (cond.type.type!=TypeDef.BOOLEAN) {
+								cd.errs.add(new SourceDataTypeException(e.range,"Condition must be a boolean, got an item of type "+cond.type));
+							}
 							code.add(new Operation(OpType.ELSE, elif.range));
 							code.add(new Operation(OpType.DO, elif.range));
 							code.addAll(cond);
@@ -219,6 +225,9 @@ public class SourceCompiler {
 						break;
 					case WHILE:
 						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						if (cond.type.type!=TypeDef.BOOLEAN) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Condition must be a boolean, got an item of type "+cond.type));
+						}
 						code.add(new Operation(OpType.DO, e.range));
 						code.addAll(cond);
 						code.add(new Operation(OpType.WHILE, e.range, cond.retVar));
@@ -230,6 +239,9 @@ public class SourceCompiler {
 						break;
 					case REPEAT:
 						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						if (cond.type.type!=TypeDef.BOOLEAN) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Condition must be a boolean, got an item of type "+cond.type));
+						}
 						code.add(new Operation(OpType.DO, e.range));
 						code.addAll(cond);
 						code.add(new Operation(OpType.REP, e.range, cond.retVar));
