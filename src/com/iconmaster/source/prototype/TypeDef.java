@@ -9,14 +9,16 @@ public class TypeDef {
 	public static final TypeDef REAL = new TypeDef("real");
 	public static final TypeDef INT = new TypeDef("int", TypeDef.REAL);
 	public static final TypeDef STRING = new TypeDef("string");
-	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(TypeDef.INT, 1);
+	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, false);
 	
 	public String name;
 	public String pkgName;
 	
 	public TypeDef parent = null;
-	public TypeDef indexableBy = null;
-	public int indices = -1;
+	
+	public boolean indexable = false;
+	public TypeDef[] indexableBy = new TypeDef[0];
+	public boolean varargIndex = false;
 	
 	public TypeDef() {
 		this.name = "?";
@@ -31,9 +33,10 @@ public class TypeDef {
 		this.parent = parent;
 	}
 	
-	public TypeDef setIndexSettings(TypeDef indexableBy, int indicies) {
+	public TypeDef setIndexSettings(TypeDef[] indexableBy, boolean varargIndex) {
+		indexable = true;
 		this.indexableBy = indexableBy;
-		this.indices = indicies;
+		this.varargIndex = varargIndex;
 		return this;
 	}
 	

@@ -440,12 +440,18 @@ public class SourceCompiler {
 						Element listE = new Element(e.range, TokenRule.WORD);
 						listE.args[0] = e.args[0];
 						Expression listExpr = resolveLValue(cd, expr, listE);
-						if (listExpr.type!=null && listExpr.type.type.indexableBy!=null) {
-							for (Expression expr3 : exprs) {
-								if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy))) {
-									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+						if (listExpr.type!=null && listExpr.type.type.indexable) {
+							int i = 0;
+							if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
+								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
+							} else {
+								for (Expression expr3 : exprs) {
+									if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy[i]))) {
+										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+									}
+									expr.addAll(expr3);
+									i++;
 								}
-								expr.addAll(expr3);
 							}
 							names.add(0,listExpr.retVar);
 							names.add(0,retVar);
@@ -594,12 +600,18 @@ public class SourceCompiler {
 					Element listE = new Element(e.range, TokenRule.WORD);
 					listE.args[0] = e.args[0];
 					Expression listExpr = resolveLValue(cd, expr, listE);
-					if (listExpr.type!=null && listExpr.type.type.indexableBy!=null) {
-						for (Expression expr3 : exprs) {
-							if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy))) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+					if (listExpr.type!=null && listExpr.type.type.indexable) {
+						if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
+							cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
+						} else {
+							int i = 0;
+							for (Expression expr3 : exprs) {
+								if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy[i]))) {
+									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
+								}
+								code.addAll(expr3);
+								i++;
 							}
-							code.addAll(expr3);
 						}
 						expr.retVar = cd.pkg.nameProvider.getTempName();
 						expr.type = new DataType(true);
