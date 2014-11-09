@@ -165,6 +165,13 @@ public class Operation {
 		this.range = range;
 		this.args = args;
 	}
+	
+	public Operation(OpType op, DataType type, Range range, String... args) {
+		this.op = op;
+		this.type = type==null?null:type.type;
+		this.range = range;
+		this.args = args;
+	}
 
 	@Override
 	public String toString() {

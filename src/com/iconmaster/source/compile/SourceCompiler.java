@@ -446,7 +446,7 @@ public class SourceCompiler {
 								DataType type = cd.frame.getVarType(s);
 								mexpr.type = type;
 								mexpr.retVar = cd.frame.newVarName();
-								mexpr.add(new Operation(OpType.MOV, mexpr.type.type, e.range, mexpr.retVar, s));
+								mexpr.add(new Operation(OpType.MOV, type, e.range, mexpr.retVar, s));
 								names.add(mexpr.retVar);
 								args.add(mexpr);
 							}

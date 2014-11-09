@@ -17,23 +17,23 @@ public class LibraryPrimeDraw extends SourcePackage {
 		
 		this.addType(GROB_TYPE);
 		
-		Function fn = Function.libraryFunction("grob.width", new String[] {"g"}, new TypeDef[] {GROB_TYPE}, TypeDef.REAL);
+		Function fn = Function.libraryFunction("grob.width", new String[] {"g"}, new TypeDef[] {GROB_TYPE}, TypeDef.INT);
 		fn.compileName = "GROBW_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.height", new String[] {"g"}, new TypeDef[] {GROB_TYPE}, TypeDef.REAL);
+		fn = Function.libraryFunction("grob.height", new String[] {"g"}, new TypeDef[] {GROB_TYPE}, TypeDef.INT);
 		fn.compileName = "GROBH_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.resize", new String[] {"g","w","h"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.resize", new String[] {"g","w","h"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "DIMGROB_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.resize", new String[] {"g","w","h","color"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.resize", new String[] {"g","w","h","color"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "DIMGROB_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.copyTo", new String[] {"g1","g2"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.copyTo", new String[] {"g1","g2"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("BLIT_P(");
@@ -44,7 +44,7 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.copyRegionTo", new String[] {"g1","g2","x1","y1","x2","y2"}, new TypeDef[] {GROB_TYPE, GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.copyRegionTo", new String[] {"g1","g2","x1","y1","x2","y2"}, new TypeDef[] {GROB_TYPE, GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("SUBGROB_P(");
@@ -63,7 +63,7 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.copyScaledRegionTo", new String[] {"g1","g2","sx1","sy1","sx2","sy2","dx1","dy1","dx2","dy2"}, new TypeDef[] {GROB_TYPE, GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.copyScaledRegionTo", new String[] {"g1","g2","sx1","sy1","sx2","sy2","dx1","dy1","dx2","dy2"}, new TypeDef[] {GROB_TYPE, GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("BLIT_P(");
@@ -90,43 +90,43 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "ARC_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r","color"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r","color"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "ARC_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r","a1","a2"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r","a1","a2"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "ARC_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r","a1","a2","color"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawArc", new String[] {"g","x","y","r","a1","a2","color"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "ARC_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawPoly", new String[] {"g","coords","color"}, new TypeDef[] {GROB_TYPE, TypeDef.LIST, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawPoly", new String[] {"g","coords","color"}, new TypeDef[] {GROB_TYPE, TypeDef.LIST, TypeDef.INT}, null);
 		fn.compileName = "FILLPOLY_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawPoly", new String[] {"g","coords","color","alpha"}, new TypeDef[] {GROB_TYPE, TypeDef.LIST, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawPoly", new String[] {"g","coords","color","alpha"}, new TypeDef[] {GROB_TYPE, TypeDef.LIST, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "FILLPOLY_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.getPixel", new String[] {"g","x","y"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.getPixel", new String[] {"g","x","y"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "GETPIX_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.setPixel", new String[] {"g","x","y"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.setPixel", new String[] {"g","x","y"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "PIXON_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.setPixel", new String[] {"g","x","y","color"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.setPixel", new String[] {"g","x","y","color"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "PIXON_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.fill", new String[] {"g","color"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.fill", new String[] {"g","color"}, new TypeDef[] {GROB_TYPE, TypeDef.INT}, null);
 		fn.compileName = "RECT_P";
 		this.addFunction(fn);
 		
@@ -134,19 +134,19 @@ public class LibraryPrimeDraw extends SourcePackage {
 		fn.compileName = "RECT_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawRect", new String[] {"g","x1","y1","x2","y2"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawRect", new String[] {"g","x1","y1","x2","y2"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "RECT_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawRect", new String[] {"g","x1","y1","x2","y2","color"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawRect", new String[] {"g","x1","y1","x2","y2","color"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "RECT_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawRect", new String[] {"g","x1","y1","x2","y2","edgeColor","fillColor"}, new TypeDef[] {GROB_TYPE, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawRect", new String[] {"g","x1","y1","x2","y2","edgeColor","fillColor"}, new TypeDef[] {GROB_TYPE, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.compileName = "RECT_P";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("TEXTOUT_P(");
@@ -161,7 +161,7 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("TEXTOUT_P(");
@@ -178,7 +178,7 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font","textColor"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font","textColor"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("TEXTOUT_P(");
@@ -197,7 +197,7 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font","textColor","backColor"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font","textColor","backColor"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("TEXTOUT_P(");
@@ -218,7 +218,7 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font","textColor","backColor","width"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, null);
+		fn = Function.libraryFunction("grob.drawString", new String[] {"g","text","x","y","font","textColor","backColor","width"}, new TypeDef[] {GROB_TYPE,TypeDef.STRING, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, null);
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("TEXTOUT_P(");
@@ -241,11 +241,11 @@ public class LibraryPrimeDraw extends SourcePackage {
 		};
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("rgb", new String[] {"r","g","b"}, new TypeDef[] {TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, TypeDef.REAL);
+		fn = Function.libraryFunction("rgb", new String[] {"r","g","b"}, new TypeDef[] {TypeDef.INT, TypeDef.INT, TypeDef.INT}, TypeDef.INT);
 		fn.compileName = "RGB";
 		this.addFunction(fn);
 		
-		fn = Function.libraryFunction("rgb", new String[] {"r","g","b","a"}, new TypeDef[] {TypeDef.REAL, TypeDef.REAL, TypeDef.REAL, TypeDef.REAL}, TypeDef.REAL);
+		fn = Function.libraryFunction("rgb", new String[] {"r","g","b","a"}, new TypeDef[] {TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, TypeDef.INT);
 		fn.compileName = "RGB";
 		this.addFunction(fn);
 		
