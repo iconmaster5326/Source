@@ -67,7 +67,7 @@ public class SourceCompiler {
 				cd.frame.setVarType(v.getName(), v.getType());
 			}
 		}
-		Expression code = compileCode(cd, fn.rawData());
+		Expression code = compileCode(cd, fn.rawData(), fn.getReturnType());
 		fn.setCompiled(code);
 		return code;
 	}
@@ -87,6 +87,10 @@ public class SourceCompiler {
 	}
 	
 	public static Expression compileCode(CompileData cd, ArrayList<Element> es) {
+		return compileCode(cd, es, new DataType(true));
+	}
+	
+	public static Expression compileCode(CompileData cd, ArrayList<Element> es, DataType retType) {
 		Expression code = new Expression();
 		OpType asnType = null;
 		for (Element e : es) {
@@ -257,6 +261,9 @@ public class SourceCompiler {
 					case RETURN:
 						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						code.addAll(cond);
+						if (!DataType.canCastTo(retType, cond.type)) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
+						}
 						code.add(new Operation(OpType.RET, e.range, cond.retVar));
 						break;
 					case ADD_ASN:
