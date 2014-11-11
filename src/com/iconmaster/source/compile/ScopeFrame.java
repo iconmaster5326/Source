@@ -132,7 +132,7 @@ public class ScopeFrame {
 	}
 	
 	public void setParam(String name, DataType type) {
-		params.put(name, type);
+		params.put(name, type==null?new DataType():type);
 	}
 	
 	public DataType getParam(String name) {

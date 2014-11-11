@@ -212,6 +212,9 @@ public class Validator {
 
 				case REF_CALL:
 				case FCALL:
+					if (e.args[2]!=null) {
+						a.addAll(validate((ArrayList<Element>) e.args[2],Scope.LVALUE));
+					}
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.CODE);
 					break;
 				case ICALL:

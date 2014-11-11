@@ -48,6 +48,13 @@ public class SourceCompiler {
 					}
 				}
 			}
+			if (fn.rawParams!=null) {
+				for (Field v : fn.rawParams) {
+					if (v.getRawType()!=null) {
+						v.setType(compileDataType(cd, v.getRawType()));
+					}
+				}
+			}
 			if (fn.getReturn()!=null) {
 				fn.setReturnType(compileDataType(cd, fn.getReturn()));
 			}
@@ -81,6 +88,12 @@ public class SourceCompiler {
 			if (v.getRawType()!=null) {
 				v.setType(compileDataType(cd, v.getRawType()));
 				cd.frame.setVarType(v.getName(), v.getType());
+			}
+		}
+		if (fn.rawParams!=null) {
+			for (Field v : fn.rawParams) {
+				System.out.println("param "+v);
+				cd.frame.setParam(v.getName(), v.getType());
 			}
 		}
 		Expression code = compileCode(cd, fn.rawData(), fn.getReturnType());
@@ -605,7 +618,12 @@ public class SourceCompiler {
 				case WORD:
 					TypeDef def = cd.pkg.getType((String) e.args[0]);
 					if (def==null) {
-						cd.errs.add(new SourceDataTypeException(e.range, "unknown data type "+e.args[0]));
+						DataType type = cd.frame.getParam((String) e.args[0]);
+						if (type==null) {
+							cd.errs.add(new SourceDataTypeException(e.range, "unknown data type "+e.args[0]));
+						} else {
+							def = type.type;
+						}
 					}
 					dt.type = def;
 					break;
