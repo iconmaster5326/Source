@@ -802,7 +802,9 @@ public class SourceCompiler {
 			if (op.op == OpType.CALL) {
 				Function fn = pkg.getFunction(op.args[1]);
 				if (fn!=null && Directives.has(fn,"inline")) {
+					a.add(new Operation(OpType.BEGIN, op.range));
 					for (int i=2;i<op.args.length;i++) {
+						a.add(new Operation(OpType.DEF, fn.getArguments().get(i-2).getType(), op.range, fn.getArguments().get(i-2).getName()));
 						a.add(new Operation(OpType.MOV, fn.getArguments().get(i-2).getType(), op.range, fn.getArguments().get(i-2).getName(), op.args[i]));
 					}
 					CompileData cd = new CompileData(pkg);
@@ -811,7 +813,6 @@ public class SourceCompiler {
 					ArrayList<Operation> code2 = compileCode(cd, fn.rawData());
 					String label = pkg.nameProvider.getTempName();
 					boolean labelUsed = false;
-					a.add(new Operation(OpType.BEGIN, op.range));
 					for (Operation op2 : code2) {
 						if (op2.op==OpType.RET) {
 							if (op2.args.length!=0) {
