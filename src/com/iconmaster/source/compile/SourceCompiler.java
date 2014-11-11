@@ -81,6 +81,9 @@ public class SourceCompiler {
 		if (field.rawData()!=null) {
 			Expression expr = compileExpr(cd, v.name, field.rawData());
 			field.setCompiled(expr);
+			if (field.getType()==null) {
+				field.setType(expr.type);
+			}
 			return expr;
 		}
 		return null;
@@ -606,6 +609,15 @@ public class SourceCompiler {
 		}
 		if (e.dataType!=null) {
 			expr.type = compileDataType(cd, e.dataType);
+		}
+		//change types of known lvars to correct parent types
+		for (Operation op : expr) {
+			if (op.op.hasLVar()) {
+				DataType type = cd.frame.getVarType(op.args[0]);
+				if (type!=null) {
+					op.type = type.type;
+				}
+			}
 		}
 		return expr;
 	}
