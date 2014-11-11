@@ -51,6 +51,8 @@ public class SourceCompiler {
 					} else {
 						v.setType(new DataType(true));
 					}
+					ParamTypeDef ptd = new ParamTypeDef(v.getName(), i, v.getType().type);
+					v.setType(new DataType(ptd));
 					cd.frame.setParam(v.getName(), v.getType());
 					i++;
 				}
@@ -58,7 +60,6 @@ public class SourceCompiler {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
 				for (Field v : fn.getArguments()) {
 					if (v.getRawType()!=null) {
-						System.out.println("Type is "+v.getRawType()+", K is "+cd.frame.params);
 						v.setType(compileDataType(cd, v.getRawType()));
 					}
 				}
@@ -443,6 +444,10 @@ public class SourceCompiler {
 						}
 						ArrayList<Expression> args = new ArrayList<>();
 						ArrayList<String> names = new ArrayList<>();
+						DataType[] paramTypes = new DataType[0];
+						if (rfn.fn.rawParams!=null) {
+							paramTypes = new DataType[rfn.fn.rawParams.size()];
+						}
 						if (rfn.method) {
 							Expression mexpr = new Expression();
 							String s = (String) e.args[0];
@@ -454,19 +459,46 @@ public class SourceCompiler {
 							names.add(mexpr.retVar);
 							args.add(mexpr);
 						}
+						int i = 0;
 						for (Element e2 : es) {
 							String name = cd.frame.newVarName();
 							Expression expr2 = compileExpr(cd, name, e2);
 							args.add(expr2);
 							names.add(name);
+							DataType dt = rfn.fn.getArguments().get(i).getType();
+							if (dt.type instanceof ParamTypeDef) {
+								System.out.println("PARAM SET IS "+expr2.type);
+								paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
+							}
+							int pi = 0;
+							for (DataType param : dt.params) {
+								if (param.type instanceof ParamTypeDef) {
+									System.out.println("PARAM SET IS "+expr2.type);
+									paramTypes[((ParamTypeDef)param.type).paramNo] = expr2.type.params[pi];
+								}
+								pi++;
+							}
+							i++;
 						}
 						for (Expression expr2 : args) {
 							expr.addAll(expr2);
 						}
 						names.add(0, (String) rfn.fn.getFullName());
 						names.add(0,retVar);
-						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
-						expr.type = rfn.fn.getReturnType()==null?expr.type:rfn.fn.getReturnType();
+						DataType rtd = rfn.fn.getReturnType();
+						if (rtd!=null) {
+							if (rtd.type instanceof ParamTypeDef) {
+								if (paramTypes[((ParamTypeDef)rtd.type).paramNo]!=null) {
+									rtd = paramTypes[((ParamTypeDef)rtd.type).paramNo];
+								} else {
+									rtd = new DataType(true);
+								}
+							}
+						} else {
+							rtd = new DataType(true);
+						}
+						expr.type = rtd;
+						expr.add(new Operation(OpType.CALL, rtd.type, e.range, names.toArray(new String[0])));
 						break;
 					case ICALL:
 						names = new ArrayList<>();
@@ -491,7 +523,7 @@ public class SourceCompiler {
 						}
 						rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, new DataType(true), e.directives));
 						if (rfn.fn!=null) {
-							int i = 0;
+							i = 0;
 							if (rfn.fn.getArguments().size()-1!=exprs.size()) {
 								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-1)+" indices, got "+exprs.size()));
 							} else {
@@ -510,7 +542,7 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
-							int i = 0;
+							i = 0;
 							if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
 								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
 							} else {
@@ -528,7 +560,7 @@ public class SourceCompiler {
 							}
 							names.add(0,listExpr.retVar);
 							names.add(0,retVar);
-							DataType rtd = new DataType(listExpr.type.type.indexReturns);
+							rtd = new DataType(listExpr.type.type.indexReturns);
 							if (rtd.type instanceof ParamTypeDef) {
 								rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
 							}
