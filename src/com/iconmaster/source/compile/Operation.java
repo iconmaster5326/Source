@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class Operation {
 	public enum OpType {
 		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
-		BEGIN,END,PROP,NOP,
+		BEGIN,END,PROP,NOP,DEF,
 		IF,ELSE,FORR,FORE,FORP,DO,WHILE,REP,
 		ENDB,NATIVE,
 		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE,
@@ -77,6 +77,7 @@ public class Operation {
 				case GOTOT:
 				case GOTOF:
 				case NATIVE:
+				case DEF:
 					return false;
 				default:
 					return true;
@@ -190,6 +191,7 @@ public class Operation {
 	public String[] getVarNames() {
 		switch (this.op) {
 			case PROP:
+			case DEF:
 				return new String[] {};
 			case MOVN:
 			case MOVS:

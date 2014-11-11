@@ -139,6 +139,7 @@ public class SourceCompiler {
 									cd.errs.add(new SourceSafeModeException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)", expr2));
 								}
 							}
+							code.add(new Operation(OpType.DEF, cd.frame.getVarType(expr2), e.range, expr2));
 						}
 					case ASSIGN:
 						ArrayList<String> names = new ArrayList<>();
@@ -304,7 +305,7 @@ public class SourceCompiler {
 		}
 		//change types of known lvars to correct parent types
 		for (Operation op : code) {
-			if (op.op.hasLVar()) {
+			if (op.op.hasLVar() || op.op==OpType.DEF) {
 				DataType type = cd.frame.getVarType(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
@@ -612,7 +613,7 @@ public class SourceCompiler {
 		}
 		//change types of known lvars to correct parent types
 		for (Operation op : expr) {
-			if (op.op.hasLVar()) {
+			if (op.op.hasLVar() || op.op==OpType.DEF) {
 				DataType type = cd.frame.getVarType(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
