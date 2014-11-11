@@ -9,7 +9,7 @@ public class TypeDef {
 	public static final TypeDef REAL = new TypeDef("real");
 	public static final TypeDef INT = new TypeDef("int");
 	public static final TypeDef STRING = new TypeDef("string").setIndexSettings(new TypeDef[] {TypeDef.INT}, TypeDef.INT, false);
-	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, TypeDef.UNKNOWN, false).setParamSettings(new TypeDef[] {TypeDef.UNKNOWN}, false);
+	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, new ParamTypeDef("T", 0), false).setParamSettings(new TypeDef[] {TypeDef.UNKNOWN}, false);
 	public static final TypeDef BOOLEAN = new TypeDef("bool");
 	
 	public String name;

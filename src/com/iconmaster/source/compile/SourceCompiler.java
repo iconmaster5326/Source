@@ -17,6 +17,7 @@ import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.FunctionCall;
+import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
@@ -43,16 +44,21 @@ public class SourceCompiler {
 		for (Function fn : cd.pkg.getFunctions()) {
 			cd.frame = new ScopeFrame(cd.pkg);
 			if (fn.rawParams!=null) {
+				int i = 0;
 				for (Field v : fn.rawParams) {
 					if (v.getRawType()!=null) {
 						v.setType(compileDataType(cd, v.getRawType()));
-						cd.frame.setParam(v.getName(), v.getType());
+					} else {
+						v.setType(new DataType(true));
 					}
+					cd.frame.setParam(v.getName(), v.getType());
+					i++;
 				}
 			}
 			if (!fn.isCompiled() && !fn.isLibrary()) {
 				for (Field v : fn.getArguments()) {
 					if (v.getRawType()!=null) {
+						System.out.println("Type is "+v.getRawType()+", K is "+cd.frame.params);
 						v.setType(compileDataType(cd, v.getRawType()));
 					}
 				}
@@ -500,6 +506,7 @@ public class SourceCompiler {
 							names.add(0,listExpr.retVar);
 							names.add(0,rfn.fn.getFullName());
 							names.add(0,retVar);
+							expr.type = rfn.fn.getReturnType();
 							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
@@ -508,7 +515,11 @@ public class SourceCompiler {
 								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
 							} else {
 								for (Expression expr3 : exprs) {
-									if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy[i]))) {
+									TypeDef argtd = listExpr.type.type.indexableBy[i];
+									if (argtd instanceof ParamTypeDef) {
+										argtd = listExpr.type.type.params[((ParamTypeDef)argtd).paramNo];
+									}
+									if (!DataType.canCastTo(expr3.type, new DataType(argtd))) {
 										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
 									}
 									expr.addAll(expr3);
@@ -517,7 +528,11 @@ public class SourceCompiler {
 							}
 							names.add(0,listExpr.retVar);
 							names.add(0,retVar);
-							expr.type = new DataType(listExpr.type.type.indexReturns);
+							DataType rtd = new DataType(listExpr.type.type.indexReturns);
+							if (rtd.type instanceof ParamTypeDef) {
+								rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+							}
+							expr.type = rtd;
 							expr.add(new Operation(OpType.INDEX, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else {
@@ -634,6 +649,36 @@ public class SourceCompiler {
 			}
 		} else {
 			switch ((Rule)e.type) {
+				case ICALL:
+					TypeDef def = cd.pkg.getType((String) e.args[0]);
+					if (def==null) {
+						DataType type = cd.frame.getParam((String) e.args[0]);
+						if (type==null) {
+							cd.errs.add(new SourceDataTypeException(e.range, "unknown data type "+e.args[0]));
+							break;
+						} else {
+							def = type.type;
+						}
+					}
+					dt.type = def;
+					if (!def.hasParams) {
+						cd.errs.add(new SourceSyntaxException(e.range, "Cannot parameterize type "+def));
+						break;
+					}
+					ArrayList<DataType> pList = new ArrayList<>();
+					ArrayList<Element> es = (ArrayList<Element>) e.args[1];
+					if (es.size()>0 && es.get(0).type==Rule.TUPLE) {
+						es = (ArrayList<Element>) es.get(0).args[0];
+					}
+					if (!def.varargParams && def.params.length!=es.size()) {
+						cd.errs.add(new SourceSyntaxException(e.range, "Type "+def+" expects "+def.params.length+" parameters, got "+es.size()));
+					}
+					for (Element e2 : es) {
+						DataType param = compileDataType(cd, e2);
+						pList.add(param);
+					}
+					dt.params = pList.toArray(dt.params);
+					break;
 				default:
 					cd.errs.add(new SourceSyntaxException(e.range, "Illegal data type format"));
 			}
@@ -714,7 +759,12 @@ public class SourceCompiler {
 						} else {
 							int i = 0;
 							for (Expression expr3 : exprs) {
-								if (!DataType.canCastTo(expr3.type, new DataType(listExpr.type.type.indexableBy[i]))) {
+								DataType rtd = new DataType(listExpr.type.type.indexableBy[i]);
+								if (rtd.type instanceof ParamTypeDef) {
+									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+								}
+								expr.type = rtd;
+								if (!DataType.canCastTo(expr3.type, rtd)) {
 									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
 								}
 								code.addAll(expr3);
@@ -722,7 +772,11 @@ public class SourceCompiler {
 							}
 						}
 						expr.retVar = cd.pkg.nameProvider.getTempName();
-						expr.type = new DataType(listExpr.type.type.indexReturns);
+						DataType rtd = new DataType(listExpr.type.type.indexReturns);
+						if (rtd.type instanceof ParamTypeDef) {
+							rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+						}
+						expr.type = rtd;
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						expr.add(new Operation(OpType.MOVI, expr.type.type, e.range, names.toArray(new String[0])));

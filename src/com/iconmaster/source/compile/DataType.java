@@ -9,10 +9,24 @@ import com.iconmaster.source.prototype.TypeDef;
 public class DataType {
 	public TypeDef type;
 	public boolean weak;
+	public DataType[] params = new DataType[0];
 
 	@Override
 	public String toString() {
-		return ""+type+(weak?"?":"");
+		StringBuilder sb = new StringBuilder();
+		sb.append("");
+		sb.append(type);
+		sb.append(weak?"?":"");
+		if (params.length!=0) {
+			sb.append("[");
+			for (DataType param : params) {
+				sb.append(param);
+				sb.append(",");
+			}
+			sb.deleteCharAt(sb.length()-1);
+			sb.append("]");
+		}
+		return sb.toString();
 	}
 
 	public DataType() {
