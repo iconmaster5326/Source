@@ -368,8 +368,6 @@ public class SourceCompiler {
 				if (!DataType.canCastTo(ltype,rtype) && !DataType.canCastTo(rtype,ltype)) {
 					if (opt!=OpType.CONCAT) {
 						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
-					} else {
-						expr.type = new DataType(TypeDef.STRING);
 					}
 				} else {
 					if (opt.isBooleanMathOp()) {
@@ -377,6 +375,10 @@ public class SourceCompiler {
 					} else {
 						expr.type = DataType.commonType(ltype, rtype);
 					}
+				}
+				
+				if (opt==OpType.CONCAT) {
+					expr.type = new DataType(TypeDef.STRING);
 				}
 				
 				expr.add(new Operation(opt, expr.type.type, e.range, retVar, lexpr.retVar, rexpr.retVar));
