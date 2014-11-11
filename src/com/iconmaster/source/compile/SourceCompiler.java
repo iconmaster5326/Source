@@ -32,12 +32,6 @@ import java.util.Arrays;
 public class SourceCompiler {
 	public static ArrayList<SourceException> compile(SourcePackage pkg) {
 		CompileData cd = new CompileData(pkg);
-		for (Field field : cd.pkg.getFields()) {
-			if (!field.isCompiled() && !field.isLibrary()) {
-				cd.frame = new ScopeFrame(cd.pkg);
-				compileField(cd, field);
-			}
-		}
 		//compile data types first, it's important
 		for (Function fn : cd.pkg.getFunctions()) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
@@ -51,11 +45,19 @@ public class SourceCompiler {
 				fn.setReturnType(compileDataType(cd, fn.getReturn()));
 			}
 		}
-		//now comp functions for real
+		//now comp functions and fields for real
+		for (Field field : cd.pkg.getFields()) {
+			if (!field.isCompiled() && !field.isLibrary()) {
+				cd.frame = new ScopeFrame(cd.pkg);
+				compileField(cd, field);
+				cd.frame = cd.frame.parent;
+			}
+		}
 		for (Function fn : cd.pkg.getFunctions()) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
 				cd.frame = new ScopeFrame(cd.pkg);
 				compileFunction(cd, fn);
+				cd.frame = cd.frame.parent;
 			}
 		}
 		

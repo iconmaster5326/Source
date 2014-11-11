@@ -23,6 +23,7 @@ public class ScopeFrame {
 	public HashMap<String,Variable> vars = new HashMap<>();
 	public HashSet<String> defined = new HashSet<>();
 	public HashMap<String,DataType> types = new HashMap<>();
+	public HashMap<String,DataType> params = new HashMap<>();
 	
 	public HashSet<String> inline = new HashSet<>();
 	public HashMap<String,Element> inlineCode = new HashMap<>();
@@ -128,5 +129,13 @@ public class ScopeFrame {
 	
 	public DataType getVarType(String name) {
 		return types.containsKey(name)?types.get(name):(parent==null?null:parent.getVarType(name));
+	}
+	
+	public void setParam(String name, DataType type) {
+		params.put(name, type);
+	}
+	
+	public DataType getParam(String name) {
+		return params.containsKey(name)?params.get(name):(parent==null?null:parent.getVarType(name));
 	}
 }
