@@ -467,13 +467,11 @@ public class SourceCompiler {
 							names.add(name);
 							DataType dt = rfn.fn.getArguments().get(i).getType();
 							if (dt.type instanceof ParamTypeDef) {
-								System.out.println("PARAM SET IS "+expr2.type);
 								paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
 							}
 							int pi = 0;
 							for (DataType param : dt.params) {
 								if (param.type instanceof ParamTypeDef) {
-									System.out.println("PARAM SET IS "+expr2.type);
 									paramTypes[((ParamTypeDef)param.type).paramNo] = expr2.type.params[pi];
 								}
 								pi++;
