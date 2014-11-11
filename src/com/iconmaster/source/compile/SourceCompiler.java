@@ -299,6 +299,15 @@ public class SourceCompiler {
 				}
 			}
 		}
+		//change types of known lvars to correct parent types
+		for (Operation op : code) {
+			if (op.op.hasLVar()) {
+				DataType type = cd.frame.getVarType(op.args[0]);
+				if (type!=null) {
+					op.type = type.type;
+				}
+			}
+		}
 		return code;
 	}
 	
