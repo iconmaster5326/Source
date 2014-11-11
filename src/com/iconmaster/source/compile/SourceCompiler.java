@@ -1,7 +1,10 @@
 package com.iconmaster.source.compile;
 
+import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.compile.ScopeFrame.Variable;
+import static com.iconmaster.source.compile.SourceCompiler.compileExpr;
+import static com.iconmaster.source.compile.SourceCompiler.compileFunction;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceDataTypeException;
@@ -55,6 +58,10 @@ public class SourceCompiler {
 				compileFunction(cd, fn);
 			}
 		}
+		
+		//inline stuff
+		CompileUtils.transform(cd.pkg, fnInliner);
+		
 		return cd.errs;
 	}
 	
@@ -271,7 +278,7 @@ public class SourceCompiler {
 						if (!DataType.canCastTo(retType, cond.type)) {
 							cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
 						}
-						code.add(new Operation(OpType.RET, DataType.commonType(retType, cond.type),e.range, cond.retVar));
+						code.add(new Operation(OpType.RET, cond.type,e.range, cond.retVar));
 						break;
 					case ADD_ASN:
 						asnType = OpType.ADD;
@@ -409,79 +416,34 @@ public class SourceCompiler {
 							break;
 						}
 						ArrayList<Expression> args = new ArrayList<>();
-						if (Directives.has(rfn.fn, "inline")) {
-							if (rfn.method) {
-								Expression mexpr = new Expression();
-								String s = (String) e.args[0];
-								s = s.substring(0,s.indexOf(".")-1);
-								DataType type = cd.frame.getVarType(s);
-								mexpr.type = type;
-								mexpr.retVar = rfn.fn.getArguments().get(0).getName();
-								mexpr.add(new Operation(OpType.MOV,mexpr.type.type, e.range, mexpr.retVar, s));
-								args.add(mexpr);
-							}
-							int j=rfn.method?1:0;
-							for (Element e2 : es) {
-								String name = rfn.fn.getArguments().get(j).getName();
-								Expression expr2 = compileExpr(cd, name, e2);
-								args.add(expr2);
-								j++;
-							}
-							for (Expression expr2 : args) {
-								expr.addAll(expr2);
-							}
-							cd.frame = new ScopeFrame(cd);
-							ArrayList<Operation> fncode = compileFunction(cd, rfn.fn);
-							ArrayList<Operation> newcode = new ArrayList<>();
-							String label = cd.pkg.nameProvider.getTempName();
-							boolean lUsed = false;
-							for (Operation op: fncode) {
-								if (op.op==OpType.RET) {
-									if (op.args.length!=0) {
-										newcode.add(new Operation(OpType.MOV, expr.type.type, op.range, retVar, op.args[0]));
-									}
-									newcode.add(new Operation(OpType.GOTO, op.range, label));
-									lUsed = true;
-								} else {
-									newcode.add(op);
-								}
-							}
-							expr.add(new Operation(OpType.BEGIN, e.range));
-							expr.addAll(newcode);
-							if (lUsed) {
-								expr.add(new Operation(OpType.LABEL, e.range, label));
-							}
-							expr.add(new Operation(OpType.END, e.range));
-						} else {
-							ArrayList<String> names = new ArrayList<>();
-							if (rfn.method) {
-								Expression mexpr = new Expression();
-								String s = (String) e.args[0];
-								s = s.substring(0,s.indexOf("."));
-								DataType type = cd.frame.getVarType(s);
-								mexpr.type = type;
-								mexpr.retVar = cd.frame.newVarName();
-								mexpr.add(new Operation(OpType.MOV, type, e.range, mexpr.retVar, s));
-								names.add(mexpr.retVar);
-								args.add(mexpr);
-							}
-							for (Element e2 : es) {
-								String name = cd.frame.newVarName();
-								Expression expr2 = compileExpr(cd, name, e2);
-								args.add(expr2);
-								names.add(name);
-							}
-							for (Expression expr2 : args) {
-								expr.addAll(expr2);
-							}
-							names.add(0, (String) rfn.fn.getFullName());
-							names.add(0,retVar);
-							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
+						ArrayList<String> names = new ArrayList<>();
+						if (rfn.method) {
+							Expression mexpr = new Expression();
+							String s = (String) e.args[0];
+							s = s.substring(0,s.indexOf("."));
+							DataType type = cd.frame.getVarType(s);
+							mexpr.type = type;
+							mexpr.retVar = cd.frame.newVarName();
+							mexpr.add(new Operation(OpType.MOV, type, e.range, mexpr.retVar, s));
+							names.add(mexpr.retVar);
+							args.add(mexpr);
 						}
+						for (Element e2 : es) {
+							String name = cd.frame.newVarName();
+							Expression expr2 = compileExpr(cd, name, e2);
+							args.add(expr2);
+							names.add(name);
+						}
+						for (Expression expr2 : args) {
+							expr.addAll(expr2);
+						}
+						names.add(0, (String) rfn.fn.getFullName());
+						names.add(0,retVar);
+						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.type = rfn.fn.getReturnType()==null?expr.type:rfn.fn.getReturnType();
 						break;
 					case ICALL:
-						ArrayList<String> names = new ArrayList<>();
+						names = new ArrayList<>();
 						ArrayList<Expression> exprs = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
@@ -831,4 +793,45 @@ public class SourceCompiler {
 		}
 		return new RealFunction(null,false,cd.pkg.getFunction(fnToCall)!=null);
 	}
+	
+	public static CodeTransformer fnInliner = (pkg, work, code) -> {
+		ArrayList<Operation> a = new ArrayList<>();
+		for (int ii=0;ii<code.size();ii++) {
+			Operation op = code.get(ii);
+			
+			if (op.op == OpType.CALL) {
+				Function fn = pkg.getFunction(op.args[1]);
+				if (fn!=null && Directives.has(fn,"inline")) {
+					for (int i=2;i<op.args.length;i++) {
+						a.add(new Operation(OpType.MOV, fn.getArguments().get(i-2).getType(), op.range, fn.getArguments().get(i-2).getName(), op.args[i]));
+					}
+					CompileData cd = new CompileData(pkg);
+					cd.dirs = fn.getDirectives();
+					cd.frame = new ScopeFrame(pkg);
+					ArrayList<Operation> code2 = compileCode(cd, fn.rawData());
+					String label = pkg.nameProvider.getTempName();
+					boolean labelUsed = false;
+					a.add(new Operation(OpType.BEGIN, op.range));
+					for (Operation op2 : code2) {
+						if (op2.op==OpType.RET) {
+							if (op2.args.length!=0) {
+								a.add(new Operation(OpType.MOV, op2.type, op2.range, op.args[0], op2.args[0]));
+							}
+							a.add(new Operation(OpType.GOTO, op2.range, label));
+							labelUsed = true;
+						} else {
+							a.add(op2);
+						}
+					}
+					if (labelUsed) {
+						a.add(new Operation(OpType.LABEL, op.range, label));
+					}
+					a.add(new Operation(OpType.END, op.range));
+				} else {
+					a.add(op);
+				}
+			}
+		}
+		return a;
+	};
 }
