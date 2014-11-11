@@ -265,7 +265,7 @@ public class SourceCompiler {
 						if (!DataType.canCastTo(retType, cond.type)) {
 							cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
 						}
-						code.add(new Operation(OpType.RET, TypeDef.getCommonParent(retType.type, cond.type.type),e.range, cond.retVar));
+						code.add(new Operation(OpType.RET, DataType.commonType(retType, cond.type),e.range, cond.retVar));
 						break;
 					case ADD_ASN:
 						asnType = OpType.ADD;

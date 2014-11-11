@@ -46,6 +46,12 @@ public class DataType {
 	}
 	
 	public static DataType commonType(DataType type1, DataType type2) {
+		if (type1==null) {
+			type1 = new DataType(true);
+		}
+		if (type2==null) {
+			type2 = new DataType(true);
+		}
 		return new DataType(TypeDef.getCommonParent(type1.type, type2.type),true);
 	}
 	
