@@ -41,15 +41,17 @@ public class SourceCompiler {
 			}
 		}
 		for (Function fn : cd.pkg.getFunctions()) {
-			if (!fn.isCompiled() && !fn.isLibrary()) {
-				for (Field v : fn.getArguments()) {
+			cd.frame = new ScopeFrame(cd.pkg);
+			if (fn.rawParams!=null) {
+				for (Field v : fn.rawParams) {
 					if (v.getRawType()!=null) {
 						v.setType(compileDataType(cd, v.getRawType()));
+						cd.frame.setParam(v.getName(), v.getType());
 					}
 				}
 			}
-			if (fn.rawParams!=null) {
-				for (Field v : fn.rawParams) {
+			if (!fn.isCompiled() && !fn.isLibrary()) {
+				for (Field v : fn.getArguments()) {
 					if (v.getRawType()!=null) {
 						v.setType(compileDataType(cd, v.getRawType()));
 					}
@@ -58,6 +60,7 @@ public class SourceCompiler {
 			if (fn.getReturn()!=null) {
 				fn.setReturnType(compileDataType(cd, fn.getReturn()));
 			}
+			cd.frame = cd.frame.parent;
 		}
 		//now comp functions and fields for real
 		for (Field field : cd.pkg.getFields()) {
@@ -86,13 +89,11 @@ public class SourceCompiler {
 		for (Field v : fn.getArguments()) {
 			cd.frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
 			if (v.getRawType()!=null) {
-				v.setType(compileDataType(cd, v.getRawType()));
 				cd.frame.setVarType(v.getName(), v.getType());
 			}
 		}
 		if (fn.rawParams!=null) {
 			for (Field v : fn.rawParams) {
-				System.out.println("param "+v);
 				cd.frame.setParam(v.getName(), v.getType());
 			}
 		}
