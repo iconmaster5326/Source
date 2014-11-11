@@ -62,10 +62,10 @@ public class DataType {
 		if (other==null) {
 			other = new DataType(true);
 		}
-//		if (thisType.weak) {
-//			return TypeDef.getCommonParent(thisType.type, other.type)!=null;
-//		} else {
+		if (thisType.weak) {
+			return TypeDef.getCommonParent(thisType.type, other.type)!=null;
+		} else {
 			return TypeDef.getCommonParent(thisType.type, other.type)==thisType.type;
-//		}
+		}
 	}
 }
