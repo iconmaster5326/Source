@@ -108,6 +108,13 @@ public class SourcePackage implements IDirectable {
 					fn.getDirectives().addAll(e.directives);
 					fn.getDirectives().addAll(directives);
 					fn.rawCode = (ArrayList<Element>) e.args[2];
+					if (e.args[3]!=null) {
+						fn.rawParams = new ArrayList<>();
+						for (Element e2 : (ArrayList<Element>) e.args[3]) {
+							Field param = new Field((String) e2.args[0], e2.dataType);
+							fn.rawParams.add(param);
+						}
+					}
 					addFunction(fn);
 					break;
 				case GLOBAL_DIR:

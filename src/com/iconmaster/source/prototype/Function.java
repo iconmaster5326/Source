@@ -28,6 +28,9 @@ public class Function implements IDirectable {
 	public String compileName;
 	
 	public int order = 0;
+	
+	public ArrayList<Field> rawParams;
+	public ArrayList<DataType> params;
 
 	public Function(String name, ArrayList<Field> args, Element returns) {
 		this.name = name;

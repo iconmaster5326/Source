@@ -33,6 +33,13 @@ public class SourceCompiler {
 	public static ArrayList<SourceException> compile(SourcePackage pkg) {
 		CompileData cd = new CompileData(pkg);
 		//compile data types first, it's important
+		for (Field field : cd.pkg.getFields()) {
+			if (!field.isCompiled() && !field.isLibrary()) {
+				if (field.getRawType()!=null) {
+					field.setType(compileDataType(cd, field.getRawType()));
+				}
+			}
+		}
 		for (Function fn : cd.pkg.getFunctions()) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
 				for (Field v : fn.getArguments()) {
@@ -84,9 +91,6 @@ public class SourceCompiler {
 	public static Expression compileField(CompileData cd, Field field) {
 		cd.dirs = field.getDirectives();
 		Variable v = cd.frame.putVariable(field.getName(), false);
-		if (field.getRawType()!=null) {
-			field.setType(compileDataType(cd, field.getRawType()));
-		}
 		if (field.rawData()!=null) {
 			Expression expr = compileExpr(cd, v.name, field.rawData());
 			field.setCompiled(expr);
