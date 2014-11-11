@@ -117,6 +117,19 @@ public enum Rule implements IElementType {
 	GLOBAL_DIR(null,"r0"),
 	FCALL("F","w0!p1?"),
 	ICALL("I","w0!i1?"),
+	FCALL2(null,"I02!p1?"),
+	FCALL_HAX(null,(a,i)->{
+		if (a.get(i).type!=FCALL2) {
+			return null;
+		}
+		Element e = new Element(a.get(i).range, FCALL);
+		e.args[0] = a.get(i).args[0];
+		e.args[1] = a.get(i).args[1];
+		e.args[2] = a.get(i).args[2];
+		e.directives.addAll(a.get(i).directives);
+		e.dataType = a.get(i).dataType;
+		return new RuleResult(e, 1);
+	}),
 	TO(null,"a@0'to'a@1"),
 	CAST(null,(a,i)->{
 		if (i>a.size()-2 || a.get(i+1).type != TokenRule.RESWORD || !((Token)a.get(i+1)).string().equals("as")) {
@@ -194,7 +207,6 @@ public enum Rule implements IElementType {
 	LOCAL_ASN(null,"L0!?'='t1"),
 	FIELD("G","'field'!t0?"),
 	FIELD_ASN(null,"G0!?'='t1"),
-	REF_INDEX(null,"A@0i1"),
 	REF_CALL(null,"A@0p1"),
 	ADD_ASN(null,"a@0'+='a@1"),
 	SUB_ASN(null,"a@0'-='a@1"),
@@ -238,7 +250,7 @@ public enum Rule implements IElementType {
 	BREAK(null,"'break'!"),
 	PACKAGE(null,"'package'!a@0"),
 	IMPORT(null,"'import'!a@0?"),
-	FUNC(null,"'function'!F01?c2"),
+	FUNC(null,"'function'!F013?c2"),
 	ITERATOR(null,"'iterator'!F01?c2"),
 	STRUCT(null,"'struct'!w@0c2"),
 	STRUCT_EXT(null,"'struct'!E01c2"),

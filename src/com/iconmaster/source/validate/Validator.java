@@ -183,6 +183,9 @@ public class Validator {
 				//non-code level
 				case FUNC:
 				case ITERATOR:
+					if (e.args[3]!=null) {
+						a.addAll(validate((ArrayList<Element>) e.args[3],Scope.LVALUE));
+					}
 					ensureScope(a,e,scope,Scope.GLOBAL,Scope.STRUCT);
 					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
 					break;
@@ -211,7 +214,6 @@ public class Validator {
 				case FCALL:
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.CODE);
 					break;
-				case REF_INDEX:
 				case ICALL:
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.LVALUE);
 					break;

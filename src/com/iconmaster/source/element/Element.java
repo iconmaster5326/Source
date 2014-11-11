@@ -23,7 +23,7 @@ public class Element implements IDirectable {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("{");
-		sb.append(type).append(" as ").append(dataType).append(": [").append(args[0]).append(" ").append(args[1]).append("]");
+		sb.append(type).append(" as ").append(dataType).append(": [").append(args[0]).append(" ").append(args[1]).append(" ").append(args[2]).append(" ").append(args[3]).append("]");
 		return sb.append("}").toString();
 	}
 
