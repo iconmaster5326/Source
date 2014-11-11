@@ -179,12 +179,6 @@ public class HPPLAssembler {
 						vs.pop();
 						append=false;
 						break;
-					case DEF:
-						for (String arg : op.args) {
-							vs.peek().defs.add(arg);
-						}
-						append=false;
-						break;
 					case PROP:
 						for (int i=1;i<op.args.length;i++) {
 							if ("const".equals(op.args[i])) {

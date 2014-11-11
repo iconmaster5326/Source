@@ -299,8 +299,6 @@ public class SourceCompiler {
 				}
 			}
 		}
-		code.add(0, new Operation(OpType.TYPE, null, cd.frame.getTypeStrings()));
-		code.add(0, new Operation(OpType.DEF, null, cd.frame.getAllVars()));
 		return code;
 	}
 	

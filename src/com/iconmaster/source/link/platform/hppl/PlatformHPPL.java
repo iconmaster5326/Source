@@ -32,7 +32,6 @@ public class PlatformHPPL extends Platform {
 				String temp = pkg.nameProvider.getTempName();
 				a.add(new Operation(OpType.MOVN, op.range, op.args[0], "0"));
 				a.add(new Operation(OpType.CALL, op.range, temp, op.args[1], op.args[0], op.args[2]));
-				CompileUtils.addNewDefinition(pkg, code, temp, "real");
 				return a;
 			}
 		});
@@ -43,7 +42,6 @@ public class PlatformHPPL extends Platform {
 				String temp = pkg.nameProvider.getTempName();
 				a.add(new Operation(OpType.MOVN, op.range, op.args[0], "0"));
 				a.add(new Operation(OpType.CALL, op.range, temp, op.args[1], op.args[0], op.args[2], op.args[3]));
-				CompileUtils.addNewDefinition(pkg, code, temp, "real");
 				return a;
 			}
 		});
