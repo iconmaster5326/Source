@@ -830,6 +830,8 @@ public class SourceCompiler {
 				} else {
 					a.add(op);
 				}
+			} else {
+				a.add(op);
 			}
 		}
 		return a;
