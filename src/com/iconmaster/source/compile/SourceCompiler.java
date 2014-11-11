@@ -517,6 +517,7 @@ public class SourceCompiler {
 							}
 							names.add(0,listExpr.retVar);
 							names.add(0,retVar);
+							expr.type = new DataType(listExpr.type.type.indexReturns);
 							expr.add(new Operation(OpType.INDEX, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else {
@@ -701,7 +702,6 @@ public class SourceCompiler {
 							}
 						}
 						expr.retVar = cd.pkg.nameProvider.getTempName();
-						expr.type = new DataType(true);
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						names.add(0,rfn.fn.getFullName());
@@ -722,7 +722,7 @@ public class SourceCompiler {
 							}
 						}
 						expr.retVar = cd.pkg.nameProvider.getTempName();
-						expr.type = new DataType(true);
+						expr.type = new DataType(listExpr.type.type.indexReturns);
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						expr.add(new Operation(OpType.MOVI, expr.type.type, e.range, names.toArray(new String[0])));

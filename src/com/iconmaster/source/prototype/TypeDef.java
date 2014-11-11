@@ -8,8 +8,8 @@ public class TypeDef {
 	public static final TypeDef UNKNOWN = new TypeDef();
 	public static final TypeDef REAL = new TypeDef("real");
 	public static final TypeDef INT = new TypeDef("int");
-	public static final TypeDef STRING = new TypeDef("string").setIndexSettings(new TypeDef[] {TypeDef.INT}, false);
-	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, false).setParamSettings(new TypeDef[] {TypeDef.UNKNOWN}, false);
+	public static final TypeDef STRING = new TypeDef("string").setIndexSettings(new TypeDef[] {TypeDef.INT}, TypeDef.INT, false);
+	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, TypeDef.UNKNOWN, false).setParamSettings(new TypeDef[] {TypeDef.UNKNOWN}, false);
 	public static final TypeDef BOOLEAN = new TypeDef("bool");
 	
 	public String name;
@@ -19,6 +19,7 @@ public class TypeDef {
 	
 	public boolean indexable = false;
 	public TypeDef[] indexableBy = new TypeDef[0];
+	public TypeDef indexReturns = null;
 	public boolean varargIndex = false;
 	
 	public boolean hasParams = false;
@@ -38,10 +39,11 @@ public class TypeDef {
 		this.parent = parent;
 	}
 	
-	public TypeDef setIndexSettings(TypeDef[] indexableBy, boolean varargIndex) {
+	public TypeDef setIndexSettings(TypeDef[] indexableBy, TypeDef indexReturns, boolean varargIndex) {
 		indexable = true;
 		this.indexableBy = indexableBy;
 		this.varargIndex = varargIndex;
+		this.indexReturns = indexReturns;
 		return this;
 	}
 	
