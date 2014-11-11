@@ -139,7 +139,9 @@ public class SourceCompiler {
 									cd.errs.add(new SourceSafeModeException(e.range,"Variable "+expr2+" was not given a type (@safe mode is on)", expr2));
 								}
 							}
-							code.add(new Operation(OpType.DEF, cd.frame.getVarType(expr2), e.range, expr2));
+							if (!Directives.has(e, "inline")) {
+								code.add(new Operation(OpType.DEF, cd.frame.getVarType(expr2), e.range, expr2));
+							}
 						}
 					case ASSIGN:
 						ArrayList<String> names = new ArrayList<>();
