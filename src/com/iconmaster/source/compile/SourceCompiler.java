@@ -312,12 +312,29 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.RET, e.range));
 						break;
 					case RETURN:
-						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
-						code.addAll(cond);
-						if (!DataType.canCastTo(retType, cond.type)) {
-							cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
+						ArrayList<String> rets = new ArrayList<>();
+						cond = new Expression();
+						if (((Element)e.args[0]).type==Rule.TUPLE || ((Element)e.args[0]).type==Rule.PAREN) {
+							Element e2 = ((Element)e.args[0]);
+							if (e2.type==Rule.PAREN && ((Element)e2.args[0]).type==Rule.TUPLE) {
+								e2 = (Element) e2.args[0];
+							}
+							for (Element e3 : (ArrayList<Element>) e2.args[0]) {
+								cond = compileExpr(cd, cd.frame.newVarName(), e3);
+								code.addAll(cond);
+								rets.add(cond.retVar);
+							}
+						} else {
+							cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+							code.addAll(cond);
+							rets.add(cond.retVar);
+							
+							if (!DataType.canCastTo(retType, cond.type)) {
+								cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
+							}
 						}
-						code.add(new Operation(OpType.RET, cond.type,e.range, cond.retVar));
+						
+						code.add(new Operation(OpType.RET, cond.type,e.range, rets.toArray(new String[0])));
 						break;
 					case ADD_ASN:
 						asnType = OpType.ADD;
