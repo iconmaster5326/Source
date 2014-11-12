@@ -304,7 +304,7 @@ public class SourceCompiler {
 					case RETURN:
 						cond = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						code.addAll(cond);
-						if (!DataType.canCastTo(retType, cond.type)) {
+						if (!DataType.canCastTo(cond.type, retType)) {
 							cd.errs.add(new SourceDataTypeException(e.range,"Return type is "+retType+", got type "+cond.type));
 						}
 						code.add(new Operation(OpType.RET, cond.type,e.range, cond.retVar));
