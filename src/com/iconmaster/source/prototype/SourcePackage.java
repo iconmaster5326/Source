@@ -20,6 +20,7 @@ public class SourcePackage implements IDirectable {
 	protected ArrayList<Function> functions = new ArrayList<>();
 	protected ArrayList<String> imports = new ArrayList<>();
 	protected ArrayList<TypeDef> types = new ArrayList<>();
+	protected ArrayList<Iterator> iters = new ArrayList<>();
 	
 	protected boolean compiled = false;
 	public NameProvider nameProvider = new NameProvider();
@@ -34,6 +35,11 @@ public class SourcePackage implements IDirectable {
 			sb.append("\n\t\t");
 			sb.append(imp);
 		}
+		sb.append("\n\tTYPES:");
+		for (TypeDef t : types) {
+			sb.append("\n\t\t");
+			sb.append(t.toString().replace("\n", "\n\t"));
+		}
 		sb.append("\n\tFIELDS:");
 		for (Field field : fields) {
 			sb.append("\n\t\t");
@@ -43,6 +49,11 @@ public class SourcePackage implements IDirectable {
 		for (Function func : functions) {
 			sb.append("\n\t\t");
 			sb.append(func.toString().replace("\n", "\n\t"));
+		}
+		sb.append("\n\tITERATORS:");
+		for (Iterator iter : iters) {
+			sb.append("\n\t\t");
+			sb.append(iter.toString().replace("\n", "\n\t"));
 		}
 		return sb.toString();
 	}
@@ -91,6 +102,7 @@ public class SourcePackage implements IDirectable {
 						addField(var);
 					}
 					break;
+				case ITERATOR:
 				case FUNC:
 					String fname = (String) e.args[0];
 					ArrayList<Field> args = new ArrayList<>();
@@ -104,7 +116,12 @@ public class SourcePackage implements IDirectable {
 							args.add(new Field((String)e2.args[0], e2.dataType));
 						}
 					}
-					Function fn = new Function(fname,args,rets);
+					Function fn;
+					if (e.type==Rule.ITERATOR) {
+						fn = new Iterator(name, args,rets);
+					} else {
+						fn = new Function(fname,args,rets);
+					}
 					fn.getDirectives().addAll(e.directives);
 					fn.getDirectives().addAll(directives);
 					fn.rawCode = (ArrayList<Element>) e.args[2];
@@ -119,7 +136,11 @@ public class SourcePackage implements IDirectable {
 							fn.rawParams.add(param);
 						}
 					}
-					addFunction(fn);
+					if (e.type==Rule.ITERATOR) {
+						addIterator((Iterator)fn);
+					} else {
+						addFunction(fn);
+					}
 					break;
 				case GLOBAL_DIR:
 					String s = (String) e.args[0];
@@ -135,6 +156,8 @@ public class SourcePackage implements IDirectable {
 		functions.addAll(other.functions);
 		imports.addAll(other.imports);
 		types.addAll(other.types);
+		iters.addAll(other.iters);
+		directives.addAll(other.directives);
 	}
 	
 	public void addFunction(Function fn) {
@@ -250,5 +273,23 @@ public class SourcePackage implements IDirectable {
 	@Override
 	public ArrayList<String> getDirectives() {
 		return directives;
+	}
+	
+	public ArrayList<Iterator> getIterators() {
+		return iters;
+	}
+	
+	public void addIterator(Iterator def) {
+		def.pkgName = this.getName();
+		iters.add(def);
+	}
+	
+	public Iterator getIterator(String name) {
+		for (Iterator v : iters) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name) || (v.getName()+"%"+v.order).equals(name)) {
+				return v;
+			}
+		}
+		return null;
 	}
 }

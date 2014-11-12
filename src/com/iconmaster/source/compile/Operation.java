@@ -13,7 +13,7 @@ public class Operation {
 	public enum OpType {
 		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
 		BEGIN,END,PROP,NOP,DEF,
-		IF,ELSE,FORR,FORE,FORP,DO,WHILE,REP,
+		IF,ELSE,FORR,FORE,FORP,FORC,DO,WHILE,REP,
 		ENDB,NATIVE,
 		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE,
 		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
@@ -78,6 +78,7 @@ public class Operation {
 				case GOTOF:
 				case NATIVE:
 				case DEF:
+				case FORC:
 					return false;
 				default:
 					return true;
