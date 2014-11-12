@@ -373,7 +373,7 @@ public class SourceCompiler {
 						for (Element e2 : (ArrayList<Element>) e.args[0]) {
 							String exprRaw = resolveLValueRaw(cd, e2);
 							cd.frame.putDefined(exprRaw);
-							cd.frame.setVarType(exprRaw, compileDataType(cd, e.dataType));
+							cd.frame.setVarType(exprRaw, compileDataType(cd, e2.dataType));
 							Expression expr2 = resolveLValue(cd, code, e2);
 							iterVars.add(expr2.retVar);
 							code.addAll(expr2);
@@ -419,6 +419,10 @@ public class SourceCompiler {
 								if (begin.type.type!=end.type.type) {
 									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
 								}
+								System.out.println(cd.frame.getVarType(iterVar));
+								if (cd.frame.getVarType(iterVar)!=null && !DataType.canCastTo(cd.frame.getVarType(iterVar),begin.type)) {
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterVar)+" to "+begin.type));
+								}
 								cd.frame.setVarType(iterVar, begin.type);
 								code.add(new Operation(OpType.FORR, begin.type, e.range, args.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));
@@ -429,7 +433,26 @@ public class SourceCompiler {
 								code.add(new Operation(OpType.ENDB, e.range));
 							}
 						} else {
+							boolean isIter = false;
+							if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL) {
+								
+							}
 							
+							if (isIter) {
+								
+							} else {
+								Expression iterExpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+								if (iterExpr.type==null) {
+									iterExpr.type = new DataType(true);
+								}
+								if (!iterExpr.type.type.indexable) {
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot iterate over data type "+iterExpr.type));
+								}
+								DataType rtd = new DataType(iterExpr.type.type.indexReturns);
+								if (rtd.type instanceof ParamTypeDef) {
+									rtd = iterExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+								}
+							}
 						}
 						break;
 					default:
