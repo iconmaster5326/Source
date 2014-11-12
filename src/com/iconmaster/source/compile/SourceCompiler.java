@@ -467,12 +467,24 @@ public class SourceCompiler {
 							names.add(name);
 							DataType dt = rfn.fn.getArguments().get(i).getType();
 							if (dt.type instanceof ParamTypeDef) {
-								paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
+								if (paramTypes[((ParamTypeDef)dt.type).paramNo]==null) {
+									paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
+								} else {
+									if (paramTypes[((ParamTypeDef)dt.type).paramNo].type != expr2.type.type) {
+										cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)dt.type).paramNo]+", not type "+expr2.type));
+									}
+								}
 							}
 							int pi = 0;
 							for (DataType param : dt.params) {
 								if (param.type instanceof ParamTypeDef) {
-									paramTypes[((ParamTypeDef)param.type).paramNo] = expr2.type.params[pi];
+									if (paramTypes[((ParamTypeDef)param.type).paramNo]==null) {
+										paramTypes[((ParamTypeDef)param.type).paramNo] = pi<expr2.type.params.length?expr2.type.params[pi]:null;
+									} else {
+										if (paramTypes[((ParamTypeDef)param.type).paramNo].type != expr2.type.type) {
+											cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)param.type).paramNo]+", not type "+expr2.type));
+										}
+									}
 								}
 								pi++;
 							}

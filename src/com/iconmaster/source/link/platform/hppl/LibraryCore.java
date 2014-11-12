@@ -1,9 +1,12 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
+import java.util.ArrayList;
 
 /**
  *
@@ -51,7 +54,12 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("list.size", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.INT);
 		fn.compileName = "SIZE";
 		this.addFunction(fn);
-		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new TypeDef[] {TypeDef.LIST,TypeDef.UNKNOWN}, TypeDef.LIST);
+		
+		DataType ltdt = new DataType(TypeDef.LIST);
+		ltdt.params = new DataType[] {new DataType(new ParamTypeDef("T", 0))};
+		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new Object[] {ltdt,new ParamTypeDef("T", 0)}, TypeDef.LIST);
+		fn.rawParams = new ArrayList<>();
+		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("CONCAT(");

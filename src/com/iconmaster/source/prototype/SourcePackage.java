@@ -204,7 +204,7 @@ public class SourcePackage implements IDirectable {
 							int i = 0;
 							boolean argsMatch = true;
 							for (Field arg : v.args) {
-								if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
+								if (!DataType.canCastTo(call.args.get(i), arg.getType())) {
 									argsMatch = false;
 									break;
 								}

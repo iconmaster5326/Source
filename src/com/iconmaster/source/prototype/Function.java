@@ -51,7 +51,7 @@ public class Function implements IDirectable {
 		return sb.toString();
 	}
 	
-	public static Function libraryFunction(String name, String[] args, TypeDef[] argTypes, TypeDef ret) {
+	public static Function libraryFunction(String name, String[] args, Object[] argTypes, Object ret) {
 		ArrayList<Field> argList = new ArrayList<>();
 		ArrayList<DataType> retList = new ArrayList<>();
 		
@@ -60,7 +60,13 @@ public class Function implements IDirectable {
 			Element e = null;
 			Field f = new Field(arg, null);
 			if (i<argTypes.length) {
-				f.setType(new DataType(argTypes[i],false));
+				DataType dt = null;
+				if (argTypes[i] instanceof TypeDef) {
+					dt = new DataType((TypeDef)argTypes[i],false);
+				} else if (argTypes[i] instanceof DataType) {
+					dt = (DataType) argTypes[i];
+				}
+				f.setType(dt);
 			}
 			argList.add(f);
 			i++;
@@ -68,7 +74,13 @@ public class Function implements IDirectable {
 		
 
 		Function fn = new Function(name, argList, null);
-		fn.setReturnType(new DataType(ret,false));
+		DataType dt = null;
+		if (ret instanceof TypeDef) {
+			dt = new DataType((TypeDef)ret,false);
+		} else if (ret instanceof DataType) {
+			dt = (DataType) ret;
+		}
+		fn.setReturnType(dt);
 		fn.library = true;
 		fn.compiled = true;
 		return fn;
