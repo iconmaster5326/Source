@@ -209,9 +209,9 @@ public class SourcePackage implements IDirectable {
 							boolean argsMatch = true;
 							for (Field arg : v.args) {
 								DataType dt = call.args.get(i);
-								if (dt.type instanceof ParamTypeDef) {
-									dt = new DataType(dt.type.parent);
-								}
+//								if (dt.type instanceof ParamTypeDef) {
+//									dt = new DataType(dt.type.parent);
+//								}
 								if (!DataType.canCastTo(dt, arg.getType())) {
 									argsMatch = false;
 									break;

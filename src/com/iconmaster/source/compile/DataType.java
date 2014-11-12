@@ -1,5 +1,6 @@
 package com.iconmaster.source.compile;
 
+import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.TypeDef;
 
 /**
@@ -75,6 +76,12 @@ public class DataType {
 		}
 		if (other==null) {
 			other = new DataType(true);
+		}
+		if (thisType.type instanceof ParamTypeDef) {
+			thisType = new DataType(thisType.type.parent);
+		}
+		if (other.type instanceof ParamTypeDef) {
+			other = new DataType(other.type.parent);
 		}
 		if (thisType.weak) {
 			return TypeDef.getCommonParent(thisType.type, other.type)!=null;
