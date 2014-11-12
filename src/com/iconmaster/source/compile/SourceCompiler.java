@@ -406,6 +406,13 @@ public class SourceCompiler {
 								if (begin.type.type!=end.type.type) {
 									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
 								}
+								if (Directives.has(e, "downloop") && !Directives.has(e, "uploop")) {
+									args.add("-1");
+								} else if (!Directives.has(e, "downloop") && Directives.has(e, "uploop")) {
+									args.add("1");
+								} else {
+									args.add("0");
+								}
 								code.add(new Operation(OpType.FORR, begin.type, e.range, args.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));
 								cd.frame = new ScopeFrame(cd);
