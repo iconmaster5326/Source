@@ -369,6 +369,16 @@ public class SourceCompiler {
 						code.addAll(lexpr1);
 						break;
 					case FOR:
+						ArrayList<String> iterVars = new ArrayList<>();
+						for (Element e2 : (ArrayList<Element>) e.args[0]) {
+							String exprRaw = resolveLValueRaw(cd, e2);
+							cd.frame.putDefined(exprRaw);
+							cd.frame.setVarType(exprRaw, compileDataType(cd, e.dataType));
+							Expression expr2 = resolveLValue(cd, code, e2);
+							iterVars.add(expr2.retVar);
+							code.addAll(expr2);
+						}
+								
 						if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL && "range".equals(((Element)e.args[1]).args[0])) {
 							//for in range
 							es = (ArrayList<Element>) ((Element)e.args[1]).args[1];
@@ -385,15 +395,6 @@ public class SourceCompiler {
 									step = compileExpr(cd, cd.frame.newVarName(), es.get(2));
 								}
 								ArrayList<String> args = new ArrayList<>();
-								ArrayList<String> iterVars = new ArrayList<>();
-								for (Element e2 : (ArrayList<Element>) e.args[0]) {
-									String exprRaw = resolveLValueRaw(cd, e2);
-									cd.frame.putDefined(exprRaw);
-									cd.frame.setVarType(exprRaw, compileDataType(cd, e.dataType));
-									Expression expr2 = resolveLValue(cd, code, e2);
-									iterVars.add(expr2.retVar);
-									code.addAll(expr2);
-								}
 								if (iterVars.size()!=1) {
 									cd.errs.add(new SourceSyntaxException(e.range,"Ranged for loop must only have 1 iterator variable"));
 								}
@@ -427,6 +428,8 @@ public class SourceCompiler {
 								code.add(new Operation(OpType.END, e.range));
 								code.add(new Operation(OpType.ENDB, e.range));
 							}
+						} else {
+							
 						}
 						break;
 					default:
