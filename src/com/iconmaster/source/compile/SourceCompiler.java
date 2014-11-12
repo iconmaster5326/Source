@@ -474,7 +474,7 @@ public class SourceCompiler {
 								if (paramTypes[((ParamTypeDef)dt.type).paramNo]==null) {
 									paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
 								} else {
-									if (paramTypes[((ParamTypeDef)dt.type).paramNo].type != expr2.type.type) {
+									if (!DataType.canCastTo(paramTypes[((ParamTypeDef)dt.type).paramNo],expr2.type)) {
 										cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)dt.type).paramNo]+", not type "+expr2.type));
 									}
 								}
@@ -485,7 +485,7 @@ public class SourceCompiler {
 									if (paramTypes[((ParamTypeDef)param.type).paramNo]==null) {
 										paramTypes[((ParamTypeDef)param.type).paramNo] = pi<expr2.type.params.length?expr2.type.params[pi]:new DataType(true);
 									} else {
-										if (paramTypes[((ParamTypeDef)param.type).paramNo].type != expr2.type.type) {
+										if (!DataType.canCastTo(paramTypes[((ParamTypeDef)param.type).paramNo],expr2.type)) {
 											cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)param.type).paramNo]+", not type "+expr2.type));
 										}
 									}
