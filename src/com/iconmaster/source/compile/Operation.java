@@ -119,6 +119,7 @@ public class Operation {
 				case FORR:
 				case FORE:
 				case FORP:
+				case FORC:
 					return true;
 				default:
 					return false;

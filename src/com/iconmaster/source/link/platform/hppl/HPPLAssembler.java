@@ -162,6 +162,24 @@ public class HPPLAssembler {
 						append = false;
 						blockOp.push(op);
 						break;
+					case FORR:
+						addLocal(ad, expr, op, sb);
+						sb.append(op.args[0]);
+						sb.append(";\n");
+						sb.append("FOR ");
+						sb.append(op.args[0]);
+						sb.append(" FROM ");
+						sb.append(getInlineString(ad, expr, op.args[1]));
+						sb.append(" TO ");
+						sb.append(getInlineString(ad, expr, op.args[2]));
+						if (op.args.length>3) {
+							sb.append(" STEP ");
+							sb.append(getInlineString(ad, expr, op.args[3]));
+						}
+						sb.append(" DO\n");
+						append = false;
+						blockOp.push(op);
+						break;
 					case ENDB:
 						lastBlockOp = blockOp.pop();
 						if (lastBlockOp.op == Operation.OpType.REP) {
