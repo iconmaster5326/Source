@@ -17,6 +17,7 @@ import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.FunctionCall;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
@@ -33,6 +34,10 @@ import java.util.Arrays;
 public class SourceCompiler {
 	public static ArrayList<SourceException> compile(SourcePackage pkg) {
 		CompileData cd = new CompileData(pkg);
+		
+		ArrayList<Function> fns = new ArrayList<>();
+		fns.addAll(cd.pkg.getFunctions());
+		fns.addAll(cd.pkg.getIterators());
 		//compile data types first, it's important
 		for (Field field : cd.pkg.getFields()) {
 			if (!field.isCompiled() && !field.isLibrary()) {
@@ -41,7 +46,7 @@ public class SourceCompiler {
 				}
 			}
 		}
-		for (Function fn : cd.pkg.getFunctions()) {
+		for (Function fn : fns) {
 			cd.frame = new ScopeFrame(cd.pkg);
 			if (fn.rawParams!=null) {
 				int i = 0;
@@ -67,7 +72,11 @@ public class SourceCompiler {
 				}
 			}
 			if (fn.getReturn()!=null) {
-				fn.setReturnType(compileDataType(cd, fn.getReturn()));
+				if (fn instanceof Iterator) {
+					((Iterator)fn).iterReturns = compileIteratorReturnType(cd, ((Iterator)fn).getReturn());
+				} else {
+					fn.setReturnType(compileDataType(cd, fn.getReturn()));
+				}
 			}
 			cd.frame = cd.frame.parent;
 		}
@@ -79,7 +88,7 @@ public class SourceCompiler {
 				cd.frame = cd.frame.parent;
 			}
 		}
-		for (Function fn : cd.pkg.getFunctions()) {
+		for (Function fn : fns) {
 			if (!fn.isCompiled() && !fn.isLibrary()) {
 				cd.frame = new ScopeFrame(cd.pkg);
 				compileFunction(cd, fn);
@@ -390,7 +399,7 @@ public class SourceCompiler {
 						cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
 					} else {
 						expr.type = cd.frame.getVarType(cd.frame.getVariableName((String)e.args[0]));
-						expr.add(new Operation(OpType.MOV, expr.type.type, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
+						expr.add(new Operation(OpType.MOV, expr.type, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
 					}
 					break;
 			}
@@ -736,6 +745,18 @@ public class SourceCompiler {
 			}
 		}
 		return dt;
+	}
+	
+	public static ArrayList<DataType> compileIteratorReturnType(CompileData cd, Element e) {
+		ArrayList<DataType> a = new ArrayList<>();
+		if (e.type==Rule.TUPLE || e.type==Rule.PAREN) {
+			for (Element e2 : (ArrayList<Element>) e.args[0]) {
+				a.addAll(compileIteratorReturnType(cd, e2));
+			}
+		} else {
+			a.add(compileDataType(cd, e));
+		}
+		return a;
 	}
 	
 	public static Expression resolveLValue(CompileData cd, Expression code, Element e) {
