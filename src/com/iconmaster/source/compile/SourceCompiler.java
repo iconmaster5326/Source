@@ -251,6 +251,7 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.BEGIN, ifBlock.range));
 						cd.frame = new ScopeFrame(cd);
 						code.addAll(compileCode(cd, (ArrayList<Element>) ifBlock.args[2]));
+						cd.frame = cd.frame.parent;
 						code.add(new Operation(OpType.END, ifBlock.range));
 						int ends = 1;
 						for (Element elif : (ArrayList<Element>) e.args[1]) {
@@ -265,6 +266,7 @@ public class SourceCompiler {
 							code.add(new Operation(OpType.BEGIN, elif.range));
 							cd.frame = new ScopeFrame(cd);
 							code.addAll(compileCode(cd, (ArrayList<Element>) elif.args[2]));
+							cd.frame = cd.frame.parent;
 							code.add(new Operation(OpType.END, elif.range));
 							ends++;
 						}
@@ -274,6 +276,7 @@ public class SourceCompiler {
 							code.add(new Operation(OpType.BEGIN, elseBlock.range));
 							cd.frame = new ScopeFrame(cd);
 							code.addAll(compileCode(cd, (ArrayList<Element>) elseBlock.args[2]));
+							cd.frame = cd.frame.parent;
 							code.add(new Operation(OpType.END, elseBlock.range));
 						}
 						for (int i=0;i<ends;i++) {
@@ -291,6 +294,7 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.BEGIN, e.range));
 						cd.frame = new ScopeFrame(cd);
 						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+						cd.frame = cd.frame.parent;
 						code.add(new Operation(OpType.END, e.range));
 						code.add(new Operation(OpType.ENDB, e.range));
 						break;
@@ -305,6 +309,7 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.BEGIN, e.range));
 						cd.frame = new ScopeFrame(cd);
 						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+						cd.frame = cd.frame.parent;
 						code.add(new Operation(OpType.END, e.range));
 						code.add(new Operation(OpType.ENDB, e.range));
 						break;
@@ -362,6 +367,51 @@ public class SourceCompiler {
 						code.addAll(lexpr2);
 						code.add(new Operation(asnType, TypeDef.getCommonParent(lexpr2.type.type,rexpr.type.type), e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
 						code.addAll(lexpr1);
+						break;
+					case FOR:
+						if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL && "range".equals(((Element)e.args[1]).args[0])) {
+							//for in range
+							es = (ArrayList<Element>) ((Element)e.args[1]).args[1];
+							if (es.size()>0 && es.get(0).type == Rule.TUPLE) {
+								es = (ArrayList<Element>) es.get(0).args[0];
+							}
+							if (es.size()<2 || es.size()>3) {
+								cd.errs.add(new SourceSyntaxException(e.range,"Function range must have 2 or 3 arguments"));
+							} else {
+								Expression begin = compileExpr(cd, cd.frame.newVarName(), es.get(0));
+								Expression end = compileExpr(cd, cd.frame.newVarName(), es.get(1));
+								Expression step = null;
+								if (es.size()==3) {
+									step = compileExpr(cd, cd.frame.newVarName(), es.get(2));
+								}
+								ArrayList<String> args = new ArrayList<>();
+								ArrayList<String> iterVars = new ArrayList<>();
+								for (Element e2 : (ArrayList<Element>) e.args[0]) {
+									iterVars.add(resolveLValueRaw(cd, e2));
+								}
+								if (iterVars.size()!=1) {
+									cd.errs.add(new SourceSyntaxException(e.range,"Ranged for loop must only have 1 iterator variable"));
+								}
+								String iterVar = iterVars.get(0);
+								cd.frame.putVariable(iterVar, false);
+								args.add(iterVar);
+								args.add(begin.retVar);
+								code.addAll(begin);
+								args.add(end.retVar);
+								code.addAll(end);
+								if (step!=null) {
+									args.add(step.retVar);
+									code.addAll(step);
+								}
+								code.add(new Operation(OpType.FORR, e.range, args.toArray(new String[0])));
+								code.add(new Operation(OpType.BEGIN, e.range));
+								cd.frame = new ScopeFrame(cd);
+								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+								cd.frame = cd.frame.parent;
+								code.add(new Operation(OpType.END, e.range));
+								code.add(new Operation(OpType.ENDB, e.range));
+							}
+						}
 						break;
 					default:
 						code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
@@ -497,6 +547,9 @@ public class SourceCompiler {
 						int i = 0;
 						for (Expression expr2 : args) {
 							DataType dt = rfn.fn.getArguments().get(i).getType();
+							if (dt==null) {
+								dt = new DataType(true);
+							}
 							if (dt.type instanceof ParamTypeDef) {
 								if (!DataType.canCastTo(dt,expr2.type)) {
 									cd.errs.add(new SourceDataTypeException(e.range, "Cannot cast type parameter "+dt+" to data type "+expr2.type));

@@ -152,7 +152,7 @@ public class Validator {
 				case FOR:
 					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
-					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
+					a.addAll(validateElement((Element) e.args[1],Scope.RVALUE));
 					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
 					break;
 				case RETURN:

@@ -242,7 +242,7 @@ public enum Rule implements IElementType {
 		e.range = Range.from(a.get(i).range, endr);
 		return new RuleResult(e, n);
 	}),
-	FOR(null,"'for'!t0'in't1c2"),
+	FOR(null,"'for'!t0'in'a@1c2"),
 	WHILE(null,"'while'!a@0c2"),
 	REPEAT(null,"'repeat'!c2'until'a@0"),
 	RETURN_NULL("R","'return'!"),
