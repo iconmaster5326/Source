@@ -934,7 +934,7 @@ public class SourceCompiler {
 					CompileData cd = new CompileData(pkg);
 					cd.dirs = fn.getDirectives();
 					cd.frame = new ScopeFrame(pkg);
-					ArrayList<Operation> code2 = compileCode(cd, fn.rawData());
+					ArrayList<Operation> code2 = compileFunction(cd, fn);
 					String label = pkg.nameProvider.getTempName();
 					boolean labelUsed = false;
 					for (Operation op2 : code2) {
