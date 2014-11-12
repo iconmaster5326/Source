@@ -169,12 +169,23 @@ public class HPPLAssembler {
 						sb.append("FOR ");
 						sb.append(op.args[0]);
 						sb.append(" FROM ");
-						sb.append(getInlineString(ad, expr, op.args[1]));
-						sb.append(" TO ");
 						sb.append(getInlineString(ad, expr, op.args[2]));
-						if (op.args.length>3) {
+						if (op.args[1].equals("-1")) {
+							sb.append(" DOWNTO ");
+						} else {
+							sb.append(" TO ");
+						}
+						sb.append(getInlineString(ad, expr, op.args[3]));
+						if (op.args.length>4) {
 							sb.append(" STEP ");
-							sb.append(getInlineString(ad, expr, op.args[3]));
+							if (op.args[1].equals("-1")) {
+								sb.append(HPPLCharacters.NEG);
+								sb.append("(");
+							}
+							sb.append(getInlineString(ad, expr, op.args[4]));
+							if (op.args[1].equals("-1")) {
+								sb.append(")");
+							}
 						}
 						sb.append(" DO\n");
 						append = false;

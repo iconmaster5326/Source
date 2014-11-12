@@ -395,6 +395,13 @@ public class SourceCompiler {
 								String iterVar = iterVars.get(0);
 								cd.frame.putVariable(iterVar, false);
 								args.add(iterVar);
+								if (Directives.has(e, "downloop") && !Directives.has(e, "uploop")) {
+									args.add("-1");
+								} else if (!Directives.has(e, "downloop") && Directives.has(e, "uploop")) {
+									args.add("1");
+								} else {
+									args.add("0");
+								}
 								args.add(begin.retVar);
 								code.addAll(begin);
 								args.add(end.retVar);
@@ -405,13 +412,6 @@ public class SourceCompiler {
 								}
 								if (begin.type.type!=end.type.type) {
 									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
-								}
-								if (Directives.has(e, "downloop") && !Directives.has(e, "uploop")) {
-									args.add("-1");
-								} else if (!Directives.has(e, "downloop") && Directives.has(e, "uploop")) {
-									args.add("1");
-								} else {
-									args.add("0");
 								}
 								code.add(new Operation(OpType.FORR, begin.type, e.range, args.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));
