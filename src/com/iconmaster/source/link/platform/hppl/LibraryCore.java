@@ -57,7 +57,8 @@ public class LibraryCore extends SourcePackage {
 		
 		DataType ltdt = new DataType(TypeDef.LIST);
 		ltdt.params = new DataType[] {new DataType(new ParamTypeDef("T", 0))};
-		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new Object[] {ltdt,new ParamTypeDef("T", 0)}, TypeDef.LIST);
+		
+		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new Object[] {ltdt,new ParamTypeDef("T", 0)}, ltdt);
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
@@ -69,17 +70,23 @@ public class LibraryCore extends SourcePackage {
 			return "})";
 		};
 		this.addFunction(fn);
-		fn = Function.libraryFunction("list.join", new String[] {"list1","list2"}, new TypeDef[] {TypeDef.LIST,TypeDef.LIST}, TypeDef.LIST);
+		fn = Function.libraryFunction("list.join", new String[] {"list1","list2"}, new Object[] {ltdt,ltdt}, ltdt);
+		fn.rawParams = new ArrayList<>();
+		fn.rawParams.add(new Field("T"));
 		fn.compileName = "CONCAT";
 		this.addFunction(fn);
-		fn = Function.libraryFunction("list.first", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.UNKNOWN);
+		fn = Function.libraryFunction("list.first", new String[] {"list"}, new Object[] {ltdt}, new ParamTypeDef("T", 0));
+		fn.rawParams = new ArrayList<>();
+		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			return "[1]";
 		};
 		this.addFunction(fn);
-		fn = Function.libraryFunction("list.last", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.UNKNOWN);
+		fn = Function.libraryFunction("list.last", new String[] {"list"}, new Object[] {ltdt}, new ParamTypeDef("T", 0));
+		fn.rawParams = new ArrayList<>();
+		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
