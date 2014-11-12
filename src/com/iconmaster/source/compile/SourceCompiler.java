@@ -51,8 +51,10 @@ public class SourceCompiler {
 					} else {
 						v.setType(new DataType(true));
 					}
-					ParamTypeDef ptd = new ParamTypeDef(v.getName(), i, v.getType().type);
-					v.setType(new DataType(ptd));
+					if (!(v.getType().type instanceof ParamTypeDef)) {
+						ParamTypeDef ptd = new ParamTypeDef(v.getName(), i, v.getType().type);
+						v.setType(new DataType(ptd));
+					}
 					cd.frame.setParam(v.getName(), v.getType());
 					i++;
 				}
@@ -459,12 +461,14 @@ public class SourceCompiler {
 							names.add(mexpr.retVar);
 							args.add(mexpr);
 						}
-						int i = 0;
 						for (Element e2 : es) {
 							String name = cd.frame.newVarName();
 							Expression expr2 = compileExpr(cd, name, e2);
 							args.add(expr2);
 							names.add(name);
+						}
+						int i = 0;
+						for (Expression expr2 : args) {
 							DataType dt = rfn.fn.getArguments().get(i).getType();
 							if (dt.type instanceof ParamTypeDef) {
 								if (paramTypes[((ParamTypeDef)dt.type).paramNo]==null) {
@@ -479,7 +483,7 @@ public class SourceCompiler {
 							for (DataType param : dt.params) {
 								if (param.type instanceof ParamTypeDef) {
 									if (paramTypes[((ParamTypeDef)param.type).paramNo]==null) {
-										paramTypes[((ParamTypeDef)param.type).paramNo] = pi<expr2.type.params.length?expr2.type.params[pi]:null;
+										paramTypes[((ParamTypeDef)param.type).paramNo] = pi<expr2.type.params.length?expr2.type.params[pi]:new DataType(true);
 									} else {
 										if (paramTypes[((ParamTypeDef)param.type).paramNo].type != expr2.type.type) {
 											cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)param.type).paramNo]+", not type "+expr2.type));
@@ -489,8 +493,7 @@ public class SourceCompiler {
 								pi++;
 							}
 							i++;
-						}
-						for (Expression expr2 : args) {
+							
 							expr.addAll(expr2);
 						}
 						names.add(0, (String) rfn.fn.getFullName());
