@@ -420,7 +420,7 @@ public class SourceCompiler {
 									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
 								}
 								System.out.println(cd.frame.getVarType(iterVar));
-								if (cd.frame.getVarType(iterVar)!=null && !DataType.canCastTo(cd.frame.getVarType(iterVar),begin.type)) {
+								if (!DataType.canCastTo(cd.frame.getVarType(iterVar),begin.type)) {
 									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterVar)+" to "+begin.type));
 								}
 								cd.frame.setVarType(iterVar, begin.type);
@@ -441,17 +441,33 @@ public class SourceCompiler {
 							if (isIter) {
 								
 							} else {
-								Expression iterExpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
-								if (iterExpr.type==null) {
-									iterExpr.type = new DataType(true);
+								if (iterVars.size()!=1) {
+									cd.errs.add(new SourceSyntaxException(e.range,"For-each loop must only have 1 iterator variable"));
 								}
-								if (!iterExpr.type.type.indexable) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot iterate over data type "+iterExpr.type));
+								Expression listExpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+								code.addAll(listExpr);
+								String iterName = iterVars.get(0);
+								if (listExpr.type==null) {
+									listExpr.type = new DataType(true);
 								}
-								DataType rtd = new DataType(iterExpr.type.type.indexReturns);
-								if (rtd.type instanceof ParamTypeDef) {
-									rtd = iterExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+								if (!listExpr.type.type.indexable) {
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot iterate over data type "+listExpr.type));
 								}
+								DataType rtd = new DataType(listExpr.type.type.indexReturns);
+								if (rtd.type instanceof ParamTypeDef && listExpr.type.params.length>((ParamTypeDef)rtd.type).paramNo) {
+									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+								}
+								if (!DataType.canCastTo(cd.frame.getVarType(iterName), rtd)) {
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterName)+" to "+rtd));
+								}
+								cd.frame.setVarType(iterName, rtd);
+								code.add(new Operation(OpType.FORE, rtd, e.range, listExpr.retVar, iterName));
+								code.add(new Operation(OpType.BEGIN, e.range));
+								cd.frame = new ScopeFrame(cd);
+								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+								cd.frame = cd.frame.parent;
+								code.add(new Operation(OpType.END, e.range));
+								code.add(new Operation(OpType.ENDB, e.range));
 							}
 						}
 						break;

@@ -78,6 +78,8 @@ public class Operation {
 				case GOTOF:
 				case NATIVE:
 				case DEF:
+				case FORE:
+				case FORP:
 				case FORC:
 					return false;
 				default:
