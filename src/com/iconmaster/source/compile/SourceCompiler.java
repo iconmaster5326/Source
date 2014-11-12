@@ -387,7 +387,12 @@ public class SourceCompiler {
 								ArrayList<String> args = new ArrayList<>();
 								ArrayList<String> iterVars = new ArrayList<>();
 								for (Element e2 : (ArrayList<Element>) e.args[0]) {
-									iterVars.add(resolveLValueRaw(cd, e2));
+									String exprRaw = resolveLValueRaw(cd, e2);
+									cd.frame.putDefined(exprRaw);
+									cd.frame.setVarType(exprRaw, compileDataType(cd, e.dataType));
+									Expression expr2 = resolveLValue(cd, code, e2);
+									iterVars.add(expr2.retVar);
+									code.addAll(expr2);
 								}
 								if (iterVars.size()!=1) {
 									cd.errs.add(new SourceSyntaxException(e.range,"Ranged for loop must only have 1 iterator variable"));
@@ -413,6 +418,7 @@ public class SourceCompiler {
 								if (begin.type.type!=end.type.type) {
 									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
 								}
+								cd.frame.setVarType(iterVar, begin.type);
 								code.add(new Operation(OpType.FORR, begin.type, e.range, args.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));
 								cd.frame = new ScopeFrame(cd);
