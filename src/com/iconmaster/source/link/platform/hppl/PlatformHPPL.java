@@ -25,6 +25,7 @@ public class PlatformHPPL extends Platform {
 		this.registerLibrary(new LibraryPrimeDraw());
 		this.registerLibrary(new LibraryPrimeIO());
 		
+		transforms.add(CompileUtils.forEachReplacer);
 		transforms.add(new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose1) {
 			@Override
 			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op) {

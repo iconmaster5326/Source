@@ -369,6 +369,7 @@ public class SourceCompiler {
 						code.addAll(lexpr1);
 						break;
 					case FOR:
+						code.add(new Operation(OpType.DO, e.range));
 						ArrayList<String> iterVars = new ArrayList<>();
 						for (Element e2 : (ArrayList<Element>) e.args[0]) {
 							String exprRaw = resolveLValueRaw(cd, e2);
