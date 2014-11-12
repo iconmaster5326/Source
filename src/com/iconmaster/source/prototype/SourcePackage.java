@@ -109,8 +109,12 @@ public class SourcePackage implements IDirectable {
 					fn.getDirectives().addAll(directives);
 					fn.rawCode = (ArrayList<Element>) e.args[2];
 					if (e.args[3]!=null) {
+						ArrayList<Element> es = (ArrayList<Element>) e.args[3];
+						if (es.size()>0 && es.get(0).type==Rule.TUPLE) {
+							es = (ArrayList<Element>) es.get(0).args[0];
+						}
 						fn.rawParams = new ArrayList<>();
-						for (Element e2 : (ArrayList<Element>) e.args[3]) {
+						for (Element e2 : es) {
 							Field param = new Field((String) e2.args[0], e2.dataType);
 							fn.rawParams.add(param);
 						}
