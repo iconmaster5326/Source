@@ -48,7 +48,7 @@ public class SourceCompiler {
 				for (Field v : fn.rawParams) {
 					if (v.getRawType()!=null) {
 						v.setType(compileDataType(cd, v.getRawType()));
-					} else {
+					} else if (v.getType()==null) {
 						v.setType(new DataType(true));
 					}
 					if (!(v.getType().type instanceof ParamTypeDef)) {
