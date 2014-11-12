@@ -89,6 +89,7 @@ public class SourceCompiler {
 		
 		//inline stuff
 		CompileUtils.transform(cd.pkg, fnInliner);
+		CompileUtils.transform(cd.pkg, paramEraser);
 		
 		return cd.errs;
 	}
@@ -964,6 +965,19 @@ public class SourceCompiler {
 			} else {
 				a.add(op);
 			}
+		}
+		return a;
+	};
+	
+	public static CodeTransformer paramEraser = (pkg, work, code) -> {
+		ArrayList<Operation> a = new ArrayList<>();
+		for (int ii=0;ii<code.size();ii++) {
+			Operation op = code.get(ii);
+
+			if (op.type instanceof ParamTypeDef) {
+				op.type = op.type.parent;
+			}
+			a.add(op);
 		}
 		return a;
 	};
