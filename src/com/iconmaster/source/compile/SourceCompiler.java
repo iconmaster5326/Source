@@ -472,7 +472,7 @@ public class SourceCompiler {
 							DataType dt = rfn.fn.getArguments().get(i).getType();
 							if (dt.type instanceof ParamTypeDef) {
 								if (paramTypes[((ParamTypeDef)dt.type).paramNo]==null) {
-									if (!DataType.canCastTo(new DataType(expr2.type.type,false),dt)) {
+									if (!DataType.canCastTo(new DataType(dt.type.parent),expr2.type)) {
 										cd.errs.add(new SourceDataTypeException(e.range, "Cannot cast type parameter "+dt+" to data type "+expr2.type));
 									}
 									paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
@@ -486,7 +486,7 @@ public class SourceCompiler {
 							for (DataType param : dt.params) {
 								if (param.type instanceof ParamTypeDef) {
 									if (paramTypes[((ParamTypeDef)param.type).paramNo]==null) {
-										if (!DataType.canCastTo(new DataType(expr2.type.type,false),param)) {
+										if (!DataType.canCastTo(new DataType(param.type.parent),expr2.type)) {
 											cd.errs.add(new SourceDataTypeException(e.range, "Cannot cast type parameter "+param+" to data type "+expr2.type));
 										}
 										paramTypes[((ParamTypeDef)param.type).paramNo] = pi<expr2.type.params.length?expr2.type.params[pi]:new DataType(true);
