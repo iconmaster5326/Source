@@ -762,10 +762,10 @@ public class SourceCompiler {
 							names.add(0,retVar);
 							rtd = new DataType(listExpr.type.type.indexReturns);
 							if (rtd.type instanceof ParamTypeDef) {
-								rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
+								rtd = ((ParamTypeDef)rtd.type).paramNo>=listExpr.type.params.length?null:listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
 							}
 							expr.type = rtd;
-							expr.add(new Operation(OpType.INDEX, expr.type.type, e.range, names.toArray(new String[0])));
+							expr.add(new Operation(OpType.INDEX, expr.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else {
 							if (rfn.nameFound) {
