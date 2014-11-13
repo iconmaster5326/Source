@@ -449,6 +449,11 @@ public class SourceCompiler {
 							
 							if (isIter) {
 								Iterator iter = (Iterator) riter.fn;
+								int i = 0;
+								for (String var : iterVars) {
+									cd.frame.setVarType(var, iter.iterReturns.get(i));
+									i++;
+								}
 								iterVars.add(0,iter.getFullName());
 								code.add(new Operation(OpType.FORC, e.range, iterVars.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));

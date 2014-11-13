@@ -3,6 +3,7 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import java.util.ArrayList;
@@ -55,6 +56,60 @@ public class CompileUtils {
 				i++;
 				a.add(new Operation(OpType.BEGIN, op.range));
 				a.add(new Operation(OpType.INDEX, op.type, op.range, op.args[1], op.args[0], temp));
+			} else {
+				a.add(op);
+			}
+		}
+		return a;
+	};
+	
+	public static final CodeTransformer iteratorReplacer = (pkg, work, code) -> {
+		ArrayList<Operation> a = new ArrayList<>();
+		ArrayList<Operation> old = a;
+		Iterator iter = null;
+		Operation forOp = null;
+		int depth = 0;
+		boolean found = false;
+		
+		for (int i=0;i<code.size();i++) {
+			Operation op = code.get(i);
+			
+			if (op.op == OpType.FORC) {
+				found = true;
+				a = new ArrayList<>();
+				iter = pkg.getIterator(op.args[0]);
+				forOp = op;
+				depth++;
+			} else if (op.op == OpType.ENDB) {
+				if (found) {
+					depth--;
+					if (depth==0) {
+						ArrayList<Operation> block = a;
+						a = old;
+						ArrayList<Operation> trans = new ArrayList<>();
+						for (Operation op2 : iter.getCode()) {
+							if (op2.op==OpType.RET) {
+								int ii = 1;
+								for (String arg : op2.args) {
+									trans.add(new Operation(OpType.MOV, forOp.args[ii], arg));
+									ii++;
+								}
+								trans.addAll(CompileUtils.iteratorReplacer.transform(pkg, work, block));
+							} else {
+								trans.add(op2);
+							}
+						}
+						old.addAll(trans);
+						found = false;
+					} else {
+						a.add(op);
+					}
+				}
+			} else if (op.op.isBlockStarter()) {
+				if (found) {
+					depth++;
+					a.add(op);
+				}
 			} else {
 				a.add(op);
 			}

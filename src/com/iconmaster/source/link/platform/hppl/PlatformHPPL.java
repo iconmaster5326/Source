@@ -25,6 +25,7 @@ public class PlatformHPPL extends Platform {
 		this.registerLibrary(new LibraryPrimeDraw());
 		this.registerLibrary(new LibraryPrimeIO());
 		
+		transforms.add(CompileUtils.iteratorReplacer);
 		transforms.add(CompileUtils.forEachReplacer);
 		transforms.add(new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose1) {
 			@Override
@@ -87,6 +88,7 @@ public class PlatformHPPL extends Platform {
 
 	@Override
 	public String assemble(SourcePackage pkg) {
+		System.out.println(pkg);
 		return HPPLAssembler.assemble(pkg);
 	}
 
