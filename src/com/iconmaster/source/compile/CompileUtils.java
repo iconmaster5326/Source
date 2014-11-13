@@ -107,12 +107,14 @@ public class CompileUtils {
 					} else {
 						a.add(op);
 					}
+				} else {
+					a.add(op);
 				}
 			} else if (op.op.isBlockStarter()) {
 				if (found) {
 					depth++;
-					a.add(op);
 				}
+				a.add(op);
 			} else {
 				a.add(op);
 			}
