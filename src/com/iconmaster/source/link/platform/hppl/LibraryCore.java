@@ -1,8 +1,11 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.DataType;
+import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
@@ -80,9 +83,10 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		DataType ltdt = new DataType(TypeDef.LIST);
-		ltdt.params = new DataType[] {new DataType(new ParamTypeDef("T", 0))};
+		TypeDef ltt = new ParamTypeDef("T", 0);
+		ltdt.params = new DataType[] {new DataType(ltt)};
 		
-		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new Object[] {ltdt,new ParamTypeDef("T", 0)}, ltdt);
+		fn = Function.libraryFunction("list.append", new String[] {"list","item"}, new Object[] {ltdt,ltt}, ltdt);
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
@@ -99,7 +103,7 @@ public class LibraryCore extends SourcePackage {
 		fn.rawParams.add(new Field("T"));
 		fn.compileName = "CONCAT";
 		this.addFunction(fn);
-		fn = Function.libraryFunction("list.first", new String[] {"list"}, new Object[] {ltdt}, new ParamTypeDef("T", 0));
+		fn = Function.libraryFunction("list.first", new String[] {"list"}, new Object[] {ltdt}, ltt);
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
@@ -108,7 +112,7 @@ public class LibraryCore extends SourcePackage {
 			return "[1]";
 		};
 		this.addFunction(fn);
-		fn = Function.libraryFunction("list.last", new String[] {"list"}, new Object[] {ltdt}, new ParamTypeDef("T", 0));
+		fn = Function.libraryFunction("list.last", new String[] {"list"}, new Object[] {ltdt}, ltt);
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
@@ -158,5 +162,21 @@ public class LibraryCore extends SourcePackage {
 			return "1";
 		};
 		this.addField(f);
+		
+		Iterator iter = Iterator.libraryIterator("list.pairs", new String[] {"lst"}, new Object[] {ltdt}, new Object[] {TypeDef.INT, TypeDef.UNKNOWN});
+		ArrayList<Operation> pairsOps = new ArrayList<>();
+		pairsOps.add(new Operation(OpType.BEGIN));
+		pairsOps.add(new Operation(OpType.DEF, TypeDef.INT, null, "R1"));
+		pairsOps.add(new Operation(OpType.DEF, TypeDef.INT, null, "R2"));
+		pairsOps.add(new Operation(OpType.DEF, TypeDef.UNKNOWN, null, "R3"));
+		pairsOps.add(new Operation(OpType.CALL, TypeDef.INT, null, "R2","list.size","lst"));
+		pairsOps.add(new Operation(OpType.MOVN, TypeDef.INT, null, "R1", "1"));
+		pairsOps.add(new Operation(OpType.FORR, TypeDef.INT, null, "R0", "1", "R1", "R2"));
+		pairsOps.add(new Operation(OpType.INDEX, TypeDef.UNKNOWN, null, "R3", "lst", "R0"));
+		pairsOps.add(new Operation(OpType.RET, TypeDef.UNKNOWN, null, "R0", "R3"));
+		pairsOps.add(new Operation(OpType.ENDB));
+		pairsOps.add(new Operation(OpType.END));
+		iter.setCompiled(pairsOps);
+		this.addIterator(iter);
 	}
 }
