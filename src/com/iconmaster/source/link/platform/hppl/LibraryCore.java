@@ -163,17 +163,19 @@ public class LibraryCore extends SourcePackage {
 		};
 		this.addField(f);
 		
-		Iterator iter = Iterator.libraryIterator("list.pairs", new String[] {"lst"}, new Object[] {ltdt}, new Object[] {TypeDef.INT, TypeDef.UNKNOWN});
+		Iterator iter = Iterator.libraryIterator("list.pairs", new String[] {"lst"}, new Object[] {ltdt}, new Object[] {TypeDef.INT, ltt});
+		iter.rawParams = new ArrayList<>();
+		iter.rawParams.add(new Field("T"));
 		ArrayList<Operation> pairsOps = new ArrayList<>();
 		pairsOps.add(new Operation(OpType.BEGIN));
 		pairsOps.add(new Operation(OpType.DEF, TypeDef.INT, null, "R1"));
 		pairsOps.add(new Operation(OpType.DEF, TypeDef.INT, null, "R2"));
-		pairsOps.add(new Operation(OpType.DEF, TypeDef.UNKNOWN, null, "R3"));
+		pairsOps.add(new Operation(OpType.DEF, ltt, null, "R3"));
 		pairsOps.add(new Operation(OpType.CALL, TypeDef.INT, null, "R2","list.size","lst"));
 		pairsOps.add(new Operation(OpType.MOVN, TypeDef.INT, null, "R1", "1"));
 		pairsOps.add(new Operation(OpType.FORR, TypeDef.INT, null, "R0", "1", "R1", "R2"));
-		pairsOps.add(new Operation(OpType.INDEX, TypeDef.UNKNOWN, null, "R3", "lst", "R0"));
-		pairsOps.add(new Operation(OpType.RET, TypeDef.UNKNOWN, null, "R0", "R3"));
+		pairsOps.add(new Operation(OpType.INDEX, ltt, null, "R3", "lst", "R0"));
+		pairsOps.add(new Operation(OpType.RET, ltt, null, "R0", "R3"));
 		pairsOps.add(new Operation(OpType.ENDB));
 		pairsOps.add(new Operation(OpType.END));
 		iter.setCompiled(pairsOps);
