@@ -118,7 +118,7 @@ public class SourcePackage implements IDirectable {
 					}
 					Function fn;
 					if (e.type==Rule.ITERATOR) {
-						fn = new Iterator(name, args,rets);
+						fn = new Iterator(fname, args,rets);
 					} else {
 						fn = new Function(fname,args,rets);
 					}
@@ -216,9 +216,11 @@ public class SourcePackage implements IDirectable {
 	}
 	
 	public Function getFunction(String name, FunctionCall call) {
-		for (Function v : functions) {
+		ArrayList fns = call.isIter?iters:functions;
+		for (Object rawv : fns) {
+			Function v = (Function) rawv;
 			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name) || (v.getName()+"%"+v.order).equals(name)) {
-				if (call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType())) {
+				if (call.isIter || (call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType()))) {
 					if (call.args.size()==v.args.size()) {
 						boolean dirsMatch = true;
 						for (String dir : call.dirs) {
@@ -238,7 +240,11 @@ public class SourcePackage implements IDirectable {
 								i++;
 							}
 							if (argsMatch) {
-								return v;
+								if (call.isIter) {
+									return v;
+								} else {
+									return v;
+								}
 							}
 						}
 					}

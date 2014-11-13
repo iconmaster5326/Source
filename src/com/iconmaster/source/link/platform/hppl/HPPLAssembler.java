@@ -195,6 +195,10 @@ public class HPPLAssembler {
 						blockOp.push(op);
 						append = false;
 						break;
+					case FORC:
+						blockOp.push(op);
+						append = false;
+						break;
 					case ENDB:
 						lastBlockOp = blockOp.pop();
 						if (lastBlockOp.op == Operation.OpType.REP) {

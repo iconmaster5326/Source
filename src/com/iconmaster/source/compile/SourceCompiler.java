@@ -435,12 +435,28 @@ public class SourceCompiler {
 							}
 						} else {
 							boolean isIter = false;
+							RealFunction riter = null;
 							if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL) {
+								String iterName = (String) ((Element)e.args[1]).args[0];
+								ArrayList<DataType> arga = new ArrayList<>();
+								ArrayList<DataType> irets = new ArrayList<>();
+								riter = getRealFunction(cd, new FunctionCall(iterName, arga, irets, ((Element)e.args[1]).directives));
 								
+								if (riter.fn!=null) {
+									isIter = true;
+								}
 							}
 							
 							if (isIter) {
-								
+								Iterator iter = (Iterator) riter.fn;
+								iterVars.add(0,iter.getFullName());
+								code.add(new Operation(OpType.FORC, e.range, iterVars.toArray(new String[0])));
+								code.add(new Operation(OpType.BEGIN, e.range));
+								cd.frame = new ScopeFrame(cd);
+								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+								cd.frame = cd.frame.parent;
+								code.add(new Operation(OpType.END, e.range));
+								code.add(new Operation(OpType.ENDB, e.range));
 							} else {
 								if (iterVars.size()!=1) {
 									cd.errs.add(new SourceSyntaxException(e.range,"For-each loop must only have 1 iterator variable"));
@@ -462,7 +478,8 @@ public class SourceCompiler {
 									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterName)+" to "+rtd));
 								}
 								cd.frame.setVarType(iterName, rtd);
-								code.add(new Operation(OpType.FORE, rtd, e.range, listExpr.retVar, iterName));
+								iterVars.add(0,listExpr.retVar);
+								code.add(new Operation(OpType.FORE, rtd, e.range, iterVars.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));
 								cd.frame = new ScopeFrame(cd);
 								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
