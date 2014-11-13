@@ -588,6 +588,12 @@ public class SourceCompiler {
 					
 				DataType rtype = lexpr.type;
 				DataType ltype = rexpr.type;
+				if (rtype==null) {
+					rtype = new DataType(true);
+				}
+				if (ltype==null) {
+					ltype = new DataType(true);
+				}
 				if (TypeDef.getCommonParent(rtype.type, ltype.type)!=ltype.type && TypeDef.getCommonParent(ltype.type, rtype.type)!=rtype.type) {
 					if (opt!=OpType.CONCAT) {
 						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
