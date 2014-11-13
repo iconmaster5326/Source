@@ -436,10 +436,24 @@ public class SourceCompiler {
 						} else {
 							boolean isIter = false;
 							RealFunction riter = null;
+							
+							ArrayList<DataType> arga = new ArrayList<>();
+							ArrayList<Expression> arge = new ArrayList<>();
+							ArrayList<DataType> irets = new ArrayList<>();
+								
 							if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL) {
 								String iterName = (String) ((Element)e.args[1]).args[0];
-								ArrayList<DataType> arga = new ArrayList<>();
-								ArrayList<DataType> irets = new ArrayList<>();
+								
+								es = (ArrayList<Element>) ((Element)e.args[1]).args[1];
+								if (es.size()>0 && es.get(0).type == Rule.TUPLE) {
+									es = (ArrayList<Element>) es.get(0).args[0];
+								}
+								for (Element e2 : es) {
+									Expression expr2 = compileExpr(cd, cd.frame.newVarName(), e2);
+									arga.add(expr2.type);
+									arge.add(expr2);
+								}
+								
 								riter = getRealFunction(cd, new FunctionCall(iterName, arga, irets, ((Element)e.args[1]).directives));
 								
 								if (riter.fn!=null) {
@@ -450,12 +464,18 @@ public class SourceCompiler {
 							if (isIter) {
 								Iterator iter = (Iterator) riter.fn;
 								int i = 0;
+								ArrayList<String> iterVars2 = new ArrayList<>();
+								for (Expression expr2 : arge) {
+									code.addAll(expr2);
+									iterVars2.add(expr2.retVar);
+								}
 								for (String var : iterVars) {
 									cd.frame.setVarType(var, iter.iterReturns.get(i));
+									iterVars2.add(var);
 									i++;
 								}
-								iterVars.add(0,iter.getFullName());
-								code.add(new Operation(OpType.FORC, e.range, iterVars.toArray(new String[0])));
+								iterVars2.add(0,iter.getFullName());
+								code.add(new Operation(OpType.FORC, e.range, iterVars2.toArray(new String[0])));
 								code.add(new Operation(OpType.BEGIN, e.range));
 								cd.frame = new ScopeFrame(cd);
 								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));

@@ -87,9 +87,12 @@ public class CompileUtils {
 						ArrayList<Operation> block = a;
 						a = old;
 						ArrayList<Operation> trans = new ArrayList<>();
+						for (int k=1;k<1+iter.getArguments().size();k++) {
+							trans.add(new Operation(OpType.MOV, iter.getArguments().get(k-1).getName(), forOp.args[k]));
+						}
 						for (Operation op2 : iter.getCode()) {
 							if (op2.op==OpType.RET) {
-								int ii = 1;
+								int ii = 1+iter.getArguments().size();
 								for (String arg : op2.args) {
 									trans.add(new Operation(OpType.MOV, forOp.args[ii], arg));
 									ii++;
