@@ -9,12 +9,16 @@ import com.iconmaster.source.prototype.Function;
 public class RealFunction {
 	public Function fn;
 	public boolean nameFound;
-	public boolean method;
+	public boolean method = false;
+	public String methodOf;
 
-	public RealFunction(Function fn, boolean method, boolean nameFound) {
+	public RealFunction(Function fn, String methodOf, boolean nameFound) {
 		this.fn = fn;
 		this.nameFound = nameFound;
-		this.method = method;
+		if (methodOf!=null) {
+			method = true;
+			this.methodOf = methodOf;
+		}
 	}
 
 }

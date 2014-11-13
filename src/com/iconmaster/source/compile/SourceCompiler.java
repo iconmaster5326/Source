@@ -440,7 +440,7 @@ public class SourceCompiler {
 							ArrayList<DataType> arga = new ArrayList<>();
 							ArrayList<Expression> arge = new ArrayList<>();
 							ArrayList<DataType> irets = new ArrayList<>();
-								
+							
 							if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL) {
 								String iterName = (String) ((Element)e.args[1]).args[0];
 								
@@ -458,6 +458,13 @@ public class SourceCompiler {
 								
 								if (riter.fn!=null) {
 									isIter = true;
+									
+									if (riter.method) {
+										Expression expr2 = new Expression();
+										expr2.retVar = riter.methodOf;
+										expr2.type = cd.frame.getVarType(riter.methodOf);
+										arge.add(expr2);
+									}
 								}
 							}
 							
@@ -630,8 +637,7 @@ public class SourceCompiler {
 						}
 						if (rfn.method) {
 							Expression mexpr = new Expression();
-							String s = (String) e.args[0];
-							s = s.substring(0,s.indexOf("."));
+							String s = rfn.methodOf;
 							DataType type = cd.frame.getVarType(s);
 							mexpr.type = type;
 							mexpr.retVar = cd.frame.newVarName();
@@ -1114,7 +1120,7 @@ public class SourceCompiler {
 					call.args.add(0,type);
 					if (cd.pkg.getFunction(fnToCall,call)!=null) {
 						type.type = otype;
-						return new RealFunction(cd.pkg.getFunction(fnToCall,call),true,true);
+						return new RealFunction(cd.pkg.getFunction(fnToCall,call),pkgName,true);
 					}
 					call.args.remove(0);
 					type.type = type.type.parent;
@@ -1123,11 +1129,11 @@ public class SourceCompiler {
 			} else {
 				fnToCall = (!pkgName.isEmpty()?(pkgName+"."):"")+fnName;
 				if (cd.pkg.getFunction(fnToCall,call)!=null) {
-					return new RealFunction(cd.pkg.getFunction(fnToCall,call),false,true);
+					return new RealFunction(cd.pkg.getFunction(fnToCall,call),null,true);
 				}
 			}
 		}
-		return new RealFunction(null,false,cd.pkg.getFunction(fnToCall)!=null);
+		return new RealFunction(null,null,cd.pkg.getFunction(fnToCall)!=null);
 	}
 	
 	public static CodeTransformer fnInliner = (pkg, work, code) -> {
