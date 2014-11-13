@@ -88,7 +88,6 @@ public class PlatformHPPL extends Platform {
 
 	@Override
 	public String assemble(SourcePackage pkg) {
-		System.out.println(pkg);
 		return HPPLAssembler.assemble(pkg);
 	}
 

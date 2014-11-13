@@ -501,7 +501,7 @@ public class SourceCompiler {
 		}
 		//change types of known lvars to correct parent types
 		for (Operation op : code) {
-			if (op.op.hasLVar() || op.op==OpType.DEF) {
+			if ((op.op.hasLVar() && op.op!=OpType.MOVL) || op.op==OpType.DEF) {
 				DataType type = cd.frame.getVarType(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
@@ -763,14 +763,27 @@ public class SourceCompiler {
 						} else if (es.size()>1) {
 							cd.errs.add(new SourceSyntaxException(e.range, "Illegal list format"));
 						}
+						DataType common = null;
 						for (Element e2 : es) {
 							String name = cd.frame.newVarName();
-							expr.addAll(compileExpr(cd, name, e2));
+							Expression expr2 = compileExpr(cd, name, e2);
+							expr.addAll(expr2);
 							names.add(name);
+							
+							if (common==null) {
+								common = expr2.type;
+							} else {
+								common = DataType.commonType(common, expr2.type);
+							}
 						}
+						if (common==null) {
+							common = new DataType();
+						}
+						
 						names.add(0,retVar);
-						expr.add(new Operation(OpType.MOVL, TypeDef.LIST, e.range, names.toArray(new String[0])));
+						expr.add(new Operation(OpType.MOVL, common, e.range, names.toArray(new String[0])));
 						expr.type = new DataType(TypeDef.LIST,true);
+						expr.type.params = new DataType[] {common};
 						break;
 					case PAREN:
 						es = (ArrayList<Element>) e.args[0];
@@ -827,7 +840,7 @@ public class SourceCompiler {
 		}
 		//change types of known lvars to correct parent types
 		for (Operation op : expr) {
-			if (op.op.hasLVar() || op.op==OpType.DEF) {
+			if ((op.op.hasLVar() && op.op!=OpType.MOVL) || op.op==OpType.DEF) {
 				DataType type = cd.frame.getVarType(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
