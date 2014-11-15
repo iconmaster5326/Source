@@ -61,6 +61,7 @@ public class Optimizer {
 			int j = 0;
 			for (Boolean arg : op.getVarSlots()) {
 				if (j==0 && op.op.hasLVar() && defs.contains(op.args[j])) {
+					defs.remove(op.args[j]);
 					currdefs.remove(op.args[j]);
 				} else if (arg && !defs.contains(op.args[j])) {
 					currdefs.add(op.args[j]);
