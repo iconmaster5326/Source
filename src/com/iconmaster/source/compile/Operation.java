@@ -212,6 +212,39 @@ public class Operation {
 		}
 	}
 	
+	public Boolean[] getVarSlots() {
+		switch (this.op) {
+			case PROP:
+			case DEF:
+				return new Boolean[] {};
+			case MOVN:
+			case MOVS:
+				return new Boolean[] {true,false};
+			case CALL:
+				ArrayList<Boolean> a = new ArrayList<>();
+				a.add(true);
+				a.add(false);
+				for (int i=2;i<args.length;i++) {
+					a.add(true);
+				}
+				return a.toArray(new Boolean[0]);
+			case FORC:
+				a = new ArrayList<>();
+				a.add(true);
+				a.add(false);
+				for (int i=1;i<args.length;i++) {
+					a.add(true);
+				}
+				return a.toArray(new Boolean[0]);
+			default:
+				a = new ArrayList<>();
+				for (int i=0;i<args.length;i++) {
+					a.add(true);
+				}
+				return a.toArray(new Boolean[0]);
+		}
+	}
+	
 	Operation cloneOp() {
 		return new Operation(op, type, range, args);
 	}

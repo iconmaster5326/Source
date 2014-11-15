@@ -21,12 +21,91 @@ public class Optimizer {
 
 		@Override
 		public String toString() {
-			return op.op+" "+op.args[0]+":"+used;
+			return op.op+":"+used;
 		}
 	}
 	
 	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
-		return code;
+		ArrayList<OpData> data = new ArrayList<>();
+		for (int i=code.size()-1;i>=0;i--) {
+			Operation op = code.get(i);
+			switch (op.op) {
+				case MOV:
+					boolean used = false;
+					for (OpData d : data) {
+						int j = 0;
+						for (Boolean arg : d.op.getVarSlots()) {
+							if (arg && d.op.args[j].equals(op.args[0])) {
+								d.op.args[j] = op.args[1];
+								used = true;
+							}
+							j++;
+						}
+					}
+					data.add(0,new OpData(op, false));
+					break;
+				default:
+					data.add(0,new OpData(op, false));
+			}
+		}
+		
+		ArrayList<Operation> product = new ArrayList<>();
+		for (OpData d : data) {
+			if (!d.used) {
+				product.add(d.op);
+			}
+		}
+		return product;
+	}
+	
+	public static ArrayList<Operation> removeDeadCode(SourcePackage pkg, ArrayList<Operation> code) {
+		ArrayList<Operation> a = new ArrayList<>();
+		int i = 0;
+		for (Operation op : code) {
+			if (isOpCritical(pkg,code,i,op)) {
+				a.add(op);
+			}
+			i++;
+		}
+		return a;
+	}
+	
+	public static boolean isOpCritical(SourcePackage pkg, ArrayList<Operation> code, int begin, Operation op) {
+		switch (op.op) {
+			case CALL:
+			case RET:
+			case WHILE:
+			case IF:
+			case REP:
+			case FORR:
+			case FORC:
+			case FORP:
+			case FORE:
+				return true;
+			default:
+				if (op.op.hasLVar()) {
+					return isVarCritical(pkg, code, begin+1, op.args[0]);
+				} else {
+					return true;
+				}
+		}
+	}
+	
+	public static boolean isVarCritical(SourcePackage pkg, ArrayList<Operation> code, int begin, String var) {
+		boolean found = false;
+		for (int i = begin;i<code.size();i++) {
+			Operation op = code.get(i);
+			int arg = 0;
+			for (Boolean b : op.getVarSlots()) {
+				if (b) {
+					if (op.args[arg].equals(var) && isOpCritical(pkg, code, begin+1, op)) {
+						found = true;
+					}
+				}
+				arg++;
+			}
+		}
+		return found;
 	}
 	
 	public static void countUsages(SourcePackage pkg) {
