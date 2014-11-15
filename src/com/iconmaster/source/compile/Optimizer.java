@@ -156,9 +156,10 @@ public class Optimizer {
 						for (int i=sf.size()-1; i>=0; i--) {
 							Optimizer.OpData opd = sf.get(i);
 							if (opd.op.op==OpType.MOV) {
-								if (opd.op.args[0].equals(op.args[arg])) {
+								if (opd.op.args[0].equals(nop.args[arg])) {
 									opd.used = true;
 									nop.args[arg] = opd.op.args[1];
+									break;
 								}
 							}
 						}
