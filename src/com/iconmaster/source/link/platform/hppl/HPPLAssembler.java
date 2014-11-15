@@ -457,7 +457,7 @@ public class HPPLAssembler {
 	}
 	
 	public static boolean ditchLValue(AssemblyData ad, ArrayList<Operation> ops, Operation op) {
-		if (Directives.has(ad.dirs, "!optimize")) {
+		if (Directives.has(ad.dirs, "!asmoptimize")) {
 			return false;
 		}
 		if (!op.op.hasLVar()) {
