@@ -473,7 +473,18 @@ public class HPPLAssembler {
 	}
 	
 	public static boolean shouldIncludeFunction(Function fn) {
-		return fn.isCompiled() && !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
+		if (Directives.has(fn, "keep") || Directives.has(fn, "export") || Directives.has(fn, "main")) {
+			return true;
+		}
+		if (Directives.has(fn, "inline") || Directives.has(fn, "native")) {
+			return false;
+		}
+		if (fn.isCompiled() && !fn.isLibrary()) {
+			if (fn.references!=0) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static boolean shouldIncludeField(Field fn) {

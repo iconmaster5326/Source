@@ -1,6 +1,7 @@
 package com.iconmaster.source.compile;
 
 import com.iconmaster.source.compile.Operation.OpType;
+import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
@@ -86,7 +87,19 @@ public class Optimizer {
 				if (argn==-1) {
 					a.add(new OpData(op, false));
 				} else {
-					optimizeOp(op, a, argn);
+					Operation nop = op.cloneOp();
+					for (int arg=argn; arg<op.args.length; arg++) {
+						for (int i=a.size()-1; i>=0; i--) {
+							Optimizer.OpData opd = a.get(i);
+							if (opd.op.op==OpType.MOV) {
+								if (opd.op.args[0].equals(op.args[arg])) {
+									opd.used = true;
+									nop.args[arg] = opd.op.args[1];
+								}
+							}
+						}
+					}
+					a.add(new Optimizer.OpData(nop, false));
 				}
 			}
 		}
@@ -99,19 +112,21 @@ public class Optimizer {
 		return a2;
 	}
 	
-	public static void optimizeOp(Operation op, ArrayList<OpData> a, int argn) {
-		Operation nop = op.cloneOp();
-		for (int arg=argn; arg<op.args.length; arg++) {
-			for (int i=a.size()-1; i>=0; i--) {
-				Optimizer.OpData opd = a.get(i);
-				if (opd.op.op==OpType.MOV) {
-					if (opd.op.args[0].equals(op.args[arg])) {
-						opd.used = true;
-						nop.args[arg] = opd.op.args[1];
+	public static void countUsages(SourcePackage pkg) {
+		for (Function fn : pkg.getFunctionsAndIterators()) {
+			fn.references = 0;
+			CompileUtils.transform(pkg, (pkg2, work, code) -> {
+				for (Operation op : code) {
+					if (op.op == OpType.CALL && op.args[1].equals(fn.getFullName())) {
+						fn.references++;
+					}
+					
+					if (op.op == OpType.FORC && op.args[0].equals(fn.getFullName())) {
+						fn.references++;
 					}
 				}
-			}
+				return code;
+			});
 		}
-		a.add(new Optimizer.OpData(nop, false));
 	}
 }

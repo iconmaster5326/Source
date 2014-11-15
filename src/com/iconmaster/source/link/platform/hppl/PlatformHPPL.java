@@ -3,6 +3,7 @@ package com.iconmaster.source.link.platform.hppl;
 import com.iconmaster.source.compile.CompileUtils;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.compile.Operation.OpType;
+import com.iconmaster.source.compile.Optimizer;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
@@ -88,6 +89,7 @@ public class PlatformHPPL extends Platform {
 
 	@Override
 	public String assemble(SourcePackage pkg) {
+		Optimizer.countUsages(pkg);
 		return HPPLAssembler.assemble(pkg);
 	}
 

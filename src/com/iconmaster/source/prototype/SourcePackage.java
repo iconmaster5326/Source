@@ -183,6 +183,13 @@ public class SourcePackage implements IDirectable {
 		return functions;
 	}
 	
+	public ArrayList<Function> getFunctionsAndIterators() {
+		ArrayList<Function> a = new ArrayList<>();
+		a.addAll(functions);
+		a.addAll(iters);
+		return a;
+	}
+	
 	public ArrayList<Function> getFunctions(String name) {
 		ArrayList<Function> a = new ArrayList<>();
 		for (Function v : functions) {

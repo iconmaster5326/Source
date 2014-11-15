@@ -100,9 +100,8 @@ public class SourceCompiler {
 		//inline stuff
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
-		System.out.println(pkg);
 		CompileUtils.transform(cd.pkg, optimizer);
-		System.out.println(pkg);
+		Optimizer.countUsages(pkg);
 		
 		return cd.errs;
 	}

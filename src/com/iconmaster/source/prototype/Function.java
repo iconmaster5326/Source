@@ -28,6 +28,7 @@ public class Function implements IDirectable {
 	public String compileName;
 	
 	public int order = 0;
+	public int references = 0;
 	
 	public ArrayList<Field> rawParams;
 
