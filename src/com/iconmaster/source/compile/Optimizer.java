@@ -28,6 +28,16 @@ public class Optimizer {
 		}
 	}
 	
+	public static class OpDataStack extends Stack<ArrayList<OpData>> {
+		public ArrayList<OpData> flatten() {
+			ArrayList<OpData> a = new ArrayList<>();
+			for (ArrayList<OpData> ops : this) {
+				a.addAll(ops);
+			}
+			return a;
+		}
+	}
+	
 	public static boolean isReplaceAnywhere(SourcePackage pkg, Operation op) {
 		switch (op.op) {
 			case MOV:
@@ -44,13 +54,14 @@ public class Optimizer {
 	
 	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
 		ArrayList<OpData> a = new ArrayList<>();
-		Stack<ArrayList<OpData>> scopes = new Stack<>();
+		OpDataStack scopes = new OpDataStack();
 		scopes.add(new ArrayList<>());
 		for (Operation op : code) {
 			if (op.op==OpType.MOV) {
 				boolean found = false;
-				for (int i=scopes.peek().size()-1; i>=0; i--) {
-					OpData opd = scopes.peek().get(i);
+				ArrayList<OpData> sf = scopes.flatten();
+				for (int i=sf.size()-1; i>=0; i--) {
+					OpData opd = sf.get(i);
 					if (isReplaceAnywhere(pkg, opd.op)) {
 						if (opd.op.args[0].equals(op.args[1])) {
 							found = true;
@@ -70,8 +81,16 @@ public class Optimizer {
 				}
 			} else if (op.op==OpType.BEGIN) {
 				scopes.add(new ArrayList<>());
+				
+				OpData opd2 = new OpData(op, false);
+				scopes.peek().add(opd2);
+				a.add(opd2);
 			} else if (op.op==OpType.END) {
 				scopes.pop();
+				
+				OpData opd2 = new OpData(op, false);
+				scopes.peek().add(opd2);
+				a.add(opd2);
 			} else {
 				int argn;
 				if (op.op.isMathOp()) {
@@ -98,8 +117,9 @@ public class Optimizer {
 				} else {
 					Operation nop = op.cloneOp();
 					for (int arg=argn; arg<op.args.length; arg++) {
-						for (int i=scopes.peek().size()-1; i>=0; i--) {
-							Optimizer.OpData opd = scopes.peek().get(i);
+						ArrayList<OpData> sf = scopes.flatten();
+						for (int i=sf.size()-1; i>=0; i--) {
+							Optimizer.OpData opd = sf.get(i);
 							if (opd.op.op==OpType.MOV) {
 								if (opd.op.args[0].equals(op.args[arg])) {
 									opd.used = true;
