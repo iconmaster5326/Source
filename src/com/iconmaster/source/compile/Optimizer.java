@@ -4,6 +4,7 @@ import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  *
@@ -27,25 +28,44 @@ public class Optimizer {
 	
 	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
 		ArrayList<OpData> data = new ArrayList<>();
+		HashSet<String> defs = new HashSet<>();
+		HashSet<String> currdefs = new HashSet<>();
 		for (int i=code.size()-1;i>=0;i--) {
 			Operation op = code.get(i);
 			switch (op.op) {
+				case END:
+				case BEGIN:
+					defs.addAll(currdefs);
+					currdefs = new HashSet<>();
+					break;
 				case MOV:
 					boolean used = false;
-					for (OpData d : data) {
-						int j = 0;
-						for (Boolean arg : d.op.getVarSlots()) {
-							if (arg && d.op.args[j].equals(op.args[0])) {
-								d.op.args[j] = op.args[1];
-								used = true;
+					if (!defs.contains(op.args[0])) {
+						for (OpData d : data) {
+							int j = 0;
+							for (Boolean arg : d.op.getVarSlots()) {
+								if (arg && d.op.args[j].equals(op.args[0])) {
+									d.op.args[j] = op.args[1];
+									used = true;
+								}
+								j++;
 							}
-							j++;
 						}
 					}
-					data.add(0,new OpData(op, false));
+					data.add(0,new OpData(op, used));
 					break;
 				default:
 					data.add(0,new OpData(op, false));
+			}
+			
+			int j = 0;
+			for (Boolean arg : op.getVarSlots()) {
+				if (j==0 && op.op.hasLVar() && defs.contains(op.args[j])) {
+					currdefs.remove(op.args[j]);
+				} else if (arg && !defs.contains(op.args[j])) {
+					currdefs.add(op.args[j]);
+				}
+				j++;
 			}
 		}
 		
