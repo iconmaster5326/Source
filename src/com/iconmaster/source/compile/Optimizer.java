@@ -6,6 +6,7 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Stack;
 
 /**
  *
@@ -43,12 +44,13 @@ public class Optimizer {
 	
 	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
 		ArrayList<OpData> a = new ArrayList<>();
-		boolean found;
+		Stack<ArrayList<OpData>> scopes = new Stack<>();
+		scopes.add(new ArrayList<>());
 		for (Operation op : code) {
 			if (op.op==OpType.MOV) {
-				found = false;
-				for (int i=a.size()-1; i>=0; i--) {
-					OpData opd = a.get(i);
+				boolean found = false;
+				for (int i=scopes.peek().size()-1; i>=0; i--) {
+					OpData opd = scopes.peek().get(i);
 					if (isReplaceAnywhere(pkg, opd.op)) {
 						if (opd.op.args[0].equals(op.args[1])) {
 							found = true;
@@ -56,13 +58,20 @@ public class Optimizer {
 							OpData opd2 = new OpData(new Operation(opd.op.op, opd.op.type, op.range, Arrays.copyOf(opd.op.args, opd.op.args.length)), false);
 							opd2.op.args[0] = op.args[0];
 							a.add(opd2);
+							scopes.peek().add(opd2);
 							break;
 						}
 					}
 				}
 				if (!found) {
-					a.add(new OpData(op, false));
+					OpData opd2 = new OpData(op, false);
+					scopes.peek().add(opd2);
+					a.add(opd2);
 				}
+			} else if (op.op==OpType.BEGIN) {
+				scopes.add(new ArrayList<>());
+			} else if (op.op==OpType.END) {
+				scopes.pop();
 			} else {
 				int argn;
 				if (op.op.isMathOp()) {
@@ -89,8 +98,8 @@ public class Optimizer {
 				} else {
 					Operation nop = op.cloneOp();
 					for (int arg=argn; arg<op.args.length; arg++) {
-						for (int i=a.size()-1; i>=0; i--) {
-							Optimizer.OpData opd = a.get(i);
+						for (int i=scopes.peek().size()-1; i>=0; i--) {
+							Optimizer.OpData opd = scopes.peek().get(i);
 							if (opd.op.op==OpType.MOV) {
 								if (opd.op.args[0].equals(op.args[arg])) {
 									opd.used = true;
@@ -99,7 +108,9 @@ public class Optimizer {
 							}
 						}
 					}
-					a.add(new Optimizer.OpData(nop, false));
+					OpData opd2 = new Optimizer.OpData(nop, false);
+					a.add(opd2);
+					scopes.peek().add(opd2);
 				}
 			}
 		}
