@@ -3,6 +3,7 @@ package com.iconmaster.source.assemble;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.compile.Operation.OpType;
 import java.util.ArrayList;
+import java.util.Stack;
 
 /**
  *
@@ -19,6 +20,15 @@ public class ScopeTree<T> {
 	public static interface TreeParser<K> {
 		public K parse(ArrayList<Operation> code);
 	}
+	
+	public static interface TreeIterator<K> {
+		public void iterate(ScopeTree<K> tree);
+	}
+	
+	public static interface TreeFlattener<K,L> {
+		public L flatten(K data);
+	}
+	
 	public ScopeTree() {
 		
 	}
@@ -113,6 +123,18 @@ public class ScopeTree<T> {
 		}
 		return tree;
 	}
+	
+	public void iterate(TreeIterator<T> iter) {
+		iter.iterate(this);
+		
+		if (block!=null) {
+			block.iterate(iter);
+		}
+		
+		if (line!=null) {
+			line.iterate(iter);
+		}
+	}
 
 	@Override
 	public String toString() {
@@ -121,5 +143,57 @@ public class ScopeTree<T> {
 		sb.append(data);
 		sb.append(block==null?("{}"):(" {"+block+"}"));
 		return sb.toString();
+	}
+	
+	public ScopeTree<T> reducedNode() {
+		ScopeTree<T> node = this;
+		while (true) {
+			if (node.parent==null) {
+				return node;
+			}
+			if (node.parent.line==node) {
+				node = node.parent;
+			} else {
+				return node;
+			}
+		}
+	}
+	
+	public T getReducedData() {
+		return reducedNode().data;
+	}
+	
+	public void setReducedData(T newData) {
+		reducedNode().data = newData;
+	}
+	
+	public Stack<T> contentsToNode() {
+		Stack<T> st = new Stack<>();
+		ScopeTree<T> node = this;
+		while (node!=null) {
+			st.push(node.data);
+			node = node.parent;
+		}
+		//reverse the stack
+		Stack<T> st2 = new Stack<>();
+		for (T item : st) {
+			st2.push(item);
+		}
+		return st2;
+	}
+	
+	public <K> Stack<K> contentsToNode(TreeFlattener<T,K> f) {
+		Stack<T> st = new Stack<>();
+		ScopeTree<T> node = this;
+		while (node!=null) {
+			st.push(node.data);
+			node = node.parent;
+		}
+		//reverse the stack
+		Stack<K> st2 = new Stack<>();
+		for (T item : st) {
+			st2.push(f.flatten(item));
+		}
+		return st2;
 	}
 }
