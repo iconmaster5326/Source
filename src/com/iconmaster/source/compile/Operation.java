@@ -211,4 +211,8 @@ public class Operation {
 				return this.args;
 		}
 	}
+	
+	Operation cloneOp() {
+		return new Operation(op, type, range, args);
+	}
 }
