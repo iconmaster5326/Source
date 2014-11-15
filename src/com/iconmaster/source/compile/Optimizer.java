@@ -140,6 +140,8 @@ public class Optimizer {
 						case IF:
 						case WHILE:
 						case REP:
+						case INDEX:
+						case MOVI:
 							argn = 0;
 							break;
 						default:
