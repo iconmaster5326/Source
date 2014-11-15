@@ -24,6 +24,7 @@ import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.ElementHelper;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -99,6 +100,9 @@ public class SourceCompiler {
 		//inline stuff
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
+		System.out.println(pkg);
+		CompileUtils.transform(cd.pkg, optimizer);
+		System.out.println(pkg);
 		
 		return cd.errs;
 	}
@@ -225,7 +229,7 @@ public class SourceCompiler {
 										cd.frame.setVarType(lexprs.get(asni).retVar, newType);
 									}
 									
-									movs.add(new Operation(OpType.MOV, newType.type, e2.range, expr2.retVar, names.get(asni)));
+									movs.add(new Operation(OpType.MOV, newType, e2.range, expr2.retVar, names.get(asni)));
 									code.addAll(lexprs.get(asni));
 									rexprs.add(expr2);
 								}
@@ -558,7 +562,7 @@ public class SourceCompiler {
 				case WORD:
 					if (cd.pkg.getField((String)e.args[0])!=null) {
 						expr.type = cd.pkg.getField((String)e.args[0]).getType();
-						expr.add(new Operation(OpType.MOV, expr.type.type, e.range, retVar, (String)e.args[0]));
+						expr.add(new Operation(OpType.MOV, expr.type, e.range, retVar, (String)e.args[0]));
 					} else if (cd.frame.isInlined((String)e.args[0])) {
 						Element e2 = cd.frame.getInline((String)e.args[0]);
 						if (e2==null) {
@@ -1197,5 +1201,14 @@ public class SourceCompiler {
 			a.add(op);
 		}
 		return a;
+	};
+	
+	public static CodeTransformer optimizer = (pkg, work, code) -> {
+		if (work instanceof IDirectable) {
+			if (Directives.has((IDirectable) work, "!optimize")) {
+				return code;
+			}
+		}
+		return Optimizer.optimize(pkg, code);
 	};
 }
