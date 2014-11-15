@@ -394,7 +394,7 @@ public class HPPLAssembler {
 		}
 	
 	public static boolean isInlinable(AssemblyData ad, ArrayList<Operation> code, String var) {
-		if (Directives.has(ad.dirs, "!optimize")) {
+		if (Directives.has(ad.dirs, "!asmoptimize")) {
 			return false;
 		}
 		for (AssembleVarSpace avs : ad.vs) {
