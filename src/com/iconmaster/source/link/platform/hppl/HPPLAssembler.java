@@ -21,7 +21,7 @@ public class HPPLAssembler {
 		ad.vs = new Stack<>();
 		ad.vs.add(new AssembleVarSpace());
 		for (Function fn : pkg.getFunctions()) {
-			if (shouldIncludeFunction(fn)) {
+			if (PlatformHPPL.shouldIncludeFunction(fn)) {
 				sb.append(fn.compileName);
 				sb.append("(");
 				if (!fn.getArguments().isEmpty()) {
@@ -36,7 +36,7 @@ public class HPPLAssembler {
 		}
 		sb.append("\n");
 		for (Field var : pkg.getFields()) {
-			if (shouldIncludeField(var)) {
+			if (PlatformHPPL.shouldIncludeField(var)) {
 				ad.workingOn = var;
 				ad.dirs = var.getDirectives();
 				ad.vs.add(new AssembleVarSpace());
@@ -46,7 +46,7 @@ public class HPPLAssembler {
 		}
 		sb.append("\n");
 		for (Function fn : pkg.getFunctions()) {
-			if (shouldIncludeFunction(fn)) {
+			if (PlatformHPPL.shouldIncludeFunction(fn)) {
 				ad.workingOn = fn;
 				ad.dirs = fn.getDirectives();
 				ad.vs.add(new AssembleVarSpace());
@@ -470,24 +470,5 @@ public class HPPLAssembler {
 			return true;
 		}
 		return false;
-	}
-	
-	public static boolean shouldIncludeFunction(Function fn) {
-		if (Directives.has(fn, "keep") || Directives.has(fn, "export") || Directives.has(fn, "main")) {
-			return true;
-		}
-		if (Directives.has(fn, "inline") || Directives.has(fn, "native")) {
-			return false;
-		}
-		if (fn.isCompiled() && !fn.isLibrary()) {
-			if (fn.references!=0) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public static boolean shouldIncludeField(Field fn) {
-		return !fn.isLibrary() && !Directives.has(fn, "inline") && !Directives.has(fn, "native");
 	}
 }
