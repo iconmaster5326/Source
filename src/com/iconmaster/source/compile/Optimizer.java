@@ -6,6 +6,7 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Stack;
 
 /**
@@ -24,17 +25,43 @@ public class Optimizer {
 
 		@Override
 		public String toString() {
-			return op.op+":"+used;
+			return op.op+" "+op.args[0]+":"+used;
 		}
 	}
 	
-	public static class OpDataStack extends Stack<ArrayList<OpData>> {
-		public ArrayList<OpData> flatten() {
-			ArrayList<OpData> a = new ArrayList<>();
-			for (ArrayList<OpData> ops : this) {
+	public static class OpDataList extends ArrayList<OpData> {
+		public HashSet<String> defs = new HashSet<>();
+		
+		public void addDef(String var) {
+			defs.add(var);
+		}
+		
+		public boolean hasDef(String var) {
+			return defs.contains(var);
+		}
+	}
+	
+	public static class OpDataStack extends Stack<OpDataList> {
+		public OpDataList flatten() {
+			OpDataList a = new OpDataList();
+			for (OpDataList ops : this) {
 				a.addAll(ops);
 			}
 			return a;
+		}
+		
+		public void addDef(String def) {
+			peek().addDef(def);
+		}
+		
+		public OpDataList hasDef(String def) {
+			for (int i=this.size()-1;i>=0;i--) {
+				OpDataList ops = this.get(i);
+				if (ops.hasDef(def)) {
+					return ops;
+				}
+			}
+			return null;
 		}
 	}
 	
@@ -55,11 +82,13 @@ public class Optimizer {
 	public static ArrayList<Operation> optimize(SourcePackage pkg, ArrayList<Operation> code) {
 		ArrayList<OpData> a = new ArrayList<>();
 		OpDataStack scopes = new OpDataStack();
-		scopes.add(new ArrayList<>());
+		System.out.println(pkg);
+		scopes.add(new OpDataList());
 		for (Operation op : code) {
+			System.out.println(scopes.peek()+" "+scopes.peek().defs);
 			if (op.op==OpType.MOV) {
 				boolean found = false;
-				ArrayList<OpData> sf = scopes.flatten();
+				OpDataList sf = scopes.flatten();
 				for (int i=sf.size()-1; i>=0; i--) {
 					OpData opd = sf.get(i);
 					if (isReplaceAnywhere(pkg, opd.op)) {
@@ -68,29 +97,35 @@ public class Optimizer {
 							opd.used = true;
 							OpData opd2 = new OpData(new Operation(opd.op.op, opd.op.type, op.range, Arrays.copyOf(opd.op.args, opd.op.args.length)), false);
 							opd2.op.args[0] = op.args[0];
+							if (scopes.hasDef(op.args[0])==null) {
+								scopes.addDef(op.args[0]);
+							}
 							a.add(opd2);
-							scopes.peek().add(opd2);
+							scopes.hasDef(op.args[0]).add(opd2);
 							break;
 						}
 					}
 				}
 				if (!found) {
 					OpData opd2 = new OpData(op, false);
-					scopes.peek().add(opd2);
+					if (scopes.hasDef(op.args[0])==null) {
+						scopes.addDef(op.args[0]);
+					}
 					a.add(opd2);
+					scopes.hasDef(op.args[0]).add(opd2);
 				}
 			} else if (op.op==OpType.BEGIN) {
-				scopes.add(new ArrayList<>());
+				scopes.add(new OpDataList());
 				
 				OpData opd2 = new OpData(op, false);
-				scopes.peek().add(opd2);
 				a.add(opd2);
 			} else if (op.op==OpType.END) {
 				scopes.pop();
 				
 				OpData opd2 = new OpData(op, false);
-				scopes.peek().add(opd2);
 				a.add(opd2);
+			} else if (op.op==OpType.DEF) {
+				scopes.addDef(op.args[0]);
 			} else {
 				int argn;
 				if (op.op.isMathOp()) {
@@ -117,7 +152,7 @@ public class Optimizer {
 				} else {
 					Operation nop = op.cloneOp();
 					for (int arg=argn; arg<op.args.length; arg++) {
-						ArrayList<OpData> sf = scopes.flatten();
+						OpDataList sf = scopes.flatten();
 						for (int i=sf.size()-1; i>=0; i--) {
 							Optimizer.OpData opd = sf.get(i);
 							if (opd.op.op==OpType.MOV) {
@@ -129,8 +164,11 @@ public class Optimizer {
 						}
 					}
 					OpData opd2 = new Optimizer.OpData(nop, false);
+					if (scopes.hasDef(op.args[0])==null) {
+						scopes.addDef(op.args[0]);
+					}
 					a.add(opd2);
-					scopes.peek().add(opd2);
+					scopes.hasDef(op.args[0]).add(opd2);
 				}
 			}
 		}
