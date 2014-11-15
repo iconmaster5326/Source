@@ -71,6 +71,13 @@ public class Optimizer {
 						case CALL:
 							argn = 2;
 							break;
+						case RET:
+						case MOVL:
+						case IF:
+						case WHILE:
+						case REP:
+							argn = 0;
+							break;
 						default:
 							argn = -1;
 					}
