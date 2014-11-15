@@ -2,6 +2,7 @@ package com.iconmaster.source.compile;
 
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -25,12 +26,15 @@ public class Optimizer {
 		}
 	}
 	
-	public static boolean isReplaceAnywhere(OpType ot) {
-		switch (ot) {
+	public static boolean isReplaceAnywhere(SourcePackage pkg, Operation op) {
+		switch (op.op) {
 			case MOV:
 			case MOVN:
 			case MOVS:
+			case MOVL:
 				return true;
+			case CALL:
+				return Directives.has(pkg.getFunction(op.args[1]),"pure");
 			default:
 				return false;
 		}
@@ -76,12 +80,12 @@ public class Optimizer {
 						found = false;
 						for (int i=a.size()-1; i>=0; i--) {
 							OpData opd = a.get(i);
-							if (isReplaceAnywhere(opd.op.op)) {
+							if (isReplaceAnywhere(pkg, opd.op)) {
 								if (opd.op.args[0].equals(op.args[1])) {
 									found = true;
 									opd.used = true;
-									OpData opd2 = new OpData(new Operation(opd.op.op, opd.op.type, op.range, Arrays.copyOf(op.args, op.args.length)), false);
-									opd2.op.args[1] = opd.op.args[1];
+									OpData opd2 = new OpData(new Operation(opd.op.op, opd.op.type, op.range, Arrays.copyOf(opd.op.args, opd.op.args.length)), false);
+									opd2.op.args[0] = op.args[0];
 									a.add(opd2);
 									break;
 								}
