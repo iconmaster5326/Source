@@ -42,6 +42,7 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("range", new String[] {"begin","end","step"}, new TypeDef[] {TypeDef.REAL,TypeDef.REAL,TypeDef.REAL}, TypeDef.LIST);
+		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("MAKELIST(X,X,");
@@ -55,6 +56,7 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("range", new String[] {"begin","end"}, new TypeDef[] {TypeDef.INT,TypeDef.INT}, TypeDef.LIST);
+		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("MAKELIST(X,X,");
@@ -66,6 +68,7 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("range", new String[] {"begin","end","step"}, new TypeDef[] {TypeDef.INT,TypeDef.INT,TypeDef.INT}, TypeDef.LIST);
+		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("MAKELIST(X,X,");
@@ -79,6 +82,7 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("list.size", new String[] {"list"}, new TypeDef[] {TypeDef.LIST}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.compileName = "SIZE";
 		this.addFunction(fn);
 		
@@ -104,6 +108,7 @@ public class LibraryCore extends SourcePackage {
 		fn.compileName = "CONCAT";
 		this.addFunction(fn);
 		fn = Function.libraryFunction("list.first", new String[] {"list"}, new Object[] {ltdt}, ltt);
+		fn.getDirectives().add("pure");
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
@@ -113,6 +118,7 @@ public class LibraryCore extends SourcePackage {
 		};
 		this.addFunction(fn);
 		fn = Function.libraryFunction("list.last", new String[] {"list"}, new Object[] {ltdt}, ltt);
+		fn.getDirectives().add("pure");
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
@@ -125,14 +131,17 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("string._cast", new String[] {"item"}, new TypeDef[] {TypeDef.UNKNOWN}, TypeDef.STRING);
+		fn.getDirectives().add("pure");
 		fn.compileName = "STRING";
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("real._cast", new String[] {"item"}, new TypeDef[] {TypeDef.STRING}, TypeDef.REAL);
+		fn.getDirectives().add("pure");
 		fn.compileName = "EXPR";
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("real._cast", new String[] {"item"}, new TypeDef[] {TypeDef.INT}, TypeDef.REAL);
+		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			return HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]);
@@ -140,6 +149,7 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("int._cast", new String[] {"item"}, new TypeDef[] {TypeDef.STRING}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("IP(EXPR(");
@@ -149,6 +159,7 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("int._cast", new String[] {"item"}, new TypeDef[] {TypeDef.REAL}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
 			ctx.sb.append("IP(");

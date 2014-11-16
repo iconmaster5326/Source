@@ -64,14 +64,17 @@ public class LibraryPrimeIO extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("getKey", new String[] {}, new TypeDef[] {}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.compileName = "GETKEY";
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("isKeyDown", new String[] {"key"}, new TypeDef[] {TypeDef.INT}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.compileName = "ISKEYDOWN";
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("getMouse", new String[] {}, new TypeDef[] {}, TypeDef.LIST);
+		fn.getDirectives().add("pure");
 		fn.compileName = "MOUSE";
 		this.addFunction(fn);
 		

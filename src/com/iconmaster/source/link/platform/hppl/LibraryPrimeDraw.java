@@ -242,10 +242,12 @@ public class LibraryPrimeDraw extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("rgb", new String[] {"r","g","b"}, new TypeDef[] {TypeDef.INT, TypeDef.INT, TypeDef.INT}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.compileName = "RGB";
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("rgb", new String[] {"r","g","b","a"}, new TypeDef[] {TypeDef.INT, TypeDef.INT, TypeDef.INT, TypeDef.INT}, TypeDef.INT);
+		fn.getDirectives().add("pure");
 		fn.compileName = "RGB";
 		this.addFunction(fn);
 		
