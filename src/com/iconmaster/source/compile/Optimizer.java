@@ -77,7 +77,8 @@ public class Optimizer {
 				product.add(d.op);
 			}
 		}
-		return product;
+		//return product;
+		return removeDeadCode(pkg,product);
 	}
 	
 	public static ArrayList<Operation> removeDeadCode(SourcePackage pkg, ArrayList<Operation> code) {
@@ -114,20 +115,20 @@ public class Optimizer {
 	}
 	
 	public static boolean isVarCritical(SourcePackage pkg, ArrayList<Operation> code, int begin, String var) {
-		boolean found = false;
 		for (int i = begin;i<code.size();i++) {
 			Operation op = code.get(i);
+						
 			int arg = 0;
 			for (Boolean b : op.getVarSlots()) {
 				if (b) {
-					if (op.args[arg].equals(var) && isOpCritical(pkg, code, begin+1, op)) {
-						found = true;
+					if (op.args[arg].equals(var) && isOpCritical(pkg, code, begin, op)) {
+						return true;
 					}
 				}
 				arg++;
 			}
 		}
-		return found;
+		return false;
 	}
 	
 	public static void countUsages(SourcePackage pkg) {
