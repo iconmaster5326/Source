@@ -123,7 +123,7 @@ public class CompileUtils {
 	};
 	
 	public static void transform(SourcePackage pkg, CodeTransformer ct) {
-		for (Function f : pkg.getFunctions()) {
+		for (Function f : pkg.getFunctionsAndIterators()) {
 			if (f.getCode()!=null) {
 				ArrayList<Operation> code = ct.transform(pkg, f, f.getCode());
 				f.setCompiled(code);
