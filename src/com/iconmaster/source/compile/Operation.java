@@ -229,9 +229,16 @@ public class Operation {
 					a.add(true);
 				}
 				return a.toArray(new Boolean[0]);
-			case FORC:
+			case FORR:
 				a = new ArrayList<>();
 				a.add(true);
+				a.add(false);
+				for (int i=2;i<args.length;i++) {
+					a.add(true);
+				}
+				return a.toArray(new Boolean[0]);
+			case FORC:
+				a = new ArrayList<>();
 				a.add(false);
 				for (int i=1;i<args.length;i++) {
 					a.add(true);
