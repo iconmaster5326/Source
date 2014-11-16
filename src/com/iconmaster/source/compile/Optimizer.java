@@ -78,7 +78,12 @@ public class Optimizer {
 			}
 		}
 		//return product;
-		return removeDeadCode(pkg,product);
+		product=removeDeadCode(pkg,product);
+		if (code.hashCode()==product.hashCode()) {
+			return product;
+		} else {
+			return optimize(pkg, product);
+		}
 	}
 	
 	public static ArrayList<Operation> removeDeadCode(SourcePackage pkg, ArrayList<Operation> code) {

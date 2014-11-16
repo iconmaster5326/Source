@@ -5,6 +5,7 @@ import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  *
@@ -255,5 +256,15 @@ public class Operation {
 	
 	Operation cloneOp() {
 		return new Operation(op, type, range, Arrays.copyOf(args, args.length));
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 3;
+		hash = 67 * hash + Objects.hashCode(this.op);
+		hash = 67 * hash + Arrays.deepHashCode(this.args);
+		hash = 67 * hash + Objects.hashCode(this.range);
+		hash = 67 * hash + Objects.hashCode(this.type);
+		return hash;
 	}
 }
