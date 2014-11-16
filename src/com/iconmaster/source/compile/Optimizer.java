@@ -31,12 +31,13 @@ public class Optimizer {
 		HashSet<String> defs = new HashSet<>();
 		HashSet<String> currdefs = new HashSet<>();
 		for (int i=code.size()-1;i>=0;i--) {
-			Operation op = code.get(i);
+			Operation op = code.get(i).cloneOp();
 			switch (op.op) {
 				case END:
 				case BEGIN:
 					defs.addAll(currdefs);
 					currdefs = new HashSet<>();
+					data.add(0,new OpData(op, false));
 					break;
 				case MOV:
 					boolean used = false;

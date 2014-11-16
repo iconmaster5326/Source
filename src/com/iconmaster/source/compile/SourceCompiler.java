@@ -123,6 +123,9 @@ public class SourceCompiler {
 			}
 		}
 		Expression code = compileCode(cd, fn.rawData(), fn.getReturnType());
+		for (Field v : fn.getArguments()) {
+			code.add(0,new Operation(OpType.DEF, v.getName()));
+		}
 		fn.setCompiled(code);
 		return code;
 	}
@@ -1157,14 +1160,20 @@ public class SourceCompiler {
 				Function fn = pkg.getFunction(op.args[1]);
 				if (fn!=null && Directives.has(fn,"inline")) {
 					a.add(new Operation(OpType.BEGIN, op.range));
-					for (int i=2;i<op.args.length;i++) {
-						a.add(new Operation(OpType.DEF, fn.getArguments().get(i-2).getType(), op.range, fn.getArguments().get(i-2).getName()));
-						a.add(new Operation(OpType.MOV, fn.getArguments().get(i-2).getType(), op.range, fn.getArguments().get(i-2).getName(), op.args[i]));
-					}
 					CompileData cd = new CompileData(pkg);
 					cd.dirs = fn.getDirectives();
 					cd.frame = new ScopeFrame(pkg);
 					ArrayList<Operation> code2 = compileFunction(cd, fn);
+					
+					for (int k=0;k<code2.size();k++) {
+						if (code2.get(k).op!=OpType.DEF) {
+							for (int i=2;i<op.args.length;i++) {
+								code2.add(k,new Operation(OpType.MOV, fn.getArguments().get(i-2).getType(), op.range, fn.getArguments().get(i-2).getName(), op.args[i]));
+							}
+							break;
+						}
+					}
+					
 					String label = pkg.nameProvider.getTempName();
 					boolean labelUsed = false;
 					for (Operation op2 : code2) {
@@ -1267,7 +1276,7 @@ public class SourceCompiler {
 		Frame f = new Frame(null);
 		ArrayList<Operation> a = new ArrayList<>();
 		for (int ii=0;ii<code.size();ii++) {
-			Operation op = code.get(ii);
+			Operation op = code.get(ii).cloneOp();
 
 			if (op.op == OpType.DEF) {
 				f.set(op.args[0]);

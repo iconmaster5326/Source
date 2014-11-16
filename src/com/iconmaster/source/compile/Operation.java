@@ -4,6 +4,7 @@ import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -246,6 +247,6 @@ public class Operation {
 	}
 	
 	Operation cloneOp() {
-		return new Operation(op, type, range, args);
+		return new Operation(op, type, range, Arrays.copyOf(args, args.length));
 	}
 }
