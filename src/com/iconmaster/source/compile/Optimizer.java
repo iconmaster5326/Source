@@ -3,6 +3,7 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -101,6 +102,7 @@ public class Optimizer {
 	public static boolean isOpCritical(SourcePackage pkg, ArrayList<Operation> code, int begin, Operation op) {
 		switch (op.op) {
 			case CALL:
+				return !Directives.has(pkg.getFunction(op.args[1]),"pure");
 			case RET:
 			case WHILE:
 			case IF:
