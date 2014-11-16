@@ -27,6 +27,8 @@ import com.iconmaster.source.util.ElementHelper;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  *
@@ -100,6 +102,7 @@ public class SourceCompiler {
 		//inline stuff
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
+		CompileUtils.transform(cd.pkg, nameConflictResolver);
 		CompileUtils.transform(cd.pkg, optimizer);
 		Optimizer.countUsages(pkg);
 		
@@ -1209,5 +1212,85 @@ public class SourceCompiler {
 			}
 		}
 		return Optimizer.optimize(pkg, code);
+	};
+	
+	public static CodeTransformer nameConflictResolver = (pkg, work, code) -> {
+		class Frame {
+			public Frame parent;
+			public HashSet<String> defs = new HashSet<>();
+			public HashMap<String,String> map = new HashMap<>();
+
+			public Frame(Frame parent) {
+				this.parent = parent;
+			}
+			
+			public void set(String var) {
+				defs.add(var);
+			}
+			
+			public boolean get(String var) {
+				if (defs.contains(var)) {
+					return true;
+				} else if (parent==null) {
+					return false;
+				} else {
+					return parent.get(var);
+				}
+			}
+			
+			public void setMap(String var1, String var2) {
+				map.put(var1, var2);
+			}
+			
+			public String getMap(String var) {
+				if (map.get(var)!=null) {
+					return map.get(var);
+				} else if (parent==null) {
+					return null;
+				} else {
+					return parent.getMap(var);
+				}
+			}
+			
+			public boolean isMap(String var) {
+				return getMap(var)!=null;
+			}
+			
+			public boolean overriden(String var) {
+				if (parent==null) {
+					return false;
+				}
+				return parent.get(var) && get(var);
+			}
+		}
+		
+		Frame f = new Frame(null);
+		ArrayList<Operation> a = new ArrayList<>();
+		for (int ii=0;ii<code.size();ii++) {
+			Operation op = code.get(ii);
+
+			if (op.op == OpType.DEF) {
+				f.set(op.args[0]);
+				if (f.overriden(op.args[0])) {
+					f.setMap(op.args[0],pkg.nameProvider.getTempName());
+				}
+			} else if (op.op == OpType.BEGIN) {
+				f = new Frame(f);
+				a.add(op);
+			} else if (op.op == OpType.END) {
+				f = f.parent;
+				a.add(op);
+			} else {
+				int arg = 0;
+				for (Boolean b : op.getVarSlots()) {
+					if (b && f.isMap(op.args[arg])) {
+						op.args[arg] = f.getMap(op.args[arg]);
+					}
+					arg++;
+				}
+				a.add(op);
+			}
+		}
+		return a;
 	};
 }
