@@ -101,8 +101,6 @@ public class Optimizer {
 	
 	public static boolean isOpCritical(SourcePackage pkg, ArrayList<Operation> code, int begin, Operation op) {
 		switch (op.op) {
-			case CALL:
-				return !Directives.has(pkg.getFunction(op.args[1]),"pure");
 			case RET:
 			case WHILE:
 			case IF:
@@ -112,6 +110,10 @@ public class Optimizer {
 			case FORP:
 			case FORE:
 				return true;
+			case CALL:
+				if (!Directives.has(pkg.getFunction(op.args[1]),"pure")) {
+					return true;
+				}
 			default:
 				if (op.op.hasLVar()) {
 					return isVarCritical(pkg, code, begin+1, op.args[0]);
