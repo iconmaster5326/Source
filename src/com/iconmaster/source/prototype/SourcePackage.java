@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.SourceOptions;
 import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
@@ -9,7 +10,6 @@ import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.ElementHelper;
 import com.iconmaster.source.util.IDirectable;
-import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -24,8 +24,7 @@ public class SourcePackage implements IDirectable {
 	protected ArrayList<TypeDef> types = new ArrayList<>();
 	protected ArrayList<Iterator> iters = new ArrayList<>();
 	
-	public File assetDir;
-	public ArrayList<SourcePackage> libs = new ArrayList<>();
+	public SourceOptions options;
 	
 	public NameProvider nameProvider = new NameProvider();
 	
@@ -162,6 +161,10 @@ public class SourcePackage implements IDirectable {
 		types.addAll(other.types);
 		iters.addAll(other.iters);
 		directives.addAll(other.directives);
+		
+		if (options==null) {
+			options = other.options;
+		}
 	}
 	
 	public void addFunction(Function fn) {

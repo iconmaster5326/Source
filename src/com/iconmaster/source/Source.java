@@ -151,6 +151,7 @@ public class Source {
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
 				}
 				so.operationLog += res.result + "\n";
+				res.result.options = opts;
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in prototyping", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
