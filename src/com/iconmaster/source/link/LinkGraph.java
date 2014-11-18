@@ -11,7 +11,6 @@ import java.util.HashMap;
 public class LinkGraph {
 	public static class LinkNode {
 		public ArrayList<LinkNode> connectedTo = new ArrayList<>();
-		public ArrayList<LinkNode> connectedFrom = new ArrayList<>();
 		public String name;
 		public Import data;
 
@@ -22,29 +21,17 @@ public class LinkGraph {
 		
 		public void link(LinkNode other) {
 			connectedTo.add(other);
-			other.connectedFrom.add(this);
 		}
 	}
 	
 	public HashMap<String,LinkNode> nodes = new HashMap<>();
 	
-	public void addNode(String from, String to, Import data) {
+	public void addNode(Import data) {
 		LinkNode node;
-		if (nodes.containsKey(to)) {
-			node = nodes.get(to);
-		} else {
-			node = new LinkNode(to, data);
-			nodes.put(to, node);
+		if (!nodes.containsKey(data.name)) {
+			node = new LinkNode(data.name, data);
+			nodes.put(data.name, node);
 		}
-		LinkNode node2;
-		if (nodes.containsKey(from)) {
-			node2 = nodes.get(from);
-		} else {
-			node2 = new LinkNode(from, null);
-			nodes.put(from, node2);
-		}
-		
-		node.link(node2);
 	}
 	
 	public ArrayList<Import> getLinksWithDepsOf(int deps) {
@@ -56,9 +43,38 @@ public class LinkGraph {
 					count++;
 				}
 			}
-			if (count==deps) {
+			if (count==deps && !node.data.compiled) {
 				a.add(node.data);
 			}
+		}
+		return a;
+	}
+	
+	public Import getImport(String name) {
+		if (!nodes.containsKey(name)) {
+			return null;
+		}
+		return nodes.get(name).data;
+	}
+	
+	public void link(String from, String to) {
+		nodes.get(from).link(nodes.get(to));
+	}
+	
+	public int getHighestDep() {
+		int n = 0;
+		for (LinkNode node : nodes.values()) {
+			if (node.connectedTo.size()>n) {
+				n = node.connectedTo.size();
+			}
+		}
+		return n;
+	}
+	
+	public ArrayList<Import> getAllLinks() {
+		ArrayList<Import> a = new ArrayList<>();
+		for (LinkNode node : nodes.values()) {
+			a.add(node.data);
 		}
 		return a;
 	}

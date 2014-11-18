@@ -1,7 +1,6 @@
 package com.iconmaster.source;
 
 import com.iconmaster.source.assemble.Assembler;
-import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.link.Linker;
@@ -167,26 +166,28 @@ public class Source {
 		
 		errs.addAll(linker.errs);
 		for (SourceException ex :  linker.errs) {
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
 		}
 		
 		out.println(linker);
 		out.println("Compiling...");
 		try {
-			ArrayList<SourceException> errs2 = SourceCompiler.compile(linker.pkg);
-			errs.addAll(errs2);
-			for (SourceException ex : errs2) {
-				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
-			}
+			linker.compile();
 		} catch (Exception ex) {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 		}
+		
+		errs.addAll(linker.errs);
+		for (SourceException ex :  linker.errs) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+		}
+		
 		out.println(linker);
 		if (run) {
 			out.println("Running...");
 			try {
-				Assembler.run(platform, linker.pkg);
+				Assembler.run(platform, linker.outputPackage);
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
@@ -194,7 +195,7 @@ public class Source {
 		} else {
 			out.println("Assembling...");
 			try {
-				so.output = Assembler.assemble(platform, linker.pkg);
+				so.output = Assembler.assemble(platform, linker.outputPackage);
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));

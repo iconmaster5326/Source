@@ -309,4 +309,8 @@ public class SourcePackage implements IDirectable {
 		}
 		return null;
 	}
-}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+} 
