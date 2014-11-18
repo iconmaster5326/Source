@@ -24,6 +24,6 @@ public class Import {
 
 	@Override
 	public String toString() {
-		return (isFile?"(f) ":"")+name;
+		return (isFile?"(f) ":"")+name+(alias==null?"":("="+alias));
 	}
 }
