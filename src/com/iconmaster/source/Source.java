@@ -195,7 +195,7 @@ public class Source {
 					so.output = Assembler.assemble(opts.platform, linker.outputPackage);
 					
 					if (opts.outputFile!=null) {
-						(new FileWriter(opts.outputFile)).append(so.output);
+						(new FileWriter(opts.outputFile)).append(so.output).close();
 					}
 				} catch (Exception ex) {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
