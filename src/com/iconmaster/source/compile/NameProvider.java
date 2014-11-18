@@ -9,6 +9,6 @@ public class NameProvider {
 	
 	public String getTempName() {
 		lastName++;
-		return "%TMP"+Integer.toString(lastName);
+		return "%"+Integer.toString(lastName);
 	}
 }

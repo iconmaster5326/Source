@@ -172,7 +172,10 @@ public class SourcePackage implements IDirectable {
 	}
 
 	public String getName() {
-		return name==null?"":name;
+		if (name==null) {
+			name = nameProvider.getTempName();
+		}
+		return name;
 	}
 
 	public ArrayList<String> getImports() {
