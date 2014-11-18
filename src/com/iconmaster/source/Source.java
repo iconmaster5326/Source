@@ -11,16 +11,14 @@ import com.iconmaster.source.tokenize.Tokenizer;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
 import com.iconmaster.source.validate.Validator;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -30,23 +28,12 @@ public class Source {
 
 	public static void main(String[] args) {
 		CLA cla = CLAHelper.getArgs(args);
-		OutputStream output = null;
-		String platform = "HPPL";
+		SourceOptions op = new SourceOptions("", "HPPL", true);
 		if (cla.containsKey("p")) {
-			platform = cla.get("p");
+			op.platform = cla.get("p");
 		}
 		if (cla.containsKey("o")) {
-			File f = new File(cla.get("o"));
-			try {
-				f.createNewFile();
-			} catch (IOException ex) {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
-			}
-			try {
-				output = new FileOutputStream(f);
-			} catch (FileNotFoundException ex) {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
-			}
+			op.outputFile = new File(cla.get("o"));
 		}
 		if (cla.containsKey("libs")) {
 			File f = new File(cla.get("libs"));
@@ -58,46 +45,24 @@ public class Source {
 				}
 			}
 		}
-		if (cla.unmatched.length == 0) {
-			return;
-		} else {
-			cla.put("f",cla.unmatched[0]);
+		if (cla.containsKey("run")) {
+			op.compile = false;
 		}
-		if (cla.containsKey("f")) {
-			String input = cla.get("f");
-			File file = new File(input);
-			if (!file.canRead()) {
-				System.out.println("ERROR: file "+input+" can't be read from!");
-				return;
-			}
+		if (cla.containsKey("src")) {
+			op.libs = new File(cla.get("src"));
+		}
+		if (cla.containsKey("assets")) {
+			op.assets = new File(cla.get("assets"));
+		}
+		for (String f : cla.unmatched) {
 			try {
-				input = "";
-				Scanner fileScanner = new Scanner(new File(cla.get("f")));
-				while (fileScanner.hasNext()){
-				   input+="\n"+fileScanner.nextLine();
-				}
-			} catch (FileNotFoundException ex) {
-				System.out.println("ERROR: file "+input+" can't be read from!");
-				return;
-			}
-			SourceOutput so = execute(new SourceOptions(input, platform, !cla.containsKey("run")));
-			if (output!=null) {
-				try (PrintWriter pw = new PrintWriter(output)) {
-					pw.print(so.output);
-					pw.flush();
-				}
+				op.input = new BufferedReader(new FileReader(f)).lines().collect(Collectors.joining("\n"));
+			} catch (IOException ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
-	}
-	
-	@Deprecated
-	public static SourceOutput compile(String input, String platform, OutputStream output) {
-		return execute(input, platform, output, false);
-	}
-	
-	@Deprecated
-	public static SourceOutput run(String input, String platform, OutputStream output) {
-		return execute(input, platform, output, true);
+		
+		SourceOutput so = execute(op);
 	}
 	
 	public static SourceOutput execute(SourceOptions opts) {
@@ -220,10 +185,5 @@ public class Source {
 		
 		System.out.println(so.operationLog);
 		return so;
-	}
-	
-	@Deprecated
-	public static SourceOutput execute(String input, String platform, OutputStream output, boolean run) {
-		return execute(new SourceOptions(input, platform, !run).setStreams(output, System.in, System.err));
 	}
 }

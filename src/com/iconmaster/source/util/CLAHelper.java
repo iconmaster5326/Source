@@ -34,7 +34,7 @@ public class CLAHelper {
 		if (flag!=null && !cla.containsKey(flag)) {
 			cla.put(flag, "");
 		}
-		cla.unmatched = a.toArray(input);
+		cla.unmatched = a.toArray(new String[0]);
 		return cla;
 	}
 }
