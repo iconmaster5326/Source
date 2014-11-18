@@ -12,4 +12,5 @@ public class SourceOutput {
 	public ArrayList<SourceException> errs = new ArrayList<>();
 	public ArrayList<ErrorDetails> dets = new ArrayList<>();
 	public String errMsgs;
+	public String operationLog;
 }

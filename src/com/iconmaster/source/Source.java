@@ -84,7 +84,7 @@ public class Source {
 				System.out.println("ERROR: file "+input+" can't be read from!");
 				return;
 			}
-			SourceOutput so = execute(input,platform,System.out,cla.containsKey("run"));
+			SourceOutput so = execute(new SourceOptions(input, platform, !cla.containsKey("run")));
 			if (output!=null) {
 				try (PrintWriter pw = new PrintWriter(output)) {
 					pw.print(so.output);
@@ -105,11 +105,11 @@ public class Source {
 	}
 	
 	public static SourceOutput execute(SourceOptions opts) {
-		PrintWriter out = new PrintWriter(opts.sout);
 		ArrayList<ErrorDetails> dets = new ArrayList<>();
 		ArrayList<SourceException> errs = new ArrayList<>();
 		SourceOutput so = new SourceOutput();
-		out.println("Tokenizing...");
+		so.operationLog = "";
+		so.operationLog += "Tokenizing...\n";
 		ArrayList<Element> a = null;
 		try {
 			a = Tokenizer.tokenize(opts.input);
@@ -121,8 +121,8 @@ public class Source {
 			}
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Tokenization"));
 		}
-		out.println(a);
-		out.println("Parsing...");
+		so.operationLog += a + "\n";
+		so.operationLog += "Parsing...\n";
 		try {
 			a = Parser.parse(a);
 		} catch (Exception ex) {
@@ -133,7 +133,7 @@ public class Source {
 			}
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
 		}
-		out.println("Validating...");
+		so.operationLog += "Validating...\n";
 		try {
 			ArrayList<SourceException> errs2 = Validator.validate(a);
 			errs.addAll(errs2);
@@ -144,7 +144,7 @@ public class Source {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
 		}
-		out.println("Prototyping...");
+		so.operationLog += "Prototyping...\n";
 		Prototyper.PrototypeResult res = null;
 		try {
 			res = Prototyper.prototype(a);
@@ -152,12 +152,12 @@ public class Source {
 			for (SourceException ex : res.errors) {
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
 			}
-			out.println(res.result);
+			so.operationLog += res.result + "\n";
 		} catch (Exception ex) {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
 		}
-		out.println("Linking...");
+		so.operationLog += "Linking...\n";
 		Linker linker = null;
 		try {
 			linker = Linker.link(opts.platform, res.result);
@@ -171,8 +171,8 @@ public class Source {
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
 		}
 		
-		out.println(linker);
-		out.println("Compiling...");
+		so.operationLog += linker + "\n";
+		so.operationLog += "Compiling...\n";
 		try {
 			linker.compile();
 		} catch (Exception ex) {
@@ -185,18 +185,18 @@ public class Source {
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 		}
 		
-		out.println(linker);
+		so.operationLog += linker + "\n";
 		if (opts.compile) {
-			out.println("Assembling...");
+			so.operationLog += "Assembling...\n";
 			try {
 				so.output = Assembler.assemble(opts.platform, linker.outputPackage);
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
 			}
-			out.println(so.output);
+			so.operationLog += so.output + "\n";
 		} else {
-			out.println("Running...");
+			so.operationLog += "Running...\n";
 			try {
 				Assembler.run(opts.platform, linker.outputPackage);
 			} catch (Exception ex) {
@@ -204,7 +204,7 @@ public class Source {
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
 			}
 		}
-		out.println("Done!");
+		so.operationLog += "Done!\n";
 		so.errs = errs;
 		so.dets = dets;
 		so.errMsgs = "";
@@ -212,11 +212,9 @@ public class Source {
 			so.errMsgs+=det.errorType+" in "+det.phase+": "+det.errorMsg+"\n";
 		}
 		if (!dets.isEmpty()) {
-			out.print("There were errors detected:\n\t");
-			out.println(so.errMsgs.replace("\n","\n\t"));
+			so.operationLog += "There were errors detected:\n\t";
+			so.operationLog += so.errMsgs.replace("\n","\n\t") + "\n";
 		}
-		out.flush();
-		out.close();
 		return so;
 	}
 	
