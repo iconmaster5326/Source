@@ -3,6 +3,7 @@ package com.iconmaster.source.link;
 import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.Import;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,11 +62,11 @@ public class Linker {
 	
 	public void manageLinks() {
 		unresolvedImports.clear();
-		for (String imp : pkg.getImports()) {
-			if (!imported.containsKey(imp)) {
-				boolean found = addImportRef(imp);
+		for (Import imp : pkg.getImports()) {
+			if (!imported.containsKey(imp.name)) {
+				boolean found = addImportRef(imp.name);
 				if (!found) {
-					unresolvedImports.add(imp);
+					unresolvedImports.add(imp.name);
 				} else {
 					break;
 				}

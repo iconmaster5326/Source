@@ -18,7 +18,7 @@ public class SourcePackage implements IDirectable {
 	protected String name;
 	protected ArrayList<Field> fields = new ArrayList<>();
 	protected ArrayList<Function> functions = new ArrayList<>();
-	protected ArrayList<String> imports = new ArrayList<>();
+	protected ArrayList<Import> imports = new ArrayList<>();
 	protected ArrayList<TypeDef> types = new ArrayList<>();
 	protected ArrayList<Iterator> iters = new ArrayList<>();
 	
@@ -31,7 +31,7 @@ public class SourcePackage implements IDirectable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder("PACKAGE ");
 		sb.append(name).append(":\n\tIMPORTS:");
-		for (String imp : imports) {
+		for (Import imp : imports) {
 			sb.append("\n\t\t");
 			sb.append(imp);
 		}
@@ -77,7 +77,7 @@ public class SourcePackage implements IDirectable {
 					if (imp == null) {
 						errors.add(new SourceException(e.range,"Invalid import package"));
 					} else {
-						imports.add(imp);
+						imports.add(new Import(imp, null, false, e.range));
 					}
 					break;
 				case FIELD_ASN:
@@ -178,7 +178,7 @@ public class SourcePackage implements IDirectable {
 		return name;
 	}
 
-	public ArrayList<String> getImports() {
+	public ArrayList<Import> getImports() {
 		return imports;
 	}
 
