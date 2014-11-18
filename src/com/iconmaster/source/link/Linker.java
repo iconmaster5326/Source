@@ -29,7 +29,6 @@ public class Linker {
 	
 	public Linker(String platform) {
 		this.platform = platforms.get(platform);
-		linkLibrary(this.platform.pkgs.get("core"));
 	}
 	
 	public void linkUserPackage(SourcePackage user) {
@@ -78,6 +77,7 @@ public class Linker {
 		Linker linker = new Linker(plat);
 		linker.linkUserPackage(pkg);
 		linker.manageLinks();
+		linker.linkLibrary(linker.platform.pkgs.get("core"));
 		linker.giveCompileNames();
 		return linker;
 	}
