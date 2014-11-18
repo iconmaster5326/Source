@@ -80,7 +80,7 @@ public class SourcePackage implements IDirectable {
 					if (imp == null) {
 						errors.add(new SourceException(e.range,"Invalid import package"));
 					} else {
-						imports.add(new Import(imp, ElementHelper.nameString(e.dataType), e.type==TokenRule.STRING, e.range));
+						imports.add(new Import(imp, ElementHelper.nameString(((Element)e.args[0]).dataType), ((Element)e.args[0]).type==TokenRule.STRING, e.range));
 					}
 					break;
 				case FIELD_ASN:
@@ -155,6 +155,10 @@ public class SourcePackage implements IDirectable {
 	}
 	
 	public void addContents(SourcePackage other) {
+		if (other==null) {
+			return;
+		}
+		
 		fields.addAll(other.fields);
 		functions.addAll(other.functions);
 		imports.addAll(other.imports);
@@ -164,6 +168,8 @@ public class SourcePackage implements IDirectable {
 		
 		if (options==null) {
 			options = other.options;
+		} else {
+			other.options = options;
 		}
 	}
 	

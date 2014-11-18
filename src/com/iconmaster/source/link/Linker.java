@@ -62,7 +62,7 @@ public class Linker {
 			if (imp.pkg==null) {
 				if (platform.pkgs.containsKey(imp.name)) {
 					imp.pkg = platform.pkgs.get(imp.name);
-				} else {
+				} else if (!imp.isFile) {
 					errs.add(new SourceImportException(imp.range, "Unresolved import "+imp.name, imp.name));
 				}
 			}
@@ -90,28 +90,31 @@ public class Linker {
 			} else {
 				for (Import imp : (ArrayList<Import>) imps.clone()) {
 					SourcePackage compPkg = new SourcePackage();
-					compPkg.addContents(imp.pkg);
-					compPkg.setName(imp.pkg.getName());
 					
-					HashSet<String> has = new HashSet<>();
-					has.add(imp.name);
-					
-					for (Import imp2 : imps) {
-						if (imp2!=imp) {
-							if (imp2.pkg!=null) {
-								if (!has.contains(imp2.name)) {
-									compPkg.addContents(imp2.pkg);
-									has.add(imp2.name);
+					if (imp.pkg!=null) {
+						compPkg.addContents(imp.pkg);
+						compPkg.setName(imp.pkg.getName());
+
+						HashSet<String> has = new HashSet<>();
+						has.add(imp.name);
+
+						for (Import imp2 : imps) {
+							if (imp2!=imp) {
+								if (imp2.pkg!=null) {
+									if (!has.contains(imp2.name)) {
+										compPkg.addContents(imp2.pkg);
+										has.add(imp2.name);
+									}
 								}
 							}
 						}
-					}
-					
-					addNeeded(compPkg,compPkg,has);
-					
-					compPkg.addContents(platform.pkgs.get("core"));
 
-					errs.addAll(SourceCompiler.compile(compPkg));
+						addNeeded(compPkg,compPkg,has);
+
+						compPkg.addContents(platform.pkgs.get("core"));
+
+						errs.addAll(SourceCompiler.compile(compPkg));
+					}
 					
 					System.out.println("* COMP "+imp);
 					imp.compiled = true;
@@ -131,7 +134,7 @@ public class Linker {
 	
 	public void addNeeded(SourcePackage pkg, SourcePackage pkg2, HashSet<String> has) {
 		for (Import imp : pkg2.getImports()) {
-			if (!has.contains(imp.name)) {
+			if (imp.pkg!=null && !has.contains(imp.name)) {
 				System.out.println("* CADD "+imp);
 				Import imp2 = links.getImport(imp.name);
 				pkg.addContents(imp2.pkg);
