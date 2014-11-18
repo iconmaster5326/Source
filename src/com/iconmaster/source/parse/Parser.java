@@ -6,7 +6,6 @@ import com.iconmaster.source.element.ISpecialRule;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.tokenize.TokenRule;
-import com.iconmaster.source.util.Debug;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,7 +30,7 @@ public class Parser {
 	}
 	
 	public static ArrayList<Element> parse(ArrayList<Element> a) throws SourceException {
-		Debug.println("Initial tree: "+a);
+		System.out.println("Initial tree: "+a);
 		for (Rule rule : Rule.values()) {
 			for (int i=0;i<a.size();i++) {
 				ISpecialRule.RuleResult m = rule.rule.match(a, i);
@@ -43,8 +42,8 @@ public class Parser {
 						a.add(i, m.ret);
 						i-=1;
 					}
-					Debug.print("matched rule "+rule.toString()+": ");
-					Debug.println(a);
+					System.out.print("matched rule "+rule.toString()+": ");
+					System.out.println(a);
 				}
 			}
 		}

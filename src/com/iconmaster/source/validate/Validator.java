@@ -4,7 +4,6 @@ import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.tokenize.TokenRule;
-import com.iconmaster.source.util.Debug;
 import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
@@ -32,7 +31,7 @@ public class Validator {
 	}
 	
 	public static ArrayList<SourceException> validateElement(Element e, Scope scope) {
-		Debug.println("Validating "+e+" in scope "+scope);
+		System.out.println("Validating "+e+" in scope "+scope);
 		ArrayList<SourceException> a = new ArrayList<>();
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {

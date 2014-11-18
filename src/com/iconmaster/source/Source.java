@@ -10,7 +10,6 @@ import com.iconmaster.source.prototype.Prototyper;
 import com.iconmaster.source.tokenize.Tokenizer;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
-import com.iconmaster.source.util.Debug;
 import com.iconmaster.source.validate.Validator;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,9 +31,6 @@ public class Source {
 	public static void main(String[] args) {
 		CLA cla = CLAHelper.getArgs(args);
 		OutputStream output = null;
-		if (cla.containsKey("d")) {
-			Debug.debugMode = true;
-		}
 		String platform = "HPPL";
 		if (cla.containsKey("p")) {
 			platform = cla.get("p");
@@ -105,116 +101,123 @@ public class Source {
 	}
 	
 	public static SourceOutput execute(SourceOptions opts) {
-		ArrayList<ErrorDetails> dets = new ArrayList<>();
-		ArrayList<SourceException> errs = new ArrayList<>();
 		SourceOutput so = new SourceOutput();
 		so.operationLog = "";
-		so.operationLog += "Tokenizing...\n";
-		ArrayList<Element> a = null;
 		try {
-			a = Tokenizer.tokenize(opts.input);
-		} catch (Exception ex) {
-			if (ex instanceof SourceException) {
-				errs.add((SourceException) ex);
-			} else {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
+			ArrayList<ErrorDetails> dets = new ArrayList<>();
+			ArrayList<SourceException> errs = new ArrayList<>();
+
+			so.operationLog += "Tokenizing...\n";
+			ArrayList<Element> a = null;
+			try {
+				a = Tokenizer.tokenize(opts.input);
+			} catch (Exception ex) {
+				if (ex instanceof SourceException) {
+					errs.add((SourceException) ex);
+				} else {
+					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in tokenization", ex);
+				}
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Tokenization"));
 			}
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Tokenization"));
-		}
-		so.operationLog += a + "\n";
-		so.operationLog += "Parsing...\n";
-		try {
-			a = Parser.parse(a);
-		} catch (Exception ex) {
-			if (ex instanceof SourceException) {
-				errs.add((SourceException) ex);
-			} else {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
+			so.operationLog += a + "\n";
+			so.operationLog += "Parsing...\n";
+			try {
+				a = Parser.parse(a);
+			} catch (Exception ex) {
+				if (ex instanceof SourceException) {
+					errs.add((SourceException) ex);
+				} else {
+					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in parsing", ex);
+				}
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
 			}
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
-		}
-		so.operationLog += "Validating...\n";
-		try {
-			ArrayList<SourceException> errs2 = Validator.validate(a);
-			errs.addAll(errs2);
-			for (SourceException ex : errs2) {
+			so.operationLog += "Validating...\n";
+			try {
+				ArrayList<SourceException> errs2 = Validator.validate(a);
+				errs.addAll(errs2);
+				for (SourceException ex : errs2) {
+					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
+				}
+			} catch (Exception ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in validation", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
 			}
-		} catch (Exception ex) {
-			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
-		}
-		so.operationLog += "Prototyping...\n";
-		Prototyper.PrototypeResult res = null;
-		try {
-			res = Prototyper.prototype(a);
-			errs.addAll(res.errors);
-			for (SourceException ex : res.errors) {
+			so.operationLog += "Prototyping...\n";
+			Prototyper.PrototypeResult res = null;
+			try {
+				res = Prototyper.prototype(a);
+				errs.addAll(res.errors);
+				for (SourceException ex : res.errors) {
+					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
+				}
+				so.operationLog += res.result + "\n";
+			} catch (Exception ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in prototyping", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
 			}
-			so.operationLog += res.result + "\n";
-		} catch (Exception ex) {
-			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
-		}
-		so.operationLog += "Linking...\n";
-		Linker linker = null;
-		try {
-			linker = Linker.link(opts.platform, res.result);
-		} catch (Exception ex) {
-			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
-		}
-		
-		errs.addAll(linker.errs);
-		for (SourceException ex :  linker.errs) {
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
-		}
-		
-		so.operationLog += linker + "\n";
-		so.operationLog += "Compiling...\n";
-		try {
-			linker.compile();
-		} catch (Exception ex) {
-			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
-		}
-		
-		errs.addAll(linker.errs);
-		for (SourceException ex :  linker.errs) {
-			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
-		}
-		
-		so.operationLog += linker + "\n";
-		if (opts.compile) {
-			so.operationLog += "Assembling...\n";
+			so.operationLog += "Linking...\n";
+			Linker linker = null;
 			try {
-				so.output = Assembler.assemble(opts.platform, linker.outputPackage);
+				linker = Linker.link(opts.platform, res.result);
+				
+				errs.addAll(linker.errs);
+				for (SourceException ex :  linker.errs) {
+					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
+				}
 			} catch (Exception ex) {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in linking", ex);
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
 			}
-			so.operationLog += so.output + "\n";
-		} else {
-			so.operationLog += "Running...\n";
+
+			so.operationLog += linker + "\n";
+			so.operationLog += "Compiling...\n";
 			try {
-				Assembler.run(opts.platform, linker.outputPackage);
+				linker.compile();
+				
+				errs.addAll(linker.errs);
+				for (SourceException ex :  linker.errs) {
+					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+				}
 			} catch (Exception ex) {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in compiling", ex);
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 			}
+
+			so.operationLog += linker + "\n";
+			if (opts.compile) {
+				so.operationLog += "Assembling...\n";
+				try {
+					so.output = Assembler.assemble(opts.platform, linker.outputPackage);
+				} catch (Exception ex) {
+					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
+					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+				}
+				so.operationLog += so.output + "\n";
+			} else {
+				so.operationLog += "Running...\n";
+				try {
+					Assembler.run(opts.platform, linker.outputPackage);
+				} catch (Exception ex) {
+					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in running", ex);
+					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
+				}
+			}
+			so.operationLog += "Done!\n";
+			so.errs = errs;
+			so.dets = dets;
+			so.errMsgs = "";
+			for (ErrorDetails det : dets) {
+				so.errMsgs+=det.errorType+" in "+det.phase+": "+det.errorMsg+"\n";
+			}
+			if (!dets.isEmpty()) {
+				so.operationLog += "There were errors detected:\n\t";
+				so.operationLog += so.errMsgs.replace("\n","\n\t") + "\n";
+			}
+		} catch (Exception ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "general Source error", ex);
 		}
-		so.operationLog += "Done!\n";
-		so.errs = errs;
-		so.dets = dets;
-		so.errMsgs = "";
-		for (ErrorDetails det : dets) {
-			so.errMsgs+=det.errorType+" in "+det.phase+": "+det.errorMsg+"\n";
-		}
-		if (!dets.isEmpty()) {
-			so.operationLog += "There were errors detected:\n\t";
-			so.operationLog += so.errMsgs.replace("\n","\n\t") + "\n";
-		}
+		
+		System.out.println(so.operationLog);
 		return so;
 	}
 	
