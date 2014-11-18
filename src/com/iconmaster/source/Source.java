@@ -94,23 +94,25 @@ public class Source {
 		}
 	}
 	
+	@Deprecated
 	public static SourceOutput compile(String input, String platform, OutputStream output) {
 		return execute(input, platform, output, false);
 	}
 	
+	@Deprecated
 	public static SourceOutput run(String input, String platform, OutputStream output) {
 		return execute(input, platform, output, true);
 	}
 	
-	public static SourceOutput execute(String input, String platform, OutputStream output, boolean run) {
-		PrintWriter out = new PrintWriter(output);
+	public static SourceOutput execute(SourceOptions opts) {
+		PrintWriter out = new PrintWriter(opts.sout);
 		ArrayList<ErrorDetails> dets = new ArrayList<>();
 		ArrayList<SourceException> errs = new ArrayList<>();
 		SourceOutput so = new SourceOutput();
 		out.println("Tokenizing...");
 		ArrayList<Element> a = null;
 		try {
-			a = Tokenizer.tokenize(input);
+			a = Tokenizer.tokenize(opts.input);
 		} catch (Exception ex) {
 			if (ex instanceof SourceException) {
 				errs.add((SourceException) ex);
@@ -158,7 +160,7 @@ public class Source {
 		out.println("Linking...");
 		Linker linker = null;
 		try {
-			linker = Linker.link(platform, res.result);
+			linker = Linker.link(opts.platform, res.result);
 		} catch (Exception ex) {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
@@ -184,23 +186,23 @@ public class Source {
 		}
 		
 		out.println(linker);
-		if (run) {
-			out.println("Running...");
-			try {
-				Assembler.run(platform, linker.outputPackage);
-			} catch (Exception ex) {
-				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
-				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
-			}
-		} else {
+		if (opts.compile) {
 			out.println("Assembling...");
 			try {
-				so.output = Assembler.assemble(platform, linker.outputPackage);
+				so.output = Assembler.assemble(opts.platform, linker.outputPackage);
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
 			}
 			out.println(so.output);
+		} else {
+			out.println("Running...");
+			try {
+				Assembler.run(opts.platform, linker.outputPackage);
+			} catch (Exception ex) {
+				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
+				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
+			}
 		}
 		out.println("Done!");
 		so.errs = errs;
@@ -218,4 +220,8 @@ public class Source {
 		return so;
 	}
 	
+	@Deprecated
+	public static SourceOutput execute(String input, String platform, OutputStream output, boolean run) {
+		return execute(new SourceOptions(input, platform, !run).setStreams(output, System.in, System.err));
+	}
 }

@@ -9,6 +9,7 @@ import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.ElementHelper;
 import com.iconmaster.source.util.IDirectable;
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -23,7 +24,9 @@ public class SourcePackage implements IDirectable {
 	protected ArrayList<TypeDef> types = new ArrayList<>();
 	protected ArrayList<Iterator> iters = new ArrayList<>();
 	
-	protected boolean compiled = false;
+	public File assetDir;
+	public ArrayList<SourcePackage> libs = new ArrayList<>();
+	
 	public NameProvider nameProvider = new NameProvider();
 	
 	private ArrayList<String> directives = new ArrayList<>();
