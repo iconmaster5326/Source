@@ -14,6 +14,7 @@ import com.iconmaster.source.validate.Validator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -28,7 +29,7 @@ public class Source {
 
 	public static void main(String[] args) {
 		CLA cla = CLAHelper.getArgs(args);
-		SourceOptions op = new SourceOptions("", "HPPL", true);
+		SourceOptions op = new SourceOptions(null, "HPPL", true);
 		if (cla.containsKey("p")) {
 			op.platform = cla.get("p");
 		}
@@ -54,7 +55,9 @@ public class Source {
 		if (cla.containsKey("assets")) {
 			op.assets = new File(cla.get("assets"));
 		}
+		
 		for (String f : cla.unmatched) {
+			System.out.println("Compiling "+f+"...");
 			try {
 				op.input = new BufferedReader(new FileReader(f)).lines().collect(Collectors.joining("\n"));
 			} catch (IOException ex) {
@@ -62,7 +65,43 @@ public class Source {
 			}
 		}
 		
+		if (op.input == null) {
+			System.out.println("This is Source, written by iconmaster.");
+			System.out.println("Give the input file on the command line.");
+			System.out.println("Some options are:");
+			System.out.println("\tp:\t\tThe platform to compile to");
+			System.out.println("\to:\t\tThe output file");
+			System.out.println("\tlibs:\t\tThe external platform folder");
+			System.out.println("\tsrc:\t\tThe Source libraries folder");
+			System.out.println("\tassets:\t\tThe assets folder");
+			System.out.println("\trun:\t\tInclude to run program (i.e. SourceBox)");
+			System.out.println("\tv:\t\tVerbose compile mode switch");
+			System.out.println("\tshow:\t\tShow compiled output");
+			System.exit(0);
+		}
+		
 		SourceOutput so = execute(op);
+		
+		if (so.dets.isEmpty()) {
+			if (cla.containsKey("v")) {
+				System.out.println(so.operationLog);
+			} else if (cla.containsKey("show")) {
+				System.out.println();
+				System.out.println(so.output);
+			}
+			System.out.print("Compiled sucsessfully");
+			if (op.outputFile!=null) {
+				System.out.println(" into "+op.outputFile+".");
+			} else {
+				System.out.println(".");
+			}
+		} else {
+			if (cla.containsKey("v")) {
+				System.out.println(so.operationLog);
+			}
+			System.out.println("There were errors in compiling:");
+			System.out.println(so.errMsgs.replace("\n", "\n\t"));
+		}
 	}
 	
 	public static SourceOutput execute(SourceOptions opts) {
@@ -154,6 +193,10 @@ public class Source {
 				so.operationLog += "Assembling...\n";
 				try {
 					so.output = Assembler.assemble(opts.platform, linker.outputPackage);
+					
+					if (opts.outputFile!=null) {
+						(new FileWriter(opts.outputFile)).append(so.output);
+					}
 				} catch (Exception ex) {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
@@ -183,7 +226,6 @@ public class Source {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "general Source error", ex);
 		}
 		
-		System.out.println(so.operationLog);
 		return so;
 	}
 }

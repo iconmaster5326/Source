@@ -80,11 +80,11 @@ public class Linker {
 		
 		int n = 0;
 		int max = links.getHighestDep();
-		System.out.println("* MAX "+max);
+		//System.out.println("* MAX "+max);
 		while (n<=max) {
 			ArrayList<Import> imps = links.getLinksWithDepsOf(n);
-			System.out.println("* N "+n);
-			System.out.println("* IMPS "+imps);
+			//System.out.println("* N "+n);
+			//System.out.println("* IMPS "+imps);
 			if (imps.isEmpty()) {
 				n++;
 			} else {
@@ -116,7 +116,7 @@ public class Linker {
 						errs.addAll(SourceCompiler.compile(compPkg));
 					}
 					
-					System.out.println("* COMP "+imp);
+					//System.out.println("* COMP "+imp);
 					imp.compiled = true;
 					n = 0;
 				}
@@ -135,7 +135,7 @@ public class Linker {
 	public void addNeeded(SourcePackage pkg, SourcePackage pkg2, HashSet<String> has) {
 		for (Import imp : pkg2.getImports()) {
 			if (imp.pkg!=null && !has.contains(imp.name)) {
-				System.out.println("* CADD "+imp);
+				//System.out.println("* CADD "+imp);
 				Import imp2 = links.getImport(imp.name);
 				pkg.addContents(imp2.pkg);
 				has.add(imp2.name);

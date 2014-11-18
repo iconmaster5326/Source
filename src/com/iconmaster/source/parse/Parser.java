@@ -30,7 +30,7 @@ public class Parser {
 	}
 	
 	public static ArrayList<Element> parse(ArrayList<Element> a) throws SourceException {
-		System.out.println("Initial tree: "+a);
+		//System.out.println("Initial tree: "+a);
 		for (Rule rule : Rule.values()) {
 			for (int i=0;i<a.size();i++) {
 				ISpecialRule.RuleResult m = rule.rule.match(a, i);
@@ -42,8 +42,8 @@ public class Parser {
 						a.add(i, m.ret);
 						i-=1;
 					}
-					System.out.print("matched rule "+rule.toString()+": ");
-					System.out.println(a);
+					//System.out.print("matched rule "+rule.toString()+": ");
+					//System.out.println(a);
 				}
 			}
 		}

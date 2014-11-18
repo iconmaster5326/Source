@@ -31,7 +31,7 @@ public class Validator {
 	}
 	
 	public static ArrayList<SourceException> validateElement(Element e, Scope scope) {
-		System.out.println("Validating "+e+" in scope "+scope);
+		//System.out.println("Validating "+e+" in scope "+scope);
 		ArrayList<SourceException> a = new ArrayList<>();
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
