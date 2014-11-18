@@ -11,7 +11,9 @@ import java.util.ArrayList;
  */
 public class ElementHelper {
 	public static String nameString(Element e) {
-		if (e.type==TokenRule.WORD) {
+		if (e==null) {
+			return null;
+		} else if (e.type==TokenRule.WORD || e.type==TokenRule.STRING) {
 			return (String) e.args[0];
 		} else if (e.type == Rule.CHAIN) {
 			String str = null;

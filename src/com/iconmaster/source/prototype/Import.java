@@ -19,4 +19,9 @@ public class Import {
 		this.isFile = isFile;
 		this.range = range;
 	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
 }

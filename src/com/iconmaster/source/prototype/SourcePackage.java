@@ -5,6 +5,7 @@ import com.iconmaster.source.compile.NameProvider;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.ElementHelper;
 import com.iconmaster.source.util.IDirectable;
@@ -77,7 +78,7 @@ public class SourcePackage implements IDirectable {
 					if (imp == null) {
 						errors.add(new SourceException(e.range,"Invalid import package"));
 					} else {
-						imports.add(new Import(imp, null, false, e.range));
+						imports.add(new Import(imp, ElementHelper.nameString(e.dataType), e.type==TokenRule.STRING, e.range));
 					}
 					break;
 				case FIELD_ASN:
