@@ -11,7 +11,9 @@ public class Import {
 	public String alias;
 	public boolean isFile;
 	public boolean resolved = false;
+	public boolean compiled = false;
 	public Range range;
+	public SourcePackage pkg = null;
 
 	public Import(String name, String alias, boolean isFile, Range range) {
 		this.name = name;

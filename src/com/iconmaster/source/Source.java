@@ -164,6 +164,12 @@ public class Source {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "error", ex);
 			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
 		}
+		
+		errs.addAll(linker.errs);
+		for (SourceException ex :  linker.errs) {
+			dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+		}
+		
 		out.println(linker);
 		out.println("Compiling...");
 		try {

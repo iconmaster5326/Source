@@ -1,5 +1,7 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.exception.SourceImportException;
 import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
@@ -26,7 +28,7 @@ public class Linker {
 	public HashMap<String,SourcePackage> imported = new HashMap<>();
 	public Platform platform;
 	public SourcePackage pkg = new SourcePackage();
-	public ArrayList<String> unresolvedImports = new ArrayList<>();
+	public ArrayList<SourceException> errs = new ArrayList<>();
 	
 	public Linker(String platform) {
 		this.platform = platforms.get(platform);
@@ -61,12 +63,12 @@ public class Linker {
 	}
 	
 	public void manageLinks() {
-		unresolvedImports.clear();
+		errs.clear();
 		for (Import imp : pkg.getImports()) {
 			if (!imported.containsKey(imp.name)) {
 				boolean found = addImportRef(imp.name);
 				if (!found) {
-					unresolvedImports.add(imp.name);
+					errs.add(new SourceImportException(imp.range, "Unresolved import "+imp.name,imp.name));
 				} else {
 					break;
 				}
