@@ -22,6 +22,7 @@ public class SourcePackage implements IDirectable {
 	protected ArrayList<Import> imports = new ArrayList<>();
 	protected ArrayList<TypeDef> types = new ArrayList<>();
 	protected ArrayList<Iterator> iters = new ArrayList<>();
+	private ArrayList<ImportAlias> aliases = new ArrayList<>();
 	
 	public NameProvider nameProvider = new NameProvider();
 	
@@ -315,5 +316,9 @@ public class SourcePackage implements IDirectable {
 	
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public ArrayList<ImportAlias> getAliases() {
+		return aliases;
 	}
 } 

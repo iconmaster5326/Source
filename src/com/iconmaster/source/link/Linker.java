@@ -9,6 +9,7 @@ import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.Import;
+import com.iconmaster.source.prototype.ImportAlias;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.io.File;
 import java.util.ArrayList;
@@ -101,6 +102,10 @@ public class Linker {
 					} else {
 						errs.add(new SourceImportException(imp.range, "File "+imp.name+" not supported by platform", imp.name));
 					}
+				}
+				
+				if (imp.alias!=null && imp.pkg!=null) {
+					pkg.getAliases().add(new ImportAlias(imp.pkg.getName(), imp.alias));
 				}
 			}
 			
