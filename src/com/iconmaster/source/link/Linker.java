@@ -1,5 +1,6 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.SourceOptions;
 import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.exception.SourceImportException;
@@ -32,10 +33,12 @@ public class Linker {
 	public SourcePackage inputPackage;
 	public SourcePackage outputPackage = new SourcePackage();
 	public ArrayList<SourceException> errs = new ArrayList<>();
+	public SourceOptions op;
 	
-	public Linker(String platform, SourcePackage inputPackage) {
+	public Linker(String platform, SourcePackage inputPackage, SourceOptions op) {
 		this.platform = platforms.get(platform);
 		this.inputPackage = inputPackage;
+		this.op = op;
 	}
 	
 	public void resolveLinks() {
@@ -64,6 +67,10 @@ public class Linker {
 					imp.pkg = platform.pkgs.get(imp.name);
 				} else if (!imp.isFile) {
 					errs.add(new SourceImportException(imp.range, "Unresolved import "+imp.name, imp.name));
+				} else {
+					if (imp.name.endsWith(".src")) {
+						
+					}
 				}
 			}
 			
@@ -144,8 +151,8 @@ public class Linker {
 		}
 	}
 	
-	public static Linker link(String plat,SourcePackage pkg) {
-		Linker linker = new Linker(plat,pkg);
+	public static Linker link(String plat,SourcePackage pkg, SourceOptions op) {
+		Linker linker = new Linker(plat,pkg,op);
 		linker.resolveLinks();
 		return linker;
 	}
