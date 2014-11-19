@@ -1,6 +1,7 @@
 package com.iconmaster.source.tokenize;
 
 import com.iconmaster.source.element.IElementType;
+import com.iconmaster.source.util.StringUtils;
 
 /**
  *
@@ -12,7 +13,7 @@ public enum TokenRule implements IElementType {
 	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|this|extends|to)\\b"),
 	WORD("w","[\\w\\?&&[^\\d]][\\w\\?\\.]*"),
 	NUMBER("n","[\\d\\.]+"),
-	STRING("s","\"[^\"]*\""),
+	STRING("s","\"(\\\\.|[^\"])*\""),
 	SEP(";",";+"),
 	DIRECTIVE("r","@[\\S]*"),
 	SYMBOL("y","([\\Q+-*/=<>~!&|%^\\E]+|\\(|\\)|\\[|\\]|\\{|\\}|,)");
@@ -39,7 +40,7 @@ public enum TokenRule implements IElementType {
 			case COMMENT:
 				return null;
 			case STRING:
-				return input.substring(1, input.length()-1);
+				return StringUtils.unescape(input.substring(1, input.length()-1));
 			case DIRECTIVE:
 				return input.substring(1);
 			default:

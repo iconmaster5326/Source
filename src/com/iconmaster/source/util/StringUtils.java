@@ -9,7 +9,7 @@ import java.util.ArrayList;
  *
  * @author iconmaster
  */
-public class ElementHelper {
+public class StringUtils {
 	public static String nameString(Element e) {
 		if (e==null) {
 			return null;
@@ -33,5 +33,29 @@ public class ElementHelper {
 	
 	public static boolean isReal(String n) {
 		return n.contains(".");
+	}
+	
+	public static String unescape(String s) {
+		String out = "";
+		boolean esc = false;
+		for (char c : s.toCharArray()) {
+			if (esc) {
+				if (c=='n') {
+					out += '\n';
+				} else if (c=='t') {
+					out += '\t';
+				} else {
+					out += c;
+				}
+				esc = false;
+			} else {
+				if (c=='\\') {
+					esc = true;
+				} else {
+					out += c;
+				}
+			}
+		}
+		return out;
 	}
 }

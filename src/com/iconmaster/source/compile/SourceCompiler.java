@@ -23,7 +23,7 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
-import com.iconmaster.source.util.ElementHelper;
+import com.iconmaster.source.util.StringUtils;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -553,7 +553,7 @@ public class SourceCompiler {
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case NUMBER:
-					if (ElementHelper.isReal((String) e.args[0])) {
+					if (StringUtils.isReal((String) e.args[0])) {
 						expr.type = new DataType(TypeDef.REAL,true);
 					} else {
 						expr.type = new DataType(TypeDef.INT,true);

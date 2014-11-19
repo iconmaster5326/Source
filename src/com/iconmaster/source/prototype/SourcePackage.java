@@ -7,7 +7,7 @@ import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
-import com.iconmaster.source.util.ElementHelper;
+import com.iconmaster.source.util.StringUtils;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
@@ -67,18 +67,18 @@ public class SourcePackage implements IDirectable {
 					if (name!=null) {
 						errors.add(new SourceException(e.range,"Cannot have multiple package declarations"));
 					} else {
-						name = ElementHelper.nameString((Element) e.args[0]);
+						name = StringUtils.nameString((Element) e.args[0]);
 						if (name == null) {
 							errors.add(new SourceException(e.range,"Invalid package name"));
 						}
 					}
 					break;
 				case IMPORT:
-					String imp = ElementHelper.nameString((Element) e.args[0]);
+					String imp = StringUtils.nameString((Element) e.args[0]);
 					if (imp == null) {
 						errors.add(new SourceException(e.range,"Invalid import package"));
 					} else {
-						imports.add(new Import(imp, ElementHelper.nameString(((Element)e.args[0]).dataType), ((Element)e.args[0]).type==TokenRule.STRING, e.range));
+						imports.add(new Import(imp, StringUtils.nameString(((Element)e.args[0]).dataType), ((Element)e.args[0]).type==TokenRule.STRING, e.range));
 					}
 					break;
 				case FIELD_ASN:
