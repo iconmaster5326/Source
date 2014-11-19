@@ -163,6 +163,7 @@ public class SourcePackage implements IDirectable {
 		types.addAll(other.types);
 		iters.addAll(other.iters);
 		directives.addAll(other.directives);
+		aliases.addAll(other.aliases);
 	}
 	
 	public void addFunction(Function fn) {
