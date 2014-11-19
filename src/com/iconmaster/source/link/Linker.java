@@ -1,5 +1,6 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.Source;
 import com.iconmaster.source.SourceOptions;
 import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.exception.SourceException;
@@ -9,6 +10,7 @@ import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.Import;
 import com.iconmaster.source.prototype.SourcePackage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,11 +36,21 @@ public class Linker {
 	public SourcePackage outputPackage = new SourcePackage();
 	public ArrayList<SourceException> errs = new ArrayList<>();
 	public SourceOptions op;
+	public HashMap<String,SourcePackage> userLibs = new HashMap<>();
 	
 	public Linker(String platform, SourcePackage inputPackage, SourceOptions op) {
 		this.platform = platforms.get(platform);
 		this.inputPackage = inputPackage;
 		this.op = op;
+	}
+	
+	public void loadUserLibs() {
+		if (op.libs!=null) {
+			for (File child : op.libs.listFiles((File dir, String name) -> name.endsWith(".src"))) {
+				SourcePackage userLib = Source.prototypeFile(child, errs);
+				userLibs.put(userLib.getName(), userLib);
+			}
+		}
 	}
 	
 	public void resolveLinks() {
@@ -65,6 +77,8 @@ public class Linker {
 			if (imp.pkg==null) {
 				if (platform.pkgs.containsKey(imp.name)) {
 					imp.pkg = platform.pkgs.get(imp.name);
+				} else if (userLibs.containsKey(imp.name)) {
+					imp.pkg = userLibs.get(imp.name);
 				} else if (!imp.isFile) {
 					errs.add(new SourceImportException(imp.range, "Unresolved import "+imp.name, imp.name));
 				} else {
@@ -153,6 +167,7 @@ public class Linker {
 	
 	public static Linker link(String plat,SourcePackage pkg, SourceOptions op) {
 		Linker linker = new Linker(plat,pkg,op);
+		linker.loadUserLibs();
 		linker.resolveLinks();
 		return linker;
 	}

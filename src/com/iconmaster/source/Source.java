@@ -7,6 +7,8 @@ import com.iconmaster.source.link.Linker;
 import com.iconmaster.source.link.platform.PlatformLoader;
 import com.iconmaster.source.parse.Parser;
 import com.iconmaster.source.prototype.Prototyper;
+import com.iconmaster.source.prototype.Prototyper.PrototypeResult;
+import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.tokenize.Tokenizer;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
@@ -226,5 +228,45 @@ public class Source {
 		}
 		
 		return so;
+	}
+	
+	public static SourcePackage prototypeFile(File f, ArrayList<SourceException> errs) {
+		try {
+			return prototypeFile(new BufferedReader(new FileReader(f)).lines().collect(Collectors.joining("\n")), errs);
+		} catch (IOException ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		return null;
+	}
+	
+	public static SourcePackage prototypeFile(String input, ArrayList<SourceException> errs) {
+		ArrayList<Element> a = null;
+		try {
+			a = Tokenizer.tokenize(input);
+		} catch (SourceException ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
+			errs.add(ex);
+		}
+		if (a==null) {
+			return null;
+		}
+		ArrayList<Element> a2 = null;
+		try {
+			a2 = Parser.parse(a);
+		} catch (SourceException ex) {
+			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, null, ex);
+			errs.add(ex);
+		}
+		if (a2==null) {
+			return null;
+		}
+		
+		errs.addAll(Validator.validate(a2));
+		
+		PrototypeResult res = Prototyper.prototype(a2);
+		
+		errs.addAll(res.errors);
+		
+		return res.result;
 	}
 }
