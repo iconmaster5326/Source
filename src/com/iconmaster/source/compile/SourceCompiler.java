@@ -23,8 +23,8 @@ import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
-import com.iconmaster.source.util.StringUtils;
 import com.iconmaster.source.util.IDirectable;
+import com.iconmaster.source.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -563,6 +563,10 @@ public class SourceCompiler {
 				case STRING:
 					expr.add(new Operation(OpType.MOVS,TypeDef.STRING, e.range, retVar, (String)e.args[0]));
 					expr.type = new DataType(TypeDef.STRING,true);
+					break;
+				case CHAR:
+					expr.type = new DataType(TypeDef.INT,true);
+					expr.add(new Operation(OpType.MOVN, expr.type.type, e.range, retVar, String.valueOf((int) ((String)e.args[0]).charAt(0))));
 					break;
 				case WORD:
 					if (cd.pkg.getField((String)e.args[0])!=null) {

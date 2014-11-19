@@ -36,6 +36,7 @@ public class Validator {
 		if (e.type instanceof TokenRule) {
 			switch ((TokenRule)e.type) {
 				case NUMBER:
+				case CHAR:
 					ensureScope(a,e,scope,Scope.RVALUE);
 					break;
 				case STRING:

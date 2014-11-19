@@ -137,6 +137,7 @@ public class Source {
 				}
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
 			}
+			so.operationLog += a + "\n";
 			so.operationLog += "Validating...\n";
 			try {
 				ArrayList<SourceException> errs2 = Validator.validate(a);

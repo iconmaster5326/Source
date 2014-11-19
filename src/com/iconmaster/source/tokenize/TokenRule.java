@@ -14,6 +14,7 @@ public enum TokenRule implements IElementType {
 	WORD("w","[\\w\\?&&[^\\d]][\\w\\?\\.]*"),
 	NUMBER("n","[\\d\\.]+"),
 	STRING("s","\"(\\\\.|[^\"])*\""),
+	CHAR(null,"\'(\\\\.|[^\'])\'"),
 	SEP(";",";+"),
 	DIRECTIVE("r","@[\\S]*"),
 	SYMBOL("y","([\\Q+-*/=<>~!&|%^\\E]+|\\(|\\)|\\[|\\]|\\{|\\}|,)");
@@ -39,6 +40,7 @@ public enum TokenRule implements IElementType {
 			case SPACE:
 			case COMMENT:
 				return null;
+			case CHAR:
 			case STRING:
 				return StringUtils.unescape(input.substring(1, input.length()-1));
 			case DIRECTIVE:
