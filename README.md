@@ -1,16 +1,8 @@
 Source
 ======
 
-A language that compiles to HP Prime BASIC.
+Source is a compiled programming language designed to cross-compile. It compiles into SIL, a bytecode language, which then can be ported to many different platforms. Source can also be interpreted.
 
-Build server: https://drone.io/github.com/iconmaster5326/Source/files
+[The wiki can be found here.]( https://github.com/iconmaster5326/Source/wiki/Home)
 
-Get a NetBeans plugin for Source at https://github.com/iconmaster5326/SourceNetbeansPlugin
-
-get a SciTE plugin for Source at https://github.com/iconmaster5326/SourceSciTEPlugin
-
-Also, get a tool to compile Source at https://github.com/iconmaster5326/SourceBench
-
-Get SourceBox, a Source VM platform at https://github.com/iconmaster5326/SourceBox 
-
-The offical thread for this can be found at http://www.omnimaga.org/hp-prime/hpp-a-wip-alternate-programming-language-for-the-prime/ .
+[The offical thread for this can be found here.]( http://www.omnimaga.org/hp-prime/hpp-a-wip-alternate-programming-language-for-the-prime/)
