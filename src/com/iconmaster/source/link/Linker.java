@@ -58,7 +58,9 @@ public class Linker {
 	}
 	
 	public void resolveLinks(SourcePackage pkg) {
+		//System.out.println("* RES "+pkg.getName());
 		if (links.getImport(pkg.getName())==null) {
+			//System.out.println("* NIMP "+pkg.getName());
 			Import nimp = new Import(pkg.getName(), null, false, null);
 			nimp.pkg = pkg;
 			nimp.resolved = true;
@@ -66,6 +68,7 @@ public class Linker {
 		}
 		
 		for (Import imp : pkg.getImports()) {
+			//System.out.println("* IMP "+imp);
 			if (links.getImport(imp.name)==null) {
 				links.addNode(imp);
 			} else {
@@ -88,11 +91,12 @@ public class Linker {
 				}
 			}
 			
+			imp.resolved = true;
+			
 			if (imp.pkg!=null && !imp.resolved) {
+				//System.out.println("* REC "+imp);
 				resolveLinks(imp.pkg);
 			}
-			
-			imp.resolved = true;
 		}
 	}
 	
@@ -154,7 +158,7 @@ public class Linker {
 	}
 	
 	public void addNeeded(SourcePackage pkg, SourcePackage pkg2, HashSet<String> has) {
-		for (Import imp : pkg2.getImports()) {
+		for (Import imp : (ArrayList<Import>) pkg2.getImports().clone()) {
 			if (imp.pkg!=null && !has.contains(imp.name)) {
 				//System.out.println("* CADD "+imp);
 				Import imp2 = links.getImport(imp.name);
