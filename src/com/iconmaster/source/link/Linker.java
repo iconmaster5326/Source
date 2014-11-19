@@ -96,6 +96,10 @@ public class Linker {
 								imp.pkg = Source.prototypeFile(f, errs);
 							}
 						}
+					} else if (platform.importHandlers.containsKey(imp.name.substring(imp.name.lastIndexOf(".")+1))) {
+						platform.importHandlers.get(imp.name.substring(imp.name.lastIndexOf(".")+1)).handle(pkg, op, imp);
+					} else {
+						errs.add(new SourceImportException(imp.range, "File "+imp.name+" not supported by platform", imp.name));
 					}
 				}
 			}

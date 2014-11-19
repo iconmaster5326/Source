@@ -16,6 +16,7 @@ public abstract class Platform {
 	public String name;
 	public HashMap<String,SourcePackage> pkgs = new HashMap<>();
 	public ArrayList<CodeTransformer> transforms = new ArrayList<>();
+	public HashMap<String,ImportHandler> importHandlers = new HashMap<>();
 	
 	protected void registerLibrary(SourcePackage pkg) {
 		pkgs.put(pkg.getName(),pkg);
