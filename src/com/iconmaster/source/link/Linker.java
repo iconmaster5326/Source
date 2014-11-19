@@ -86,7 +86,16 @@ public class Linker {
 					errs.add(new SourceImportException(imp.range, "Unresolved import "+imp.name, imp.name));
 				} else {
 					if (imp.name.endsWith(".src")) {
-						
+						if (op.assets==null) {
+							errs.add(new SourceImportException(imp.range, "No assets directory specified to get "+imp.name, imp.name));
+						} else {
+							File f = new File(op.assets,imp.name);
+							if (!f.exists()) {
+								errs.add(new SourceImportException(imp.range, "File "+imp.name+" not found", imp.name));
+							} else {
+								imp.pkg = Source.prototypeFile(f, errs);
+							}
+						}
 					}
 				}
 			}
