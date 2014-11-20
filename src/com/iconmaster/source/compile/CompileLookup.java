@@ -7,6 +7,7 @@ import com.iconmaster.source.exception.SourceUndefinedVariableException;
 import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
@@ -123,10 +124,14 @@ public class CompileLookup {
 					tree = LookupNode.addFromFullName(cd,LookupType.FIELD, node, fn, fn.pkgName+"."+fn.getName(), false);
 					getLookupTree(cd, tree);
 				}
+				for (TypeDef td : cd.pkg.getTypes()) {
+					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.TYPE, node, td, td.name, false);
+					getLookupTree(cd, tree);
+				}
 				break;
 			case VAR:
 				String varName = (String) node.data;
-				DataType type = cd.frame.getVarType(varName);
+				DataType type = cd.frame.getVarTypeNode(varName);
 				if (type!=null) {
 					for (Function fn : cd.pkg.getFunctions()) {
 						if (fn.getName().startsWith(type.type.name+".")) {
@@ -135,6 +140,17 @@ public class CompileLookup {
 							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, false);
 							getLookupTree(cd, tree);
 						}
+					}
+				}
+				break;
+			case TYPE:
+				TypeDef td = (TypeDef) node.data;
+				for (Function fn : cd.pkg.getFunctions()) {
+					if (fn.getName().startsWith(td.name+".")) {
+						String methodName = fn.getName();
+						methodName = methodName.substring(methodName.indexOf(".")+1);
+						LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, false);
+						getLookupTree(cd, tree);
 					}
 				}
 				break;
@@ -223,12 +239,12 @@ public class CompileLookup {
 					} else if (cd.frame.getVariable((String)node.data)==null) {
 						cd.errs.add(new SourceUninitializedVariableException(rn, "Uninitialized variable "+node.data, (String) node.data));
 					} else {
-						expr.type = cd.frame.getVarType((String)node.data);
+						expr.type = cd.frame.getVarTypeNode((String)node.data);
 						expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, (String)node.data));
 					}
 					break;
 				case FIELD:
-					expr.type = cd.frame.getVarType(((Field)node.data).getName());
+					expr.type = cd.frame.getVarTypeNode(((Field)node.data).getName());
 					expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, ((Field)node.data).getName()));
 					break;
 			}
@@ -239,6 +255,20 @@ public class CompileLookup {
 	
 	public static Expression rvalLookup(CompileData cd, String retVar, Range rn, Object... args) {
 		return toExpr(cd, retVar, rn, lookup(cd, args));
+	}
+	
+	public static LookupNode getType(LookupNode tree, String name) {
+		for (LookupNode node : (ArrayList<LookupNode>) tree.c) {
+			if (node.type==LookupType.TYPE && name.equals(node.match)) {
+				return tree;
+			} else {
+				LookupNode res = getType(node,name);
+				if (res!=null) {
+					return res;
+				}
+			}
+		}
+		return null;
 	}
 	
 	public static LookupNode lookup(CompileData cd, Object... args) {
@@ -288,6 +318,30 @@ public class CompileLookup {
 				cd.errs.add(new SourceUndefinedVariableException(null, "Undefined variable "+rawnode.match,rawnode.match));
 				return null;
 			}
+			
+			newLookupNodes = new ArrayList<>();
+			for (LookupNode node : lookupNodes) {
+				switch (node.type) {
+					case VAR:
+						DataType varType = cd.frame.getVarTypeNode((String) node.data);
+						if (varType != null) {
+							node = getType(lookupTree, varType.type.name);
+						} else {
+							newLookupNodes.add(node);
+						}
+						break;
+					case FIELD:
+						varType = ((Field)node.data).getType();
+						if (varType != null) {
+							node = getType(lookupTree, varType.type.name);
+						} else {
+							newLookupNodes.add(node);
+						}
+						break;
+				}
+				newLookupNodes.add(node);
+			}
+			lookupNodes = newLookupNodes;
 		}
 		
 		return nodes.get(0);

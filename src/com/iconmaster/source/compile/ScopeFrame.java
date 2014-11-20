@@ -134,8 +134,8 @@ public class ScopeFrame {
 		types.put(name, type);
 	}
 	
-	public DataType getVarType(String name) {
-		return types.containsKey(name)?types.get(name):(parent==null?null:parent.getVarType(name));
+	public DataType getVarTypeNode(String name) {
+		return types.containsKey(name)?types.get(name):(parent==null?null:parent.getVarTypeNode(name));
 	}
 	
 	public void setParam(String name, DataType type) {
@@ -143,6 +143,6 @@ public class ScopeFrame {
 	}
 	
 	public DataType getParam(String name) {
-		return params.containsKey(name)?params.get(name):(parent==null?null:parent.getVarType(name));
+		return params.containsKey(name)?params.get(name):(parent==null?null:parent.getVarTypeNode(name));
 	}
 }

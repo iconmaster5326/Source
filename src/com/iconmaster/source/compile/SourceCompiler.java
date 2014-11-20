@@ -194,7 +194,7 @@ public class SourceCompiler {
 								}
 							}
 							if (!Directives.has(e, "inline")) {
-								code.add(new Operation(OpType.DEF, cd.frame.getVarType(expr2), e.range, expr2));
+								code.add(new Operation(OpType.DEF, cd.frame.getVarTypeNode(expr2), e.range, expr2));
 							}
 						}
 					case ASSIGN:
@@ -428,9 +428,9 @@ public class SourceCompiler {
 								if (begin.type.type!=end.type.type) {
 									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
 								}
-								System.out.println(cd.frame.getVarType(iterVar));
-								if (!DataType.canCastTo(cd.frame.getVarType(iterVar),begin.type)) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterVar)+" to "+begin.type));
+								System.out.println(cd.frame.getVarTypeNode(iterVar));
+								if (!DataType.canCastTo(cd.frame.getVarTypeNode(iterVar),begin.type)) {
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarTypeNode(iterVar)+" to "+begin.type));
 								}
 								cd.frame.setVarType(iterVar, begin.type);
 								code.add(new Operation(OpType.FORR, begin.type, e.range, args.toArray(new String[0])));
@@ -470,7 +470,7 @@ public class SourceCompiler {
 									if (riter.method) {
 										Expression expr2 = new Expression();
 										expr2.retVar = riter.methodOf;
-										expr2.type = cd.frame.getVarType(riter.methodOf);
+										expr2.type = cd.frame.getVarTypeNode(riter.methodOf);
 										arge.add(expr2);
 									}
 								}
@@ -514,8 +514,8 @@ public class SourceCompiler {
 								if (rtd.type instanceof ParamTypeDef && listExpr.type.params.length>((ParamTypeDef)rtd.type).paramNo) {
 									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
 								}
-								if (!DataType.canCastTo(cd.frame.getVarType(iterName), rtd)) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterName)+" to "+rtd));
+								if (!DataType.canCastTo(cd.frame.getVarTypeNode(iterName), rtd)) {
+									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarTypeNode(iterName)+" to "+rtd));
 								}
 								cd.frame.setVarType(iterName, rtd);
 								iterVars.add(0,listExpr.retVar);
@@ -537,7 +537,7 @@ public class SourceCompiler {
 		//change types of known lvars to correct parent types
 		for (Operation op : code) {
 			if ((op.op.hasLVar() && op.op!=OpType.MOVL) || op.op==OpType.DEF) {
-				DataType type = cd.frame.getVarType(op.args[0]);
+				DataType type = cd.frame.getVarTypeNode(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
 				}
@@ -636,7 +636,7 @@ public class SourceCompiler {
 						if (rfn.method) {
 							Expression mexpr = new Expression();
 							String s = rfn.methodOf;
-							DataType type = cd.frame.getVarType(s);
+							DataType type = cd.frame.getVarTypeNode(s);
 							mexpr.type = type;
 							mexpr.retVar = cd.frame.newVarName();
 							mexpr.add(new Operation(OpType.MOV, type, e.range, mexpr.retVar, s));
@@ -865,7 +865,7 @@ public class SourceCompiler {
 		//change types of known lvars to correct parent types
 		for (Operation op : expr) {
 			if ((op.op.hasLVar() && op.op!=OpType.MOVL) || op.op==OpType.DEF) {
-				DataType type = cd.frame.getVarType(op.args[0]);
+				DataType type = cd.frame.getVarTypeNode(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
 				}
@@ -964,7 +964,7 @@ public class SourceCompiler {
 						name = cd.frame.getVariableName(name);
 					}
 					expr.retVar = name;
-					expr.type = cd.frame.getVarType(name);
+					expr.type = cd.frame.getVarTypeNode(name);
 					break;
 				default:
 					cd.errs.add(new SourceSyntaxException(e.range,"Illegal L-value"));
@@ -1094,12 +1094,12 @@ public class SourceCompiler {
 			if (cd.frame.isDefined(pkgName) || cd.frame.isInlined(pkgName) || cd.pkg.getField(pkgName)!=null) {
 				DataType type;
 				if (cd.frame.isDefined(pkgName)) {
-					type = cd.frame.getVarType(pkgName);
+					type = cd.frame.getVarTypeNode(pkgName);
 					if (type==null) {
 						type = new DataType(true);
 					}
 				} else if (cd.frame.isInlined(pkgName)) {
-					type = cd.frame.getVarType(pkgName);
+					type = cd.frame.getVarTypeNode(pkgName);
 					if (type==null) {
 						type = compileExpr(cd,"",cd.frame.getInline(pkgName)).type;
 						if (type==null) {
