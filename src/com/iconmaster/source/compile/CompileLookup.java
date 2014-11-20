@@ -3,9 +3,11 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
+import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.tokenize.TokenRule;
+import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -41,13 +43,14 @@ public class CompileLookup {
 			this.p = p;
 			this.data = data;
 			this.type = type;
+			this.match = match;
 			this.c.addAll(Arrays.asList(c));
 		}
 		
 		public ArrayList<LookupNode> getNodes(String name) {
 			ArrayList<LookupNode> a = new ArrayList<>();
 			for (LookupNode node : c) {
-				if (node.match.equals(name)) {
+				if (name.equals(node.match)) {
 					a.add(node);
 				}
 			}
@@ -119,12 +122,14 @@ public class CompileLookup {
 			case VAR:
 				String varName = (String) node.data;
 				DataType type = cd.frame.getVarType(varName);
-				for (Function fn : cd.pkg.getFunctions()) {
-					if (fn.getName().startsWith(type.type.name+".")) {
-						String methodName = fn.getName();
-						methodName = methodName.substring(methodName.indexOf(".")+1);
-						LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName);
-						getLookupTree(cd, tree);
+				if (type!=null) {
+					for (Function fn : cd.pkg.getFunctions()) {
+						if (fn.getName().startsWith(type.type.name+".")) {
+							String methodName = fn.getName();
+							methodName = methodName.substring(methodName.indexOf(".")+1);
+							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName);
+							getLookupTree(cd, tree);
+						}
 					}
 				}
 				break;
@@ -179,7 +184,7 @@ public class CompileLookup {
 		return tree;
 	}
 	
-	public static Expression rvalLookup(CompileData cd, String retVar, Object... args) {
+	public static Expression rvalLookup(CompileData cd, String retVar, Range rn, Object... args) {
 		LookupNode rawtree = parseArgs(cd, args);
 		LookupNode rawnode = rawtree;
 		
@@ -208,9 +213,10 @@ public class CompileLookup {
 				for (LookupNode child : (ArrayList<LookupNode>) lookupNode.c) {
 					switch (rawnode.type) {
 						case RAWSTR:
-							if (child.match.equals(rawnode.match)) {
+							if (rawnode.match == null ? false : rawnode.match.equals(child.match)) {
 								LookupNode newNode = child.cloneNode();
-								child.p = node;
+								node.c.add(newNode);
+								newNode.p = node;
 								newNodes.add(newNode);
 								newLookupNodes.add(child);
 							}
@@ -225,11 +231,16 @@ public class CompileLookup {
 			
 			if (nodes.isEmpty()) {
 				//error
+				cd.errs.add(new SourceException(null, "Lookup failed"));
 				return expr;
 			}
 		}
 		
 		LookupNode node = nodes.get(0);
+		
+		while (node.p!=null) {
+			node = node.p;
+		}
 		
 		while (true) {
 			if (node.c.isEmpty()) {

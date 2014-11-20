@@ -569,6 +569,7 @@ public class SourceCompiler {
 					expr.add(new Operation(OpType.MOVN, expr.type.type, e.range, retVar, String.valueOf((int) ((String)e.args[0]).charAt(0))));
 					break;
 				case WORD:
+					//return CompileLookup.rvalLookup(cd, retVar, e.range, e);
 					if (cd.pkg.getField((String)e.args[0])!=null) {
 						expr.type = cd.pkg.getField((String)e.args[0]).getType();
 						expr.add(new Operation(OpType.MOV, expr.type, e.range, retVar, (String)e.args[0]));
