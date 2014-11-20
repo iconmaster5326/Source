@@ -245,7 +245,14 @@ public class CompileUtils {
 					}
 					if (isFor) {
 						old.addAll(replaceWithGotos(pkg, forBlock));
-						old.add(new Operation(OpType.ADD, forOp.type, null, forOp.args[0], forOp.args[0], forOp.args.length<4?"1":forOp.args[4]));
+						String step;
+						if (forOp.args.length<=4) {
+							step = pkg.nameProvider.getTempName();
+							old.add(new Operation(OpType.MOVN, forOp.type, null, step, "1"));
+						} else {
+							step = forOp.args[4];
+						}
+						old.add(new Operation(OpType.ADD, forOp.type, null, forOp.args[0], forOp.args[0], step));
 						String temp = pkg.nameProvider.getTempName();
 						old.add(new Operation(OpType.GT, TypeDef.BOOLEAN, null, temp, forOp.args[0], forOp.args[3]));
 						old.add(new Operation(OpType.GOTOF, temp, forLabel));
