@@ -81,6 +81,9 @@ public class ScopeFrame {
 		for (String var : defined) {
 			a.add(var);
 		}
+		for (String var : inline) {
+			a.add(var);
+		}
 		return a.toArray(new String[0]);
 	}
 	

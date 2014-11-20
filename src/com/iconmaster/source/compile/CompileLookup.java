@@ -100,7 +100,7 @@ public class CompileLookup {
 		for (String v : cd.frame.getAllVars()) {
 			LookupNode tree2 = LookupNode.addFromFullName(cd,LookupType.VAR, tree, v, v);
 			getLookupTree(cd, tree2);
-		}
+		} 
 		return tree;
 	}
 	
