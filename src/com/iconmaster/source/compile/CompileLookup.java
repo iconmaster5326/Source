@@ -79,14 +79,18 @@ public class CompileLookup {
 			return new LookupNode(LookupType.ROOT, null, null, null);
 		}
 		
-		public static LookupNode addFromFullName(CompileData cd, LookupType type, LookupNode p, Object data, String match, LookupNode... c) {
+		public static LookupNode addFromFullName(CompileData cd, LookupType type, LookupNode p, Object data, String match, boolean first, LookupNode... c) {
 			String[] subs = match.split("\\.");
 			LookupNode tree = p;
 			LookupNode orig = new LookupNode(type, p, data, subs[subs.length-1], c);
 			for (String sub : Arrays.copyOf(subs, subs.length-1)) {
 				tree = tree.getPkg(sub, type.isRaw());
 			}
-			tree.c.add(orig);
+			if (first) {
+				tree.c.add(0,orig);
+			} else {
+				tree.c.add(orig);
+			}
 			return orig;
 		}
 		
@@ -98,7 +102,7 @@ public class CompileLookup {
 	public static LookupNode getLookupTree(CompileData cd) {
 		LookupNode tree = getLookupTree(cd, LookupNode.root());
 		for (String v : cd.frame.getAllVars()) {
-			LookupNode tree2 = LookupNode.addFromFullName(cd,LookupType.VAR, tree, v, v);
+			LookupNode tree2 = LookupNode.addFromFullName(cd,LookupType.VAR, tree, v, v, true);
 			getLookupTree(cd, tree2);
 		} 
 		return tree;
@@ -108,15 +112,15 @@ public class CompileLookup {
 		switch (node.type) {
 			case ROOT:
 				for (Function fn : cd.pkg.getFunctions()) {
-					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.FUNC, node, fn, fn.getName());
+					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.FUNC, node, fn, fn.getName(), false);
 					getLookupTree(cd, tree);
-					tree = LookupNode.addFromFullName(cd,LookupType.FUNC, node, fn, fn.pkgName+"."+fn.getName());
+					tree = LookupNode.addFromFullName(cd,LookupType.FUNC, node, fn, fn.pkgName+"."+fn.getName(), false);
 					getLookupTree(cd, tree);
 				}
 				for (Field fn : cd.pkg.getFields()) {
-					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.FUNC, node, fn, fn.getName());
+					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.FIELD, node, fn, fn.getName(), false);
 					getLookupTree(cd, tree);
-					tree = LookupNode.addFromFullName(cd,LookupType.FUNC, node, fn, fn.pkgName+"."+fn.getName());
+					tree = LookupNode.addFromFullName(cd,LookupType.FIELD, node, fn, fn.pkgName+"."+fn.getName(), false);
 					getLookupTree(cd, tree);
 				}
 				break;
@@ -128,7 +132,7 @@ public class CompileLookup {
 						if (fn.getName().startsWith(type.type.name+".")) {
 							String methodName = fn.getName();
 							methodName = methodName.substring(methodName.indexOf(".")+1);
-							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName);
+							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, false);
 							getLookupTree(cd, tree);
 						}
 					}
@@ -147,7 +151,7 @@ public class CompileLookup {
 				((LookupNode)arg).p = node;
 				node = (LookupNode) arg;
 			} else if (arg instanceof String) {
-				node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, arg, (String) arg);
+				node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, arg, (String) arg, false);
 			} else if (arg instanceof Element) {
 				Element e = (Element) arg;
 				if (e.type instanceof Rule) {
@@ -176,7 +180,7 @@ public class CompileLookup {
 				} else {
 					switch ((TokenRule)e.type) {
 						case WORD:
-							node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, e.args[0], (String) e.args[0]);
+							node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, e.args[0], (String) e.args[0], false);
 							break;
 					}
 				}
@@ -222,6 +226,10 @@ public class CompileLookup {
 						expr.type = cd.frame.getVarType((String)node.data);
 						expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, (String)node.data));
 					}
+					break;
+				case FIELD:
+					expr.type = cd.frame.getVarType(((Field)node.data).getName());
+					expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, ((Field)node.data).getName()));
 					break;
 			}
 		}
