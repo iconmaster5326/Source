@@ -218,7 +218,7 @@ public class CompileLookup {
 							LookupFunction fcall = new LookupFunction(null, new ArrayList<>(), (DataType) null, new ArrayList<>());
 							fcall.name = (String) e.args[0];
 							fcall.name = fcall.name.substring(fcall.name.lastIndexOf(".")+1);
-							ArrayList<Element> es = (ArrayList<Element>) ((Element)e.args[1]).args[0];
+							ArrayList<Element> es = (ArrayList<Element>) e.args[1];
 							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 								es = (ArrayList<Element>) es.get(0).args[0];
 							}
