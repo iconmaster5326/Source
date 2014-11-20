@@ -231,39 +231,46 @@ public class SourcePackage implements IDirectable {
 		return null;
 	}
 	
+	public boolean isFunctionCallCompatible(Function v, FunctionCall call) {
+		if (call.isIter || (call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType()))) {
+			if (call.args.size()==v.args.size()) {
+				boolean dirsMatch = true;
+				for (String dir : call.dirs) {
+					if (!Directives.has(v, dir) && call.dirsMatter) {
+						dirsMatch = false;
+						break;
+					}
+				}
+				if (dirsMatch) {
+					int i = 0;
+					boolean argsMatch = true;
+					for (Field arg : v.args) {
+						if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
+							argsMatch = false;
+							break;
+						}
+						i++;
+					}
+					if (argsMatch) {
+						if (call.isIter) {
+							return true;
+						} else {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	public Function getFunction(String name, FunctionCall call) {
 		ArrayList fns = call.isIter?iters:functions;
 		for (Object rawv : fns) {
 			Function v = (Function) rawv;
 			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name) || (v.pkgName+"."+v.getName()+"%"+v.order).equals(name) || (v.getName()+"%"+v.order).equals(name)) {
-				if (call.isIter || (call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType()))) {
-					if (call.args.size()==v.args.size()) {
-						boolean dirsMatch = true;
-						for (String dir : call.dirs) {
-							if (!Directives.has(v, dir) && call.dirsMatter) {
-								dirsMatch = false;
-								break;
-							}
-						}
-						if (dirsMatch) {
-							int i = 0;
-							boolean argsMatch = true;
-							for (Field arg : v.args) {
-								if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
-									argsMatch = false;
-									break;
-								}
-								i++;
-							}
-							if (argsMatch) {
-								if (call.isIter) {
-									return v;
-								} else {
-									return v;
-								}
-							}
-						}
-					}
+				if (isFunctionCallCompatible(v, call)) {
+					return v;
 				}
 			}
 		}
