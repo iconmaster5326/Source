@@ -108,6 +108,7 @@ public class CompileLookup {
 		public DataType retType;
 		
 		public boolean index = false;
+		public Function fn;
 
 		public LookupFunction(String name, ArrayList<Expression> args, DataType retType, ArrayList<String> dirs) {
 			this.name = name;
@@ -373,6 +374,20 @@ public class CompileLookup {
 								newLookupNodes.add(child);
 							}
 							break;
+						case RAWCALL:
+							if (rawnode.match.equals(child.match) && (rawnode.type==LookupType.FUNC || rawnode.type==LookupType.METHOD)) {
+								LookupFunction fcall = (LookupFunction) node.data;
+								if (cd.pkg.isFunctionCallCompatible((Function) rawnode.data, fcall.toFuncCall())) {
+									LookupNode newNode = child.cloneNode();
+									node.c.add(newNode);
+									newNode.p = node;
+									fcall.fn = (Function) rawnode.data;
+									newNode.data = fcall;
+									newNodes.add(newNode);
+									newLookupNodes.add(child);
+								}
+							}
+							break;
 					}
 				}
 				i++;
@@ -383,29 +398,33 @@ public class CompileLookup {
 			
 			if (nodes.isEmpty()) {
 				//error
-				cd.errs.add(new SourceUndefinedVariableException(null, "Undefined variable "+rawnode.match,rawnode.match));
+				cd.errs.add(new SourceUndefinedVariableException(null, "Lookup failed for "+rawnode.match,rawnode.match));
 				return null;
 			}
 			
 			newLookupNodes = new ArrayList<>();
 			for (LookupNode node : lookupNodes) {
+				DataType varType = null;
+				
 				switch (node.type) {
 					case VAR:
-						DataType varType = cd.frame.getVarTypeNode((String) node.data);
-						if (varType != null) {
-							node = getType(lookupTree, varType.type.name);
-						} else {
-							newLookupNodes.add(node);
-						}
+						varType = cd.frame.getVarTypeNode((String) node.data);
 						break;
 					case GLOBAL:
 						varType = ((Field)node.data).getType();
-						if (varType != null) {
-							node = getType(lookupTree, varType.type.name);
-						} else {
-							newLookupNodes.add(node);
-						}
 						break;
+					case FUNC:
+					case METHOD:
+						LookupFunction fcall = (LookupFunction)node.data;
+						if (fcall.retType!=null) {
+							varType = fcall.retType;
+						} else {
+							varType = fcall.fn.getReturnType();
+						}
+				}
+				
+				if (varType != null) {
+					node = getType(lookupTree, varType.type.name);
 				}
 				newLookupNodes.add(node);
 			}
