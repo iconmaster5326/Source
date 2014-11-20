@@ -606,6 +606,8 @@ public class SourceCompiler {
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
+					case CHAIN:
+						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
 					case FCALL:
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {

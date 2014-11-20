@@ -181,6 +181,7 @@ public class CompileLookup {
 						case CHAIN:
 							ArrayList<Element> es = (ArrayList<Element>) e.args[0];
 							LookupNode tree2 = parseArgs(cd, es.toArray());
+							tree2 = (LookupNode) tree2.c.get(0);
 							node.c.add(tree2);
 							tree2.p = node;
 							node = tree2;
@@ -188,6 +189,7 @@ public class CompileLookup {
 						case PAREN:
 							es = (ArrayList<Element>) e.args[0];
 							tree2 = parseArgs(cd, es.get(0));
+							tree2 = (LookupNode) tree2.c.get(0);
 							node.c.add(tree2);
 							tree2.p = node;
 							node = tree2;
