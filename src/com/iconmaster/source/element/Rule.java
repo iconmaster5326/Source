@@ -207,7 +207,7 @@ public enum Rule implements IElementType {
 	LOCAL_ASN(null,"L0!?'='t1"),
 	FIELD("G","'field'!t0?"),
 	FIELD_ASN(null,"G0!?'='t1"),
-	REF_CALL(null,"A@0p1"),
+	ICALL_REF(null,"A@0i1"),
 	ADD_ASN(null,"a@0'+='a@1"),
 	SUB_ASN(null,"a@0'-='a@1"),
 	MUL_ASN(null,"a@0'*='a@1"),

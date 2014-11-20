@@ -210,7 +210,7 @@ public class Validator {
 				
 				//other cases
 
-				case REF_CALL:
+				case ICALL_REF:
 				case FCALL:
 					if (e.args[2]!=null) {
 						a.addAll(validate((ArrayList<Element>) e.args[2],Scope.LVALUE));

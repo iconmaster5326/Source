@@ -13,7 +13,6 @@ public class CompileData {
 	public ArrayList<SourceException> errs = new ArrayList<>();
 	public SourcePackage pkg;
 	public ScopeFrame frame;
-	public Object workingOn;
 
 	public CompileData(SourcePackage pkg) {
 		this.pkg = pkg;
