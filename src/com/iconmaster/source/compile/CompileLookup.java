@@ -217,6 +217,7 @@ public class CompileLookup {
 						case FCALL:
 							LookupFunction fcall = new LookupFunction(null, new ArrayList<>(), (DataType) null, new ArrayList<>());
 							fcall.name = (String) e.args[0];
+							fcall.name = fcall.name.substring(fcall.name.lastIndexOf(".")+1);
 							ArrayList<Element> es = (ArrayList<Element>) ((Element)e.args[1]).args[0];
 							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 								es = (ArrayList<Element>) es.get(0).args[0];
@@ -230,7 +231,7 @@ public class CompileLookup {
 								fcall.retType = dt;
 							}
 							fcall.dirs.addAll(e.directives);
-							node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, fcall, fcall.name, false);
+							node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, fcall, (String) e.args[0], false);
 							break;
 						case ICALL:
 							break;
@@ -283,6 +284,13 @@ public class CompileLookup {
 			}
 			node = (LookupNode) node.c.get(0);
 			
+			String var;
+			if (node.c.isEmpty()) {
+				var = retVar;
+			} else {
+				var = cd.frame.newVarName();
+			}
+			
 			switch (node.type) {
 				case VAR:
 					if (cd.frame.isInlined((String)node.data)) {
@@ -300,12 +308,12 @@ public class CompileLookup {
 						cd.errs.add(new SourceUninitializedVariableException(rn, "Uninitialized variable "+node.data, (String) node.data));
 					} else {
 						expr.type = cd.frame.getVarTypeNode((String)node.data);
-						expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, (String)node.data));
+						expr.add(new Operation(OpType.MOV, expr.type, rn, var, (String)node.data));
 					}
 					break;
 				case GLOBAL:
 					expr.type = cd.frame.getVarTypeNode(((Field)node.data).getName());
-					expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, ((Field)node.data).getName()));
+					expr.add(new Operation(OpType.MOV, expr.type, rn, var, ((Field)node.data).getName()));
 					break;
 			}
 		}
