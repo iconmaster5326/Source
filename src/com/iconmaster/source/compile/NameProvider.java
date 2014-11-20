@@ -5,7 +5,9 @@ package com.iconmaster.source.compile;
  * @author iconmaster
  */
 public class NameProvider {
-	private int lastName = -1;
+	private static int lastName = -1;
+	
+	public static final NameProvider instance = new NameProvider();
 	
 	public String getTempName() {
 		lastName++;

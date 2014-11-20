@@ -7,8 +7,8 @@ import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Directives;
-import com.iconmaster.source.util.StringUtils;
 import com.iconmaster.source.util.IDirectable;
+import com.iconmaster.source.util.StringUtils;
 import java.util.ArrayList;
 
 /**
@@ -24,7 +24,7 @@ public class SourcePackage implements IDirectable {
 	protected ArrayList<Iterator> iters = new ArrayList<>();
 	private ArrayList<ImportAlias> aliases = new ArrayList<>();
 	
-	public NameProvider nameProvider = new NameProvider();
+	public NameProvider nameProvider = NameProvider.instance;
 	
 	private ArrayList<String> directives = new ArrayList<>();
 
