@@ -3,6 +3,7 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -83,6 +84,9 @@ public class ScopeFrame {
 		}
 		for (String var : inline) {
 			a.add(var);
+		}
+		if (parent!=null) {
+			a.addAll(Arrays.asList(parent.getAllVars()));
 		}
 		return a.toArray(new String[0]);
 	}
