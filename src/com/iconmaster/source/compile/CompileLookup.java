@@ -20,7 +20,7 @@ import java.util.Arrays;
 public class CompileLookup {
 	public static enum LookupType {
 		RAWSTR,RAWCALL,RAWINDEX,
-		ROOT,VAR,PKG,TYPE,FUNC,METHOD,GLOBAL,FIELD,INDEX;
+		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,INDEX;
 		
 		public boolean isRaw() {
 			switch(this) {
@@ -119,9 +119,9 @@ public class CompileLookup {
 					getLookupTree(cd, tree);
 				}
 				for (Field fn : cd.pkg.getFields()) {
-					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.FIELD, node, fn, fn.getName(), false);
+					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.GLOBAL, node, fn, fn.getName(), false);
 					getLookupTree(cd, tree);
-					tree = LookupNode.addFromFullName(cd,LookupType.FIELD, node, fn, fn.pkgName+"."+fn.getName(), false);
+					tree = LookupNode.addFromFullName(cd,LookupType.GLOBAL, node, fn, fn.pkgName+"."+fn.getName(), false);
 					getLookupTree(cd, tree);
 				}
 				for (TypeDef td : cd.pkg.getTypes()) {
@@ -243,7 +243,7 @@ public class CompileLookup {
 						expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, (String)node.data));
 					}
 					break;
-				case FIELD:
+				case GLOBAL:
 					expr.type = cd.frame.getVarTypeNode(((Field)node.data).getName());
 					expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, ((Field)node.data).getName()));
 					break;
@@ -330,7 +330,7 @@ public class CompileLookup {
 							newLookupNodes.add(node);
 						}
 						break;
-					case FIELD:
+					case GLOBAL:
 						varType = ((Field)node.data).getType();
 						if (varType != null) {
 							node = getType(lookupTree, varType.type.name);
