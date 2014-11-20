@@ -52,8 +52,10 @@ public class CompileUtils {
 			if (op.op == OpType.FORE) {
 				String temp = pkg.nameProvider.getTempName();
 				String temp2 = pkg.nameProvider.getTempName();
+				String temp3 = pkg.nameProvider.getTempName();
+				a.add(new Operation(OpType.MOVN, TypeDef.INT, op.range, temp3, "1"));
 				a.add(new Operation(OpType.CALL, TypeDef.INT, op.range, temp2, "list.size", op.args[0]));
-				a.add(new Operation(OpType.FORR, TypeDef.INT, op.range, temp, "1", "1", temp2));
+				a.add(new Operation(OpType.FORR, TypeDef.INT, op.range, temp, "1", temp3, temp2));
 				i++;
 				a.add(new Operation(OpType.BEGIN, op.range));
 				a.add(new Operation(OpType.INDEX, op.type, op.range, op.args[1], op.args[0], temp));
