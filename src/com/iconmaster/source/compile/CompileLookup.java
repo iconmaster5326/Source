@@ -144,13 +144,16 @@ public class CompileLookup {
 				}
 				break;
 			case TYPE:
-				TypeDef td = (TypeDef) node.data;
 				for (Function fn : cd.pkg.getFunctions()) {
-					if (fn.getName().startsWith(td.name+".")) {
-						String methodName = fn.getName();
-						methodName = methodName.substring(methodName.indexOf(".")+1);
-						LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, false);
-						getLookupTree(cd, tree);
+					TypeDef td = (TypeDef) node.data;
+					while (td!=null) {
+						if (fn.getName().startsWith(td.name+".")) {
+							String methodName = fn.getName();
+							methodName = methodName.substring(methodName.indexOf(".")+1);
+							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, false);
+							getLookupTree(cd, tree);
+						}
+						td = td.parent;
 					}
 				}
 				break;
