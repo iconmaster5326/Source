@@ -3,7 +3,8 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
-import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.exception.SourceUndefinedVariableException;
+import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.tokenize.TokenRule;
@@ -184,7 +185,55 @@ public class CompileLookup {
 		return tree;
 	}
 	
+	public static Expression toExpr(CompileData cd, String retVar, Range rn, LookupNode node) {
+		Expression expr = new Expression();
+		expr.retVar = retVar;
+		
+		if (node==null) {
+			return expr;
+		}
+		
+		while (node.p!=null) {
+			node = node.p;
+		}
+		
+		while (true) {
+			if (node.c.isEmpty()) {
+				break;
+			}
+			node = (LookupNode) node.c.get(0);
+			
+			switch (node.type) {
+				case VAR:
+					if (cd.frame.isInlined((String)node.data)) {
+						Element e2 = cd.frame.getInline((String)node.data);
+						if (e2==null) {
+							cd.errs.add(new SourceUninitializedVariableException(rn,"Constant "+node.data+" not initialized", (String) node.data));
+						} else {
+							Expression expr2 = SourceCompiler.compileExpr(cd, retVar, e2);
+							expr.addAll(expr2);
+							expr.type = expr2.type;
+						}
+					} else if (!cd.frame.isDefined((String)node.data)) {
+						cd.errs.add(new SourceUndefinedVariableException(rn, "Undefined variable "+node.data, (String) node.data));
+					} else if (cd.frame.getVariable((String)node.data)==null) {
+						cd.errs.add(new SourceUninitializedVariableException(rn, "Uninitialized variable "+node.data, (String) node.data));
+					} else {
+						expr.type = cd.frame.getVarType((String)node.data);
+						expr.add(new Operation(OpType.MOV, expr.type, rn, retVar, (String)node.data));
+					}
+					break;
+			}
+		}
+		
+		return expr;
+	}
+	
 	public static Expression rvalLookup(CompileData cd, String retVar, Range rn, Object... args) {
+		return toExpr(cd, retVar, rn, lookup(cd, args));
+	}
+	
+	public static LookupNode lookup(CompileData cd, Object... args) {
 		LookupNode rawtree = parseArgs(cd, args);
 		LookupNode rawnode = rawtree;
 		
@@ -194,9 +243,6 @@ public class CompileLookup {
 		
 		ArrayList<LookupNode> nodes = new ArrayList<>();
 		nodes.add(LookupNode.root());
-		
-		Expression expr = new Expression();
-		expr.retVar = retVar;
 		
 		while (true) {
 			if (rawnode.c.isEmpty()) {
@@ -231,31 +277,11 @@ public class CompileLookup {
 			
 			if (nodes.isEmpty()) {
 				//error
-				cd.errs.add(new SourceException(null, "Lookup failed"));
-				return expr;
+				cd.errs.add(new SourceUndefinedVariableException(null, "Undefined variable "+rawnode.match,rawnode.match));
+				return null;
 			}
 		}
 		
-		LookupNode node = nodes.get(0);
-		
-		while (node.p!=null) {
-			node = node.p;
-		}
-		
-		while (true) {
-			if (node.c.isEmpty()) {
-				break;
-			}
-			node = (LookupNode) node.c.get(0);
-			
-			switch (node.type) {
-				case VAR:
-					expr.add(new Operation(OpType.MOV, retVar, (String) node.data));
-					expr.type = cd.frame.getVarType((String) node.data);
-					break;
-			}
-		}
-		
-		return expr;
+		return nodes.get(0);
 	}
 }

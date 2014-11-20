@@ -13,7 +13,6 @@ import com.iconmaster.source.exception.SourceSafeModeException;
 import com.iconmaster.source.exception.SourceSyntaxException;
 import com.iconmaster.source.exception.SourceUndefinedFunctionException;
 import com.iconmaster.source.exception.SourceUndefinedVariableException;
-import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.FunctionCall;
@@ -569,28 +568,7 @@ public class SourceCompiler {
 					expr.add(new Operation(OpType.MOVN, expr.type.type, e.range, retVar, String.valueOf((int) ((String)e.args[0]).charAt(0))));
 					break;
 				case WORD:
-					//return CompileLookup.rvalLookup(cd, retVar, e.range, e);
-					if (cd.pkg.getField((String)e.args[0])!=null) {
-						expr.type = cd.pkg.getField((String)e.args[0]).getType();
-						expr.add(new Operation(OpType.MOV, expr.type, e.range, retVar, (String)e.args[0]));
-					} else if (cd.frame.isInlined((String)e.args[0])) {
-						Element e2 = cd.frame.getInline((String)e.args[0]);
-						if (e2==null) {
-							cd.errs.add(new SourceUninitializedVariableException(e.range,"Constant "+e.args[0]+" not initialized", (String) e.args[0]));
-						} else {
-							Expression expr2 = compileExpr(cd, retVar, e2);
-							expr.addAll(expr2);
-							expr.type = expr2.type;
-						}
-					} else if (!cd.frame.isDefined((String)e.args[0])) {
-						cd.errs.add(new SourceUndefinedVariableException(e.range, "Undefined variable "+e.args[0], (String) e.args[0]));
-					} else if (cd.frame.getVariable((String)e.args[0])==null) {
-						cd.errs.add(new SourceUninitializedVariableException(e.range, "Uninitialized variable "+e.args[0], (String) e.args[0]));
-					} else {
-						expr.type = cd.frame.getVarType(cd.frame.getVariableName((String)e.args[0]));
-						expr.add(new Operation(OpType.MOV, expr.type, e.range, retVar, cd.frame.getVariableName((String)e.args[0])));
-					}
-					break;
+					return CompileLookup.rvalLookup(cd, retVar, e.range, e);
 			}
 		} else {
 			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
