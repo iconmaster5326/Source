@@ -150,6 +150,10 @@ public class CompileUtils {
 	}
 
 	public static ArrayList<Operation> replaceWithGotos(SourcePackage pkg, ArrayList<Operation> code) {
+		if (code==null) {
+			return null;
+		}
+		
 		ArrayList<Operation> a = new ArrayList<>();
 		ArrayList<Operation> old = a;
 
@@ -259,6 +263,7 @@ public class CompileUtils {
 						old.add(new Operation(OpType.GT, TypeDef.BOOLEAN, null, temp, forOp.args[0], forOp.args[3]));
 						old.add(new Operation(OpType.GOTOF, temp, forLabel));
 						a = old;
+						forBlock = null;
 						isFor = false;
 					}
 					break;
@@ -298,7 +303,10 @@ public class CompileUtils {
 					isFor = true;
 					forBlock = new ArrayList<>();
 					forOp = op;
-					old.addAll(replaceWithGotos(pkg, doBlock));
+					if (doBlock!=null) {
+						old.addAll(replaceWithGotos(pkg, doBlock));
+					}
+					doBlock = null;
 					forLabel = pkg.nameProvider.getTempName();
 					old.add(new Operation(OpType.MOV, op.type, op.range, op.args[0], op.args[2]));
 					old.add(new Operation(OpType.LABEL, forLabel));

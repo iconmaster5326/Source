@@ -182,6 +182,7 @@ public class LibraryCore extends SourcePackage {
 		pairsOps.add(new Operation(OpType.DEF, TypeDef.INT, null, "R1"));
 		pairsOps.add(new Operation(OpType.DEF, TypeDef.INT, null, "R2"));
 		pairsOps.add(new Operation(OpType.DEF, ltt, null, "R3"));
+		pairsOps.add(new Operation(Operation.OpType.DO));
 		pairsOps.add(new Operation(OpType.CALL, TypeDef.INT, null, "R2","list.size","lst"));
 		pairsOps.add(new Operation(OpType.MOVN, TypeDef.INT, null, "R1", "1"));
 		pairsOps.add(new Operation(OpType.FORR, TypeDef.INT, null, "R0", "1", "R1", "R2"));
