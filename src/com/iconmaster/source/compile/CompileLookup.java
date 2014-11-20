@@ -7,6 +7,7 @@ import com.iconmaster.source.exception.SourceUndefinedVariableException;
 import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.FunctionCall;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Range;
@@ -100,6 +101,42 @@ public class CompileLookup {
 		}
 	}
 	
+	public static class LookupFunction {
+		public String name;
+		public ArrayList<Expression> args;
+		public ArrayList<String> dirs;
+		public DataType retType;
+		
+		public boolean index = false;
+
+		public LookupFunction(String name, ArrayList<Expression> args, DataType retType, ArrayList<String> dirs) {
+			this.name = name;
+			this.args = args;
+			this.dirs = dirs;
+			this.retType = retType;
+		}
+		
+		public LookupFunction(CompileData cd, Range rn, String name, DataType retType, ArrayList<String> dirs, String... args) {
+			this.name = name;
+			this.dirs = dirs;
+			this.retType = retType;
+			
+			this.args = new ArrayList<>();
+			for (String s : args) {
+				Expression expr = rvalLookup(cd, cd.frame.newVarName(), rn, s);
+				this.args.add(expr);
+			}
+		}
+		
+		public FunctionCall toFuncCall() {
+			ArrayList<DataType> a = new ArrayList<>();
+			for (Expression expr : args) {
+				a.add(expr.type);
+			}
+			return new FunctionCall(name, a, retType, dirs);
+		}
+	}
+	
 	public static LookupNode getLookupTree(CompileData cd) {
 		LookupNode tree = getLookupTree(cd, LookupNode.root());
 		for (String v : cd.frame.getAllVars()) {
@@ -171,18 +208,36 @@ public class CompileLookup {
 				node = (LookupNode) arg;
 			} else if (arg instanceof String) {
 				node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, arg, (String) arg, false);
+			} else if (arg instanceof LookupFunction) {
+				node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, arg, ((LookupFunction) arg).name, false);
 			} else if (arg instanceof Element) {
 				Element e = (Element) arg;
 				if (e.type instanceof Rule) {
 					switch ((Rule)e.type) {
 						case FCALL:
+							LookupFunction fcall = new LookupFunction(null, new ArrayList<>(), (DataType) null, new ArrayList<>());
+							fcall.name = (String) e.args[0];
+							ArrayList<Element> es = (ArrayList<Element>) ((Element)e.args[1]).args[0];
+							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+								es = (ArrayList<Element>) es.get(0).args[0];
+							}
+							for (Element e2 : es) {
+								Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e2);
+								fcall.args.add(expr2);
+							}
+							if (e.dataType!=null) {
+								DataType dt = SourceCompiler.compileDataType(cd, e.dataType);
+								fcall.retType = dt;
+							}
+							fcall.dirs.addAll(e.directives);
+							node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, fcall, fcall.name, false);
 							break;
 						case ICALL:
 							break;
 						case ICALL_REF:
 							break;
 						case CHAIN:
-							ArrayList<Element> es = (ArrayList<Element>) e.args[0];
+							es = (ArrayList<Element>) e.args[0];
 							LookupNode tree2 = parseArgs(cd, es.toArray());
 							tree2 = (LookupNode) tree2.c.get(0);
 							node.c.add(tree2);
