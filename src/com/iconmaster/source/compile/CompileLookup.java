@@ -56,6 +56,12 @@ public class CompileLookup {
 					return "field";
 				case INDEX:
 					return "index";
+				case RAWSTR:
+					return "member";
+				case RAWCALL:
+					return "function";
+				case RAWINDEX:
+					return "index";
 			}
 			return "member";
 		}
@@ -459,7 +465,7 @@ public class CompileLookup {
 				cd.errs.add(new SourceException(null, "Lookup failed for "+rawnode.match+":"));
 				for (LookupNode child : oldLookupNodes) {
 					LookupNode node = oldNodes.get(j);
-					cd.errs.add(new SourceException(null, "\tCould not find "+node.type+" "+rawnode.match+" of "+child.type+" "+child.match));
+					cd.errs.add(new SourceException(null, "\tCould not find "+rawnode.type+" "+rawnode.match+" of "+child.type+" "+child.match));
 					j++;
 				}
 				return null;
