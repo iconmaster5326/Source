@@ -464,7 +464,7 @@ public class CompileLookup {
 			if (nodes.isEmpty()) {
 				//error
 				int j = 0;
-				cd.errs.add(new SourceException(rawnode.range, "Lookup failed for "+rawnode.match+":"));
+				//cd.errs.add(new SourceException(rawnode.range, "Lookup failed for "+rawnode.match+":"));
 				for (LookupNode child : oldLookupNodes) {
 					LookupNode node = oldNodes.get(j);
 					cd.errs.add(new SourceException(rawnode.range, "\tCould not find "+rawnode.type+" "+rawnode.match+" of "+child.type+" "+child.match));
