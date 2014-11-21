@@ -232,7 +232,7 @@ public class SourcePackage implements IDirectable {
 	}
 	
 	public boolean isFunctionCallCompatible(Function v, FunctionCall call) {
-		if (call.isIter || (call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType()))) {
+		if (call.isIter || (call.ret == null || call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType()))) {
 			if (call.args.size()==v.args.size()) {
 				boolean dirsMatch = true;
 				for (String dir : call.dirs) {
@@ -245,7 +245,7 @@ public class SourcePackage implements IDirectable {
 					int i = 0;
 					boolean argsMatch = true;
 					for (Field arg : v.args) {
-						if (!DataType.canCastTo(arg.getType(), call.args.get(i))) {
+						if (call.args.get(i)!= null && !DataType.canCastTo(arg.getType(), call.args.get(i))) {
 							argsMatch = false;
 							break;
 						}

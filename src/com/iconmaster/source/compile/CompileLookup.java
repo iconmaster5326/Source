@@ -136,6 +136,13 @@ public class CompileLookup {
 			}
 			return new FunctionCall(name, a, retType, dirs);
 		}
+		
+		public LookupFunction cloneFunc() {
+			LookupFunction fcall = new LookupFunction(name, args, retType, dirs);
+			fcall.index = index;
+			fcall.fn = fn;
+			return fcall;
+		}
 	}
 	
 	public static LookupNode getLookupTree(CompileData cd) {
@@ -187,7 +194,7 @@ public class CompileLookup {
 					while (td!=null) {
 						if (fn.getName().startsWith(td.name+".")) {
 							String methodName = fn.getName();
-							methodName = methodName.substring(methodName.indexOf(".")+1);
+							methodName = methodName.substring(td.name.length()+1);
 							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, false);
 							getLookupTree(cd, tree);
 						}
@@ -279,13 +286,15 @@ public class CompileLookup {
 			node = node.p;
 		}
 		
+		String prev;
+		String var = null;
 		while (true) {
 			if (node.c.isEmpty()) {
 				break;
 			}
 			node = (LookupNode) node.c.get(0);
 			
-			String var;
+			prev = var;
 			if (node.c.isEmpty()) {
 				var = retVar;
 			} else {
@@ -316,6 +325,21 @@ public class CompileLookup {
 					expr.type = cd.frame.getVarTypeNode(((Field)node.data).getName());
 					expr.add(new Operation(OpType.MOV, expr.type, rn, var, ((Field)node.data).getName()));
 					break;
+				case METHOD:
+					Expression expr2 = new Expression();
+					expr2.retVar = prev;
+					((LookupFunction)node.data).args.add(0,expr2);
+				case FUNC:
+					LookupFunction fcall = (LookupFunction) node.data;
+					ArrayList<String> names = new ArrayList<>();
+					for (Expression ex : fcall.args) {
+						expr.addAll(ex);
+						names.add(ex.retVar);
+					}
+					names.add(0,fcall.fn.getFullName());
+					names.add(0,var);
+					expr.add(new Operation(OpType.CALL, fcall.fn.getReturnType(), rn, names.toArray(new String[0])));
+					break;
 			}
 		}
 		
@@ -329,7 +353,7 @@ public class CompileLookup {
 	public static LookupNode getType(LookupNode tree, String name) {
 		for (LookupNode node : (ArrayList<LookupNode>) tree.c) {
 			if (node.type==LookupType.TYPE && name.equals(node.match)) {
-				return tree;
+				return node;
 			} else {
 				LookupNode res = getType(node,name);
 				if (res!=null) {
@@ -375,13 +399,17 @@ public class CompileLookup {
 							}
 							break;
 						case RAWCALL:
-							if (rawnode.match.equals(child.match) && (rawnode.type==LookupType.FUNC || rawnode.type==LookupType.METHOD)) {
-								LookupFunction fcall = (LookupFunction) node.data;
-								if (cd.pkg.isFunctionCallCompatible((Function) rawnode.data, fcall.toFuncCall())) {
+							if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
+								LookupFunction fcall = (LookupFunction) rawnode.data;
+								FunctionCall fcall2 = fcall.toFuncCall();
+								if (child.type==LookupType.METHOD) {
+									fcall2.args.add(0,null);
+								}
+								if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
 									LookupNode newNode = child.cloneNode();
 									node.c.add(newNode);
 									newNode.p = node;
-									fcall.fn = (Function) rawnode.data;
+									fcall.fn = (Function) child.data;
 									newNode.data = fcall;
 									newNodes.add(newNode);
 									newLookupNodes.add(child);
@@ -415,12 +443,9 @@ public class CompileLookup {
 						break;
 					case FUNC:
 					case METHOD:
-						LookupFunction fcall = (LookupFunction)node.data;
-						if (fcall.retType!=null) {
-							varType = fcall.retType;
-						} else {
-							varType = fcall.fn.getReturnType();
-						}
+						Function fcall = (Function) node.data;
+						varType = fcall.getReturnType();
+						break;
 				}
 				
 				if (varType != null) {
