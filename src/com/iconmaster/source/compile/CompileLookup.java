@@ -439,14 +439,16 @@ public class CompileLookup {
 			if (rawnode.type==LookupType.EXPR) {
 				int i = 0;
 				for (LookupNode node : lookupNodes) {
-					LookupNode child = nodes.get(i);
-					node = getType(lookupTree, ((Expression)rawnode.data).type.type.name);
-					newLookupNodes.add(node);
-					
-					LookupNode newNode = rawnode.cloneNode();
-					child.c.add(newNode);
-					newNode.p = child;
-					newNodes.add(newNode);
+					if (node.type==LookupType.ROOT) {
+						LookupNode child = nodes.get(i);
+						node = getType(lookupTree, ((Expression)rawnode.data).type.type.name);
+						newLookupNodes.add(node);
+
+						LookupNode newNode = rawnode.cloneNode();
+						child.c.add(newNode);
+						newNode.p = child;
+						newNodes.add(newNode);
+					}
 					i++;
 				}
 			} else {
@@ -500,7 +502,7 @@ public class CompileLookup {
 				//cd.errs.add(new SourceException(rawnode.range, "Lookup failed for "+rawnode.match+":"));
 				for (LookupNode child : oldLookupNodes) {
 					LookupNode node = oldNodes.get(j);
-					cd.errs.add(new SourceException(rawnode.range, "\tCould not find "+rawnode.type+" "+rawnode.match+" of "+child.type+" "+child.match));
+					cd.errs.add(new SourceException(rawnode.range, "Could not find "+rawnode.type+" "+rawnode.match+" of "+child.type+" "+child.match));
 					j++;
 				}
 				return null;
