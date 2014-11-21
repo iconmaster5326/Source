@@ -12,6 +12,7 @@ import com.iconmaster.source.prototype.FunctionCall;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Range;
+import com.iconmaster.source.util.SourceDecompiler;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -22,13 +23,14 @@ import java.util.Arrays;
 public class CompileLookup {
 	public static enum LookupType {
 		RAWSTR,RAWCALL,RAWINDEX,
-		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,INDEX;
+		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,INDEX,EXPR;
 		
 		public boolean isRaw() {
 			switch(this) {
 				case RAWSTR:
 				case RAWCALL:
 				case RAWINDEX:
+				case EXPR:
 					return true;
 				default:
 					return false;
@@ -62,6 +64,8 @@ public class CompileLookup {
 					return "function";
 				case RAWINDEX:
 					return "index";
+				case EXPR:
+					return "expression";
 			}
 			return "member";
 		}
@@ -295,11 +299,21 @@ public class CompileLookup {
 							tree2.p = node;
 							node = tree2;
 							break;
+						default:
+							Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e);
+							node = new LookupNode(LookupType.EXPR, node, expr2, e.range, SourceDecompiler.elementToString(e));
+							node.p.c.add(node);
+							break;
 					}
 				} else {
 					switch ((TokenRule)e.type) {
 						case WORD:
 							node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, e.args[0], (String) e.args[0], e.range, false);
+							break;
+						default:
+							Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e);
+							node = new LookupNode(LookupType.EXPR, node, expr2, e.range, SourceDecompiler.elementToString(e));
+							node.p.c.add(node);
 							break;
 					}
 				}
@@ -374,6 +388,10 @@ public class CompileLookup {
 					names.add(0,var);
 					expr.add(new Operation(OpType.CALL, fcall.fn.getReturnType(), node.range, names.toArray(new String[0])));
 					break;
+				case EXPR:
+					expr.addAll(((Expression)node.data));
+					expr.add(new Operation(OpType.MOV, expr.type, node.range, var, ((Expression)node.data).retVar));
+					break;
 			}
 		}
 		
@@ -418,41 +436,56 @@ public class CompileLookup {
 			ArrayList<LookupNode> newLookupNodes = new ArrayList<>();
 			ArrayList<LookupNode> newNodes = new ArrayList<>();
 			
-			int i = 0;
-			for (LookupNode lookupNode : lookupNodes) {
-				LookupNode node = nodes.get(i);
-				for (LookupNode child : (ArrayList<LookupNode>) lookupNode.c) {
-					switch (rawnode.type) {
-						case RAWSTR:
-							if (rawnode.match == null ? false : rawnode.match.equals(child.match)) {
-								LookupNode newNode = child.cloneNode();
-								node.c.add(newNode);
-								newNode.p = node;
-								newNodes.add(newNode);
-								newLookupNodes.add(child);
-							}
-							break;
-						case RAWCALL:
-							if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
-								LookupFunction fcall = (LookupFunction) rawnode.data;
-								FunctionCall fcall2 = fcall.toFuncCall();
-								if (child.type==LookupType.METHOD) {
-									fcall2.args.add(0,null);
-								}
-								if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
+			if (rawnode.type==LookupType.EXPR) {
+				int i = 0;
+				for (LookupNode node : lookupNodes) {
+					LookupNode child = nodes.get(i);
+					node = getType(lookupTree, ((Expression)rawnode.data).type.type.name);
+					newLookupNodes.add(node);
+					
+					LookupNode newNode = rawnode.cloneNode();
+					child.c.add(newNode);
+					newNode.p = child;
+					newNodes.add(newNode);
+					i++;
+				}
+			} else {
+				int i = 0;
+				for (LookupNode lookupNode : lookupNodes) {
+					LookupNode node = nodes.get(i);
+					for (LookupNode child : (ArrayList<LookupNode>) lookupNode.c) {
+						switch (rawnode.type) {
+							case RAWSTR:
+								if (rawnode.match == null ? false : rawnode.match.equals(child.match)) {
 									LookupNode newNode = child.cloneNode();
 									node.c.add(newNode);
 									newNode.p = node;
-									fcall.fn = (Function) child.data;
-									newNode.data = fcall;
 									newNodes.add(newNode);
 									newLookupNodes.add(child);
 								}
-							}
-							break;
+								break;
+							case RAWCALL:
+								if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
+									LookupFunction fcall = (LookupFunction) rawnode.data;
+									FunctionCall fcall2 = fcall.toFuncCall();
+									if (child.type==LookupType.METHOD) {
+										fcall2.args.add(0,null);
+									}
+									if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
+										LookupNode newNode = child.cloneNode();
+										node.c.add(newNode);
+										newNode.p = node;
+										fcall.fn = (Function) child.data;
+										newNode.data = fcall;
+										newNodes.add(newNode);
+										newLookupNodes.add(child);
+									}
+								}
+								break;
+						}
 					}
+					i++;
 				}
-				i++;
 			}
 			
 			ArrayList<LookupNode> oldLookupNodes = lookupNodes;
