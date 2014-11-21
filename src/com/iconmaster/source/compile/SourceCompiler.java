@@ -568,7 +568,7 @@ public class SourceCompiler {
 					expr.add(new Operation(OpType.MOVN, expr.type.type, e.range, retVar, String.valueOf((int) ((String)e.args[0]).charAt(0))));
 					break;
 				case WORD:
-					return CompileLookup.rvalLookup(cd, retVar, e.range, e);
+					return CompileLookup.rvalLookup(cd, retVar, e);
 			}
 		} else {
 			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
