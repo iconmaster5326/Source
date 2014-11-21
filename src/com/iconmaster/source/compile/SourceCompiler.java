@@ -606,108 +606,11 @@ public class SourceCompiler {
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
+					case FCALL:
 					case CHAIN:
 						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
-					case FCALL:
-						es = (ArrayList<Element>) e.args[1];
-						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
-							es = (ArrayList<Element>) es.get(0).args[0];
-						} else if (es.size()>1) {
-							cd.errs.add(new SourceSyntaxException(e.range, "Illegal function call format"));
-						}
-						ArrayList<DataType> argdts = new ArrayList<>();
-						for (Element e2 : es) {
-							Expression expr2 = compileExpr(cd, "", e2);
-							argdts.add(expr2.type);
-						}
-						RealFunction rfn = getRealFunction(cd, new FunctionCall((String) e.args[0], argdts, compileDataType(cd, e.dataType), e.directives));
-						if (rfn.fn==null) {
-							if (rfn.nameFound) {
-								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Function "+e.args[0]+" has no overload", (String) e.args[0]));
-							} else {
-								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Undefined function "+e.args[0], (String) e.args[0]));
-							}
-							break;
-						}
-						ArrayList<Expression> args = new ArrayList<>();
-						ArrayList<String> names = new ArrayList<>();
-						DataType[] paramTypes = new DataType[0];
-						if (rfn.fn.rawParams!=null) {
-							paramTypes = new DataType[rfn.fn.rawParams.size()];
-						}
-						if (rfn.method) {
-							Expression mexpr = new Expression();
-							String s = rfn.methodOf;
-							DataType type = cd.frame.getVarTypeNode(s);
-							mexpr.type = type;
-							mexpr.retVar = cd.frame.newVarName();
-							mexpr.add(new Operation(OpType.MOV, type, e.range, mexpr.retVar, s));
-							names.add(mexpr.retVar);
-							args.add(mexpr);
-						}
-						for (Element e2 : es) {
-							String name = cd.frame.newVarName();
-							Expression expr2 = compileExpr(cd, name, e2);
-							args.add(expr2);
-							names.add(name);
-						}
-						int i = 0;
-						for (Expression expr2 : args) {
-							DataType dt = rfn.fn.getArguments().get(i).getType();
-							if (dt==null) {
-								dt = new DataType(true);
-							}
-							if (dt.type instanceof ParamTypeDef) {
-								if (!DataType.canCastTo(dt,expr2.type)) {
-									cd.errs.add(new SourceDataTypeException(e.range, "Cannot cast type parameter "+dt+" to data type "+expr2.type));
-								}
-								if (paramTypes[((ParamTypeDef)dt.type).paramNo]==null) {
-									paramTypes[((ParamTypeDef)dt.type).paramNo] = expr2.type;
-								} else {
-									if (!DataType.canCastTo(paramTypes[((ParamTypeDef)dt.type).paramNo],expr2.type)) {
-										cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)dt.type).paramNo]+", not type "+expr2.type));
-									}
-								}
-							}
-							int pi = 0;
-							for (DataType param : dt.params) {
-								if (param.type instanceof ParamTypeDef) {
-									if (!DataType.canCastTo(param,expr2.type)) {
-										cd.errs.add(new SourceDataTypeException(e.range, "Cannot cast type parameter "+param+" to data type "+expr2.type));
-									}
-									if (paramTypes[((ParamTypeDef)param.type).paramNo]==null) {
-										paramTypes[((ParamTypeDef)param.type).paramNo] = pi<expr2.type.params.length?expr2.type.params[pi]:new DataType(true);
-									} else {
-										if (!DataType.canCastTo(paramTypes[((ParamTypeDef)param.type).paramNo],expr2.type)) {
-											cd.errs.add(new SourceDataTypeException(e.range, "Type parameter "+dt+" matches data type "+paramTypes[((ParamTypeDef)param.type).paramNo]+", not type "+expr2.type));
-										}
-									}
-								}
-								pi++;
-							}
-							i++;
-							
-							expr.addAll(expr2);
-						}
-						names.add(0, (String) rfn.fn.getFullName());
-						names.add(0,retVar);
-						DataType rtd = rfn.fn.getReturnType();
-						if (rtd!=null) {
-							if (rtd.type instanceof ParamTypeDef) {
-								if (paramTypes[((ParamTypeDef)rtd.type).paramNo]!=null) {
-									rtd = paramTypes[((ParamTypeDef)rtd.type).paramNo];
-								} else {
-									rtd = new DataType(true);
-								}
-							}
-						} else {
-							rtd = new DataType(true);
-						}
-						expr.type = rtd;
-						expr.add(new Operation(OpType.CALL, rtd.type, e.range, names.toArray(new String[0])));
-						break;
 					case ICALL:
-						names = new ArrayList<>();
+						ArrayList<String> names = new ArrayList<>();
 						ArrayList<Expression> exprs = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[1];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
@@ -727,9 +630,9 @@ public class SourceCompiler {
 						for (Expression expr3 : exprs) {
 							arga.add(expr3.type);
 						}
-						rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, new DataType(true), e.directives));
+						RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, new DataType(true), e.directives));
 						if (rfn.fn!=null) {
-							i = 0;
+							int i = 0;
 							if (rfn.fn.getArguments().size()-1!=exprs.size()) {
 								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-1)+" indices, got "+exprs.size()));
 							} else {
@@ -748,7 +651,7 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
-							i = 0;
+							int i = 0;
 							if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
 								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
 							} else {
@@ -766,7 +669,7 @@ public class SourceCompiler {
 							}
 							names.add(0,listExpr.retVar);
 							names.add(0,retVar);
-							rtd = new DataType(listExpr.type.type.indexReturns);
+							DataType rtd = new DataType(listExpr.type.type.indexReturns);
 							if (rtd.type instanceof ParamTypeDef) {
 								rtd = ((ParamTypeDef)rtd.type).paramNo>=listExpr.type.params.length?null:listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
 							}
