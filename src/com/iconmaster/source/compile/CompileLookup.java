@@ -3,6 +3,7 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
+import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.exception.SourceUndefinedVariableException;
 import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
@@ -32,6 +33,31 @@ public class CompileLookup {
 				default:
 					return false;
 			}
+		}
+
+		@Override
+		public String toString() {
+			switch (this) {
+				case VAR:
+					return "variable";
+				case ROOT:
+					return "default package";
+				case PKG:
+					return "package";
+				case TYPE:
+					return "type";
+				case FUNC:
+					return "function";
+				case METHOD:
+					return "method";
+				case FIELD:
+					return "field";
+				case GLOBAL:
+					return "field";
+				case INDEX:
+					return "index";
+			}
+			return "member";
 		}
 	}
 	
@@ -421,12 +447,21 @@ public class CompileLookup {
 				i++;
 			}
 			
+			ArrayList<LookupNode> oldLookupNodes = lookupNodes;
+			ArrayList<LookupNode> oldNodes = nodes;
+			
 			lookupNodes = newLookupNodes;
 			nodes = newNodes;
 			
 			if (nodes.isEmpty()) {
 				//error
-				cd.errs.add(new SourceUndefinedVariableException(null, "Lookup failed for "+rawnode.match,rawnode.match));
+				int j = 0;
+				cd.errs.add(new SourceException(null, "Lookup failed for "+rawnode.match+":"));
+				for (LookupNode child : oldLookupNodes) {
+					LookupNode node = oldNodes.get(j);
+					cd.errs.add(new SourceException(null, "\tCould not find "+node.type+" "+rawnode.match+" of "+child.type+" "+child.match));
+					j++;
+				}
 				return null;
 			}
 			
