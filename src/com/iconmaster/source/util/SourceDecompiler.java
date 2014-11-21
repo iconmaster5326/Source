@@ -78,7 +78,7 @@ public class SourceDecompiler {
 				case ICALL:
 					sb.append(e.args[0]);
 					sb.append("[");
-					sb.append(elementsToString((ArrayList<Element>) e.args[0]));
+					sb.append(elementsToString((ArrayList<Element>) e.args[1]));
 					sb.append("]");
 					break;
 				case TO:

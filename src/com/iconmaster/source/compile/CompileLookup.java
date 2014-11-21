@@ -279,10 +279,6 @@ public class CompileLookup {
 							fcall.dirs.addAll(e.directives);
 							node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, fcall, (String) e.args[0],e.range, false);
 							break;
-						case ICALL:
-							break;
-						case ICALL_REF:
-							break;
 						case CHAIN:
 							es = (ArrayList<Element>) e.args[0];
 							LookupNode tree2 = parseArgs(cd, es.toArray());
