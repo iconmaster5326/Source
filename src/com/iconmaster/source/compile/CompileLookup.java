@@ -9,12 +9,14 @@ import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.FunctionCall;
+import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Range;
 import com.iconmaster.source.util.SourceDecompiler;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  *
@@ -469,6 +471,7 @@ public class CompileLookup {
 									if (child.type==LookupType.METHOD) {
 										fcall2.args.add(0,null);
 									}
+									
 									if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
 										LookupNode newNode = child.cloneNode();
 										node.c.add(newNode);
@@ -493,7 +496,6 @@ public class CompileLookup {
 			nodes = newNodes;
 			
 			if (nodes.isEmpty()) {
-				//error
 				int j = 0;
 				//cd.errs.add(new SourceException(rawnode.range, "Lookup failed for "+rawnode.match+":"));
 				for (LookupNode child : oldLookupNodes) {
@@ -505,27 +507,48 @@ public class CompileLookup {
 			}
 			
 			newLookupNodes = new ArrayList<>();
-			for (LookupNode node : lookupNodes) {
+			int j = 0;
+			for (LookupNode child : lookupNodes) {
+				LookupNode node = nodes.get(j);
 				DataType varType = null;
 				
-				switch (node.type) {
+				switch (child.type) {
 					case VAR:
-						varType = cd.frame.getVarTypeNode((String) node.data);
+						varType = cd.frame.getVarTypeNode((String) child.data);
 						break;
 					case GLOBAL:
-						varType = ((Field)node.data).getType();
+						varType = ((Field)child.data).getType();
 						break;
 					case FUNC:
 					case METHOD:
-						Function fcall = (Function) node.data;
+						Function fcall = (Function) child.data;
 						varType = fcall.getReturnType();
+						
+						LookupFunction fcall2 = (LookupFunction) node.data;
+						
+						if (varType!=null && varType.type instanceof ParamTypeDef) {
+							ArrayList<DataType> ct = new ArrayList<>();
+							ArrayList<DataType> gt = new ArrayList<>();
+							for (Field f : fcall.getArguments()) {
+								ct.add(f.getType());
+							}
+							if (child.type==LookupType.METHOD) {
+								gt.add(new DataType());
+							}
+							for (Expression expr : fcall2.args) {
+								gt.add(expr.type);
+							}
+							HashMap<String,DataType> map = Parameterizer.parameterize(cd, rawnode.range, ct, gt, new HashMap<>());
+							varType = map.get(varType.type.name);
+						}
 						break;
 				}
 				
 				if (varType != null) {
-					node = getType(lookupTree, varType.type.name);
+					child = getType(lookupTree, varType.type.name);
 				}
-				newLookupNodes.add(node);
+				newLookupNodes.add(child);
+				j++;
 			}
 			lookupNodes = newLookupNodes;
 		}
