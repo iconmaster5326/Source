@@ -54,6 +54,10 @@ public class Parameterizer {
 	}
 	
 	public static DataType replaceWithParams(DataType type, HashMap<String,DataType> map) {
+		if (type==null) {
+			return null;
+		}
+		
 		if (type.type instanceof ParamTypeDef) {
 			return map.get(type.type.name);
 		}
