@@ -384,11 +384,13 @@ public class CompileLookup {
 					}
 					names.add(0,fcall.fn.getFullName());
 					names.add(0,var);
-					expr.add(new Operation(OpType.CALL, fcall.fn.getReturnType(), node.range, names.toArray(new String[0])));
+					expr.type = ((LookupFunction)node.data).retType;
+					expr.add(new Operation(OpType.CALL, ((LookupFunction)node.data).retType, node.range, names.toArray(new String[0])));
 					break;
 				case EXPR:
 					expr.addAll(((Expression)node.data));
-					expr.add(new Operation(OpType.MOV, expr.type, node.range, var, ((Expression)node.data).retVar));
+					expr.add(new Operation(OpType.MOV, ((Expression)node.data).type, node.range, var, ((Expression)node.data).retVar));
+					expr.type = ((Expression)node.data).type;
 					break;
 			}
 		}
@@ -541,6 +543,8 @@ public class CompileLookup {
 							HashMap<String,DataType> map = Parameterizer.parameterize(cd, rawnode.range, ct, gt, new HashMap<>());
 							varType = map.get(varType.type.name);
 						}
+						
+						fcall2.retType = varType;
 						break;
 				}
 				
