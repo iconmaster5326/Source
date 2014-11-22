@@ -26,7 +26,7 @@ public class LibraryCore extends SourcePackage {
 		this.addType(TypeDef.LIST);
 		this.addType(TypeDef.BOOLEAN);
 		
-		Function fn = Function.libraryFunction("print", new String[] {"item"}, new TypeDef[] {}, null);
+		Function fn = Function.libraryFunction("print", new String[] {"item"}, new TypeDef[] {TypeDef.UNKNOWN}, null);
 		fn.compileName = "PRINT";
 		this.addFunction(fn);
 		

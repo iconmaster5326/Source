@@ -468,8 +468,10 @@ public class CompileLookup {
 							case RAWCALL:
 								if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
 									LookupFunction fcall = (LookupFunction) rawnode.data;
-									fcall.args.add(0,new Expression());
-									fcall.args.get(0).type = node.dataType;
+									if (node.type!=LookupType.ROOT) {
+										fcall.args.add(0,new Expression());
+										fcall.args.get(0).type = node.dataType;
+									}
 									FunctionCall fcall2 = fcall.toFuncCall();
 
 									if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
