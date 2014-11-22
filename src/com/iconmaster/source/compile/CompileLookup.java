@@ -79,6 +79,7 @@ public class CompileLookup {
 		public LookupType type;
 		public String match;
 		public Range range;
+		public DataType dataType;
 
 		public LookupNode(LookupType type, LookupNode p, T data, Range range, String match, LookupNode... c) {
 			this.p = p;
@@ -418,8 +419,6 @@ public class CompileLookup {
 		LookupNode rawtree = parseArgs(cd, args);
 		LookupNode rawnode = rawtree;
 		
-		DataType lastType = null;
-		
 		LookupNode lookupTree = getLookupTree(cd);
 		ArrayList<LookupNode> lookupNodes = new ArrayList<>();
 		lookupNodes.add(lookupTree);
@@ -470,7 +469,7 @@ public class CompileLookup {
 								if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
 									LookupFunction fcall = (LookupFunction) rawnode.data;
 									fcall.args.add(0,new Expression());
-									fcall.args.get(0).type = lastType;
+									fcall.args.get(0).type = node.dataType;
 									FunctionCall fcall2 = fcall.toFuncCall();
 
 									if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
@@ -551,7 +550,7 @@ public class CompileLookup {
 				if (varType != null) {
 					child = getType(lookupTree, varType.type.name);
 				}
-				lastType = varType;
+				node.dataType = varType;
 				newLookupNodes.add(child);
 				j++;
 			}
