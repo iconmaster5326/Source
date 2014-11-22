@@ -39,6 +39,9 @@ public class Parameterizer {
 					map.put(dt.type.name, got);
 				}
 			} else {
+				if (got==null) {
+					got = new DataType();
+				}
 				ArrayList<DataType> ct2 = new ArrayList<>();
 				ArrayList<DataType> gt2 = new ArrayList<>();
 				int max = Math.max(dt.params.length,got.params.length);

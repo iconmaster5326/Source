@@ -216,7 +216,7 @@ public class CompileLookup {
 				break;
 			case VAR:
 				String varName = (String) node.data;
-				DataType type = cd.frame.getVarTypeNode(varName);
+				DataType type = cd.frame.getVarType(varName);
 				if (type!=null) {
 					for (Function fn : cd.pkg.getFunctions()) {
 						if (fn.getName().startsWith(type.type.name+".")) {
@@ -340,57 +340,59 @@ public class CompileLookup {
 			}
 			node = (LookupNode) node.c.get(0);
 			
-			prev = var;
-			if (node.c.isEmpty()) {
-				var = retVar;
-			} else {
-				var = cd.frame.newVarName();
-			}
-			
-			switch (node.type) {
-				case VAR:
-					if (cd.frame.isInlined((String)node.data)) {
-						Element e2 = cd.frame.getInline((String)node.data);
-						if (e2==null) {
-							cd.errs.add(new SourceUninitializedVariableException(node.range,"Constant "+node.data+" not initialized", (String) node.data));
+			if (node.type!=LookupType.PKG) {
+				prev = var;
+				if (node.c.isEmpty()) {
+					var = retVar;
+				} else {
+					var = cd.frame.newVarName();
+				}
+
+				switch (node.type) {
+					case VAR:
+						if (cd.frame.isInlined((String)node.data)) {
+							Element e2 = cd.frame.getInline((String)node.data);
+							if (e2==null) {
+								cd.errs.add(new SourceUninitializedVariableException(node.range,"Constant "+node.data+" not initialized", (String) node.data));
+							} else {
+								Expression expr2 = SourceCompiler.compileExpr(cd, retVar, e2);
+								expr.addAll(expr2);
+								expr.type = expr2.type;
+							}
+						} else if (!cd.frame.isDefined((String)node.data)) {
+							cd.errs.add(new SourceUndefinedVariableException(node.range, "Undefined variable "+node.data, (String) node.data));
+						} else if (cd.frame.getVariable((String)node.data)==null) {
+							cd.errs.add(new SourceUninitializedVariableException(node.range, "Uninitialized variable "+node.data, (String) node.data));
 						} else {
-							Expression expr2 = SourceCompiler.compileExpr(cd, retVar, e2);
-							expr.addAll(expr2);
-							expr.type = expr2.type;
+							expr.type = cd.frame.getVarType((String)node.data);
+							expr.add(new Operation(OpType.MOV, expr.type, node.range, var, (String)node.data));
 						}
-					} else if (!cd.frame.isDefined((String)node.data)) {
-						cd.errs.add(new SourceUndefinedVariableException(node.range, "Undefined variable "+node.data, (String) node.data));
-					} else if (cd.frame.getVariable((String)node.data)==null) {
-						cd.errs.add(new SourceUninitializedVariableException(node.range, "Uninitialized variable "+node.data, (String) node.data));
-					} else {
-						expr.type = cd.frame.getVarTypeNode((String)node.data);
-						expr.add(new Operation(OpType.MOV, expr.type, node.range, var, (String)node.data));
-					}
-					break;
-				case GLOBAL:
-					expr.type = cd.frame.getVarTypeNode(((Field)node.data).getName());
-					expr.add(new Operation(OpType.MOV, expr.type, node.range, var, ((Field)node.data).getName()));
-					break;
-				case METHOD:
-					Expression expr2 = ((LookupFunction)node.data).args.get(0);
-					expr2.retVar = prev;
-				case FUNC:
-					LookupFunction fcall = (LookupFunction) node.data;
-					ArrayList<String> names = new ArrayList<>();
-					for (Expression ex : fcall.args) {
-						expr.addAll(ex);
-						names.add(ex.retVar);
-					}
-					names.add(0,fcall.fn.getFullName());
-					names.add(0,var);
-					expr.type = ((LookupFunction)node.data).retType;
-					expr.add(new Operation(OpType.CALL, ((LookupFunction)node.data).retType, node.range, names.toArray(new String[0])));
-					break;
-				case EXPR:
-					expr.addAll(((Expression)node.data));
-					expr.add(new Operation(OpType.MOV, ((Expression)node.data).type, node.range, var, ((Expression)node.data).retVar));
-					expr.type = ((Expression)node.data).type;
-					break;
+						break;
+					case GLOBAL:
+						expr.type = ((Field)node.data).getType();
+						expr.add(new Operation(OpType.MOV, expr.type, node.range, var, ((Field)node.data).getName()));
+						break;
+					case METHOD:
+						Expression expr2 = ((LookupFunction)node.data).args.get(0);
+						expr2.retVar = prev;
+					case FUNC:
+						LookupFunction fcall = (LookupFunction) node.data;
+						ArrayList<String> names = new ArrayList<>();
+						for (Expression ex : fcall.args) {
+							expr.addAll(ex);
+							names.add(ex.retVar);
+						}
+						names.add(0,fcall.fn.getFullName());
+						names.add(0,var);
+						expr.type = ((LookupFunction)node.data).retType;
+						expr.add(new Operation(OpType.CALL, ((LookupFunction)node.data).retType, node.range, names.toArray(new String[0])));
+						break;
+					case EXPR:
+						expr.addAll(((Expression)node.data));
+						expr.add(new Operation(OpType.MOV, ((Expression)node.data).type, node.range, var, ((Expression)node.data).retVar));
+						expr.type = ((Expression)node.data).type;
+						break;
+				}
 			}
 		}
 		
@@ -516,7 +518,7 @@ public class CompileLookup {
 				
 				switch (child.type) {
 					case VAR:
-						varType = cd.frame.getVarTypeNode((String) child.data);
+						varType = cd.frame.getVarType((String) child.data);
 						break;
 					case GLOBAL:
 						varType = ((Field)child.data).getType();
