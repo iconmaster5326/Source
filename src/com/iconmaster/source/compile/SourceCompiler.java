@@ -1038,7 +1038,7 @@ public class SourceCompiler {
 		}
 		return new RealFunction(null,null,cd.pkg.getFunction(fnToCall)!=null);
 	}
-	
+		
 	public static CodeTransformer fnInliner = (pkg, work, code) -> {
 		ArrayList<Operation> a = new ArrayList<>();
 		for (int ii=0;ii<code.size();ii++) {

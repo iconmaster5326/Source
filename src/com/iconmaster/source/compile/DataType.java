@@ -2,6 +2,7 @@ package com.iconmaster.source.compile;
 
 import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.TypeDef;
+import java.util.Arrays;
 
 /**
  *
@@ -88,5 +89,11 @@ public class DataType {
 		} else {
 			return TypeDef.getCommonParent(thisType.type, other.type)==thisType.type;
 		}
+	}
+	
+	public DataType cloneType() {
+		DataType dt = new DataType(type, weak);
+		dt.params = Arrays.copyOf(dt.params, dt.params.length);
+		return dt;
 	}
 }
