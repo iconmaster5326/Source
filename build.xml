@@ -13,7 +13,12 @@
 	
 	<property file="build.properties"/>
 	<target name="-pre-compile">
-		<condition property="BUILD_ID" value="0">
+		<condition property="DRONE_BUILD_NUMBER" value="0">
+			<not>  
+				<isset property="DRONE_BUILD_NUMBER"/>
+			</not>
+		</condition>
+		<condition property="BUILD_ID" value="${DRONE_BUILD_NUMBER}">
 			<not>  
 				<isset property="BUILD_ID"/>
 			</not>
