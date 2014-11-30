@@ -11,9 +11,10 @@
 	<description>Builds, tests, and runs the project Source.</description>
 	<import file="nbproject/build-impl.xml"/>
 	
+	<property environment="env"/>
 	<property file="build.properties"/>
 	<target name="-pre-compile">		
-		<replace dir="${src.dir}" token="@VERSION@" value="${source.version}.${DRONE_BUILD_NUMBER}"/>
+		<replace dir="${src.dir}" token="@VERSION@" value="${source.version}.${env.BUILD_ID}"/>
 	</target>
 	<!--
 
