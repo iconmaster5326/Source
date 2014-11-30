@@ -71,7 +71,7 @@ public class Source {
 		}
 		
 		if (op.input == null) {
-			System.out.println("This is Source, written by iconmaster.");
+			System.out.println("Welcome to Source!");
 			System.out.println("Give the input file on the command line.");
 			System.out.println("Some options are:");
 			System.out.println("\tp:\t\tThe platform to compile to");
