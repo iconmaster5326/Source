@@ -12,17 +12,8 @@
 	<import file="nbproject/build-impl.xml"/>
 	
 	<property file="build.properties"/>
-	<target name="-pre-compile">
-		<condition property="BUILD_ID" value="0">
-			<not>  
-				<isset property="BUILD_ID"/>
-			</not>
-		</condition>
-		<condition property="BUILD_ID" value="${DRONE_BUILD_NUMBER}">
-			<isset property="DRONE"/>
-		</condition>
-		
-		<replace dir="${src.dir}" token="@VERSION@" value="${source.version}.${BUILD_ID}"/>
+	<target name="-pre-compile">		
+		<replace dir="${src.dir}" token="@VERSION@" value="${source.version}.${DRONE_BUILD_NUMBER}"/>
 	</target>
 	<!--
 
