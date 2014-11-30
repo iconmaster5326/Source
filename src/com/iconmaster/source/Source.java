@@ -30,6 +30,9 @@ import java.util.stream.Collectors;
 public class Source {
 
 	public static void main(String[] args) {
+		System.out.println("This is Source version @VERSION@.");
+		System.out.println("https://github.com/iconmaster5326/Source");
+		System.out.println();
 		CLA cla = CLAHelper.getArgs(args);
 		SourceOptions op = new SourceOptions(null, "HPPL", true);
 		if (cla.containsKey("p")) {

@@ -10,6 +10,17 @@
 <project name="Source" default="default" basedir=".">
 	<description>Builds, tests, and runs the project Source.</description>
 	<import file="nbproject/build-impl.xml"/>
+	
+	<property file="build.properties"/>
+	<target name="-pre-compile">
+		<condition property="BUILD_ID" value="0">
+			<not>  
+				<isset property="BUILD_ID"/>
+			</not>
+		</condition>
+		
+		<replace dir="${src.dir}" token="@VERSION@" value="${source.version}.${BUILD_ID}"/>
+	</target>
 	<!--
 
 	There exist several targets which are by default empty and which can be 
