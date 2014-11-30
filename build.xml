@@ -13,7 +13,13 @@
 	
 	<property environment="env"/>
 	<property file="build.properties"/>
-	<target name="-pre-compile">		
+	<target name="-pre-compile">
+		<condition property="env.BUILD_ID" value="0">
+			<not>  
+				<isset property="env.BUILD_ID"/>
+			</not>
+		</condition>
+
 		<replace dir="${src.dir}" token="@VERSION@" value="${source.version}.${env.BUILD_ID}"/>
 	</target>
 	<!--
