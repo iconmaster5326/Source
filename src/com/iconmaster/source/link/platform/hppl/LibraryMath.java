@@ -30,6 +30,9 @@ public class LibraryMath extends SourcePackage {
 		fn = Function.libraryFunction("sqrt", new String[] {"n"}, new TypeDef[] {TypeDef.REAL}, TypeDef.REAL);
 		fn.getDirectives().add("pure");
 		this.addFunction(fn);
+		fn = Function.libraryFunction("abs", new String[] {"n"}, new TypeDef[] {TypeDef.REAL}, TypeDef.REAL);
+		fn.getDirectives().add("pure");
+		this.addFunction(fn);
 		
 		Field f = Field.libraryField("pi", TypeDef.REAL);
 		f.onCompile = (pkg,isGet,args)->{

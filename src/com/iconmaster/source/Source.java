@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class Source {
 
 	public static void main(String[] args) {
-		System.out.println("This is Source version @VERSION@.");
+		System.out.println("This is Source version 0.0.2.${env.BUILD_ID}.");
 		System.out.println("https://github.com/iconmaster5326/Source");
 		System.out.println();
 		CLA cla = CLAHelper.getArgs(args);
