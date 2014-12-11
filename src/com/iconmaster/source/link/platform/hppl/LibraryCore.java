@@ -187,7 +187,7 @@ public class LibraryCore extends SourcePackage {
 		pairsOps.add(new Operation(OpType.CALL, TypeDef.INT, null, "R2","list.size","lst"));
 		pairsOps.add(new Operation(OpType.MOVN, TypeDef.INT, null, "R1", "1"));
 		pairsOps.add(new Operation(OpType.FORR, TypeDef.INT, null, "R0", "1", "R1", "R2"));
-		pairsOps.addAll(CompileLookup.mathOp(null, "_getindex", "R3", ltt, new String[] {"lst","R0"}, new Object[] {ltt,TypeDef.INT}));
+		pairsOps.addAll(CompileLookup.mathOp(null, "_getindex", "R3", iter.rawParams.get(0), new String[] {"lst","R0"}, new Object[] {ltt,TypeDef.INT}));
 		pairsOps.add(new Operation(OpType.RET, ltt, null, "R0", "R3"));
 		pairsOps.add(new Operation(OpType.ENDB));
 		pairsOps.add(new Operation(OpType.END));
