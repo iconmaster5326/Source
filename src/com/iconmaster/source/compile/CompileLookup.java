@@ -185,6 +185,31 @@ public class CompileLookup {
 		}
 	}
 	
+	public static Expression mathOp(CompileData cd, String name, String retVar, Object ret, String[] sargs, Object[] args) {
+		ArrayList<Expression> a = new ArrayList<>();
+		int sarg = 0;
+		for (Object arg : args) {
+			Expression e = new Expression();
+			e.retVar = sargs[sarg];
+			if (arg instanceof DataType) {
+				e.type = (DataType) arg;
+			} else if (arg instanceof TypeDef) {
+				e.type = new DataType((TypeDef) arg);
+			}
+			a.add(e);
+			sarg++;
+		}
+		
+		DataType rt = null;
+		if (ret instanceof DataType) {
+			rt = (DataType) ret;
+		} else if (ret instanceof TypeDef) {
+			rt = new DataType((TypeDef) ret);
+		}
+		
+		return rvalLookup(cd, retVar, new LookupFunction(name, a, rt, new ArrayList<>()));
+	}
+	
 	public static LookupNode getLookupTree(CompileData cd) {
 		LookupNode tree = getLookupTree(cd, LookupNode.root(null));
 		for (String v : cd.frame.getAllVars()) {
