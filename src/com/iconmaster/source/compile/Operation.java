@@ -1,6 +1,5 @@
 package com.iconmaster.source.compile;
 
-import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
@@ -13,53 +12,11 @@ import java.util.Objects;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,MOVS,MOVL,MOVI,CALL,INDEX,RET,BRK,
+		MOV,MOVN,MOVS,MOVL,CALL,RET,BRK,
 		BEGIN,END,PROP,NOP,DEF,
 		IF,ELSE,FORR,FORE,FORP,FORC,DO,WHILE,REP,
 		ENDB,NATIVE,
-		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE,
-		ADD,SUB,MUL,DIV,MOD,POW,AND,OR,NOT,NEG,BAND,BOR,BNOT,CONCAT,EQ,NEQ,LT,GT,LE,GE;
-
-		public static OpType MathToOpType(Rule e) {
-			switch (e) {
-				case ADD:
-					return OpType.ADD;
-				case SUB:
-					return OpType.SUB;
-				case MUL:
-					return OpType.MUL;
-				case DIV:
-					return OpType.DIV;
-				case MOD:
-					return OpType.MOD;
-				case POW:
-					return OpType.POW;
-				case AND:
-					return OpType.AND;
-				case OR:
-					return OpType.OR;
-				case BIT_AND:
-					return OpType.BAND;
-				case BIT_OR:
-					return OpType.BOR;
-				case EQ:
-					return OpType.EQ;
-				case NEQ:
-					return OpType.NEQ;
-				case LT:
-					return OpType.LT;
-				case GT:
-					return OpType.GT;
-				case LTE:
-					return OpType.LE;
-				case GTE:
-					return OpType.GE;
-				case CONCAT:
-					return OpType.CONCAT;
-				default:
-					return null;
-			}
-		}
+		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE;
 		
 		public boolean hasLVar() {
 			if (this.isBlockStarter()) {
@@ -72,7 +29,6 @@ public class Operation {
 				case BEGIN:
 				case END:
 				case ENDB:
-				case MOVI:
 				case DO:
 				case LABEL:
 				case GOTO:
@@ -89,31 +45,6 @@ public class Operation {
 			}
 		}
 		
-		public boolean isMathOp() {
-			switch (this) {
-				case ADD:
-				case SUB:
-				case MUL:
-				case DIV:
-				case MOD:
-				case POW:
-				case AND:
-				case OR:
-				case BAND:
-				case BOR:
-				case CONCAT:
-				case EQ:
-				case NEQ:
-				case LT:
-				case GT:
-				case LE:
-				case GE:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
 		public boolean isBlockStarter() {
 			switch (this) {
 				case IF:
@@ -124,23 +55,6 @@ public class Operation {
 				case FORE:
 				case FORP:
 				case FORC:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
-		public boolean isBooleanMathOp() {
-			switch (this) {
-				case AND:
-				case OR:
-				case NOT:
-				case EQ:
-				case NEQ:
-				case LT:
-				case GT:
-				case LE:
-				case GE:
 					return true;
 				default:
 					return false;
