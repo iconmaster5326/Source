@@ -34,11 +34,11 @@ public class LibraryCore extends SourcePackage {
 		
 		fn = Function.libraryFunction("range", new String[] {"begin","end"}, new TypeDef[] {TypeDef.REAL,TypeDef.REAL}, TypeDef.LIST);
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("MAKELIST(X,X,");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
-			ctx.sb.append(",");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append("MAKELIST(X,X,");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append(",");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
 			return ")";
 		};
 		this.addFunction(fn);
@@ -46,13 +46,13 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("range", new String[] {"begin","end","step"}, new TypeDef[] {TypeDef.REAL,TypeDef.REAL,TypeDef.REAL}, TypeDef.LIST);
 		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("MAKELIST(X,X,");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
-			ctx.sb.append(",");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
-			ctx.sb.append(",");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[4]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append("MAKELIST(X,X,");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append(",");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+//			ctx.sb.append(",");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[4]));
 			return ")";
 		};
 		this.addFunction(fn);
@@ -60,11 +60,11 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("range", new String[] {"begin","end"}, new TypeDef[] {TypeDef.INT,TypeDef.INT}, TypeDef.LIST);
 		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("MAKELIST(X,X,");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
-			ctx.sb.append(",");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append("MAKELIST(X,X,");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append(",");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
 			return ")";
 		};
 		this.addFunction(fn);
@@ -72,13 +72,13 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("range", new String[] {"begin","end","step"}, new TypeDef[] {TypeDef.INT,TypeDef.INT,TypeDef.INT}, TypeDef.LIST);
 		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("MAKELIST(X,X,");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
-			ctx.sb.append(",");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
-			ctx.sb.append(",");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[4]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append("MAKELIST(X,X,");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append(",");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+//			ctx.sb.append(",");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[4]));
 			return ")";
 		};
 		this.addFunction(fn);
@@ -96,11 +96,11 @@ public class LibraryCore extends SourcePackage {
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("CONCAT(");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
-			ctx.sb.append(",{");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append("CONCAT(");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append(",{");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[3]));
 			return "})";
 		};
 		this.addFunction(fn);
@@ -114,8 +114,8 @@ public class LibraryCore extends SourcePackage {
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			return "[1]";
 		};
 		this.addFunction(fn);
@@ -124,10 +124,10 @@ public class LibraryCore extends SourcePackage {
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
-			ctx.sb.append("[SIZE(");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append("[SIZE(");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			return ")]";
 		};
 		this.addFunction(fn);
@@ -145,8 +145,9 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("real._cast", new String[] {"item"}, new TypeDef[] {TypeDef.INT}, TypeDef.REAL);
 		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			return HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]);
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			return HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]);
+			return "";
 		};
 		this.addFunction(fn);
 		
@@ -154,8 +155,8 @@ public class LibraryCore extends SourcePackage {
 		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
 			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("IP(EXPR(");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			ctx.sb.append("IP(EXPR(");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			return "))";
 		};
 		this.addFunction(fn);
@@ -163,9 +164,9 @@ public class LibraryCore extends SourcePackage {
 		fn = Function.libraryFunction("int._cast", new String[] {"item"}, new TypeDef[] {TypeDef.REAL}, TypeDef.INT);
 		fn.getDirectives().add("pure");
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append("IP(");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append("IP(");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			return "))";
 		};
 		this.addFunction(fn);
@@ -181,10 +182,10 @@ public class LibraryCore extends SourcePackage {
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("T"));
 		fn.onCompile = (pkg,args)->{
-			PlatformContext ctx = (PlatformContext) args[0];
-			ctx.sb.append(ctx.op.args[1]);
-			ctx.sb.append("[");
-			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+//			PlatformContext ctx = (PlatformContext) args[0];
+//			ctx.sb.append(ctx.op.args[1]);
+//			ctx.sb.append("[");
+//			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
 			return "]";
 		};
 		listIndexFn = fn;
@@ -202,7 +203,7 @@ public class LibraryCore extends SourcePackage {
 		pairsOps.add(new Operation(OpType.CALL, TypeDef.INT, null, "R2","list.size","lst"));
 		pairsOps.add(new Operation(OpType.MOVN, TypeDef.INT, null, "R1", "1"));
 		pairsOps.add(new Operation(OpType.FORR, TypeDef.INT, null, "R0", "1", "R1", "R2"));
-		pairsOps.add(new Operation(OpType.CALL, ltt, null, "R0", listIndexFn.getFullName(), "R1", "R2"));
+		pairsOps.add(new Operation(OpType.CALL, ltt, null, "R0", listIndexFn.getFullName(), "R1", "R2")); //TODO: Make this not use a direct name
 		pairsOps.add(new Operation(OpType.RET, ltt, null, "R0", "R3"));
 		pairsOps.add(new Operation(OpType.ENDB));
 		pairsOps.add(new Operation(OpType.END));

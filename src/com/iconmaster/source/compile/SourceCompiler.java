@@ -149,7 +149,7 @@ public class SourceCompiler {
 	
 	public static Expression compileCode(CompileData cd, ArrayList<Element> es, DataType retType) {
 		Expression code = new Expression();
-		OpType asnType = null;
+		String asnType = null;
 		for (Element e : es) {
 			if (e.type==TokenRule.STRING) {
 				//native code
@@ -350,18 +350,18 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.RET, cond.type,e.range, rets.toArray(new String[0])));
 						break;
 					case ADD_ASN:
-						asnType = OpType.ADD;
+						asnType = "_add";
 					case SUB_ASN:
 						if (e.type==Rule.SUB_ASN) {
-							asnType = OpType.SUB;
+							asnType = "_sub";
 						}
 					case MUL_ASN:
 						if (e.type==Rule.MUL_ASN) {
-							asnType = OpType.MUL;
+							asnType = "_mul";
 						}
 					case DIV_ASN:
 						if (e.type==Rule.DIV_ASN) {
-							asnType = OpType.DIV;
+							asnType = "_div";
 						}
 						Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
 						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
@@ -373,7 +373,8 @@ public class SourceCompiler {
 									
 						code.addAll(rexpr);
 						code.addAll(lexpr2);
-						code.add(new Operation(asnType, TypeDef.getCommonParent(lexpr2.type.type,rexpr.type.type), e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
+						TypeDef cp = TypeDef.getCommonParent(lexpr2.type.type,rexpr.type.type);
+						code.add(new Operation(OpType.CALL, cp, e.range, lexpr1.retVar, cp.name+"."+asnType, lexpr2.retVar, rexpr.retVar));
 						code.addAll(lexpr1);
 						break;
 					case FOR:
@@ -571,38 +572,28 @@ public class SourceCompiler {
 					return CompileLookup.rvalLookup(cd, retVar, e);
 			}
 		} else {
-			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
+			if (StringUtils.mathElementToString(e)!=null) {
+				String callName = StringUtils.mathElementToString(e);
+				
 				Expression lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 				Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+				
 				expr.addAll(lexpr);
 				expr.addAll(rexpr);
-				OpType opt = OpType.MathToOpType((Rule) e.type);
-					
-				DataType rtype = lexpr.type;
-				DataType ltype = rexpr.type;
-				if (rtype==null) {
-					rtype = new DataType(true);
-				}
-				if (ltype==null) {
-					ltype = new DataType(true);
-				}
-				if (TypeDef.getCommonParent(rtype.type, ltype.type)!=ltype.type && TypeDef.getCommonParent(ltype.type, rtype.type)!=rtype.type) {
-					if (opt!=OpType.CONCAT) {
-						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
-					}
+				
+				ArrayList<DataType> a = new ArrayList<>();
+				a.add(lexpr.type);
+				a.add(rexpr.type);
+				
+				DataType retType = DataType.commonType(lexpr.type, rexpr.type);
+				
+				Function fn = cd.pkg.getFunction(callName, new FunctionCall(callName, a, retType, e.directives));
+				
+				if (fn==null) {
+					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.toString()+" and "+rexpr.type));
 				} else {
-					if (opt.isBooleanMathOp()) {
-						expr.type = new DataType(TypeDef.BOOLEAN);
-					} else {
-						expr.type = DataType.commonType(ltype, rtype);
-					}
+					expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar, rexpr.retVar));
 				}
-				
-				if (opt==OpType.CONCAT) {
-					expr.type = new DataType(TypeDef.STRING);
-				}
-				
-				expr.add(new Operation(opt, expr.type.type, e.range, retVar, lexpr.retVar, rexpr.retVar));
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
@@ -668,13 +659,14 @@ public class SourceCompiler {
 								}
 							}
 							names.add(0,listExpr.retVar);
+							names.add(0,"list._getindex"); //TODO: Make this not use a direct name
 							names.add(0,retVar);
 							DataType rtd = new DataType(listExpr.type.type.indexReturns);
 							if (rtd.type instanceof ParamTypeDef) {
 								rtd = ((ParamTypeDef)rtd.type).paramNo>=listExpr.type.params.length?null:listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
 							}
 							expr.type = rtd;
-							expr.add(new Operation(OpType.INDEX, expr.type, e.range, names.toArray(new String[0])));
+							expr.add(new Operation(OpType.CALL, expr.type, e.range, names.toArray(new String[0])));
 							expr.addAll(listExpr);
 						} else {
 							if (rfn.nameFound) {
@@ -736,13 +728,13 @@ public class SourceCompiler {
 					case NOT:
 						Expression nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.NOT, TypeDef.BOOLEAN, e.range, retVar, nexpr.retVar));
+						expr.add(new Operation(OpType.CALL, TypeDef.BOOLEAN, e.range, retVar, nexpr.type.type.name+"._not",nexpr.retVar)); //TODO: Make this not use direct name
 						expr.type = new DataType(TypeDef.BOOLEAN);
 						break;
 					case NEG:
 						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
 						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.NEG, nexpr.type.type, e.range, retVar, nexpr.retVar));
+						expr.add(new Operation(OpType.CALL, nexpr.type.type, e.range, retVar, nexpr.type.type.name+"._neg", nexpr.retVar)); //TODO: Make this not use direct name
 						expr.type = nexpr.type;
 						break;
 					case TO:
@@ -944,8 +936,9 @@ public class SourceCompiler {
 						}
 						expr.type = rtd;
 						names.add(0,expr.retVar);
+						names.add(0,"list._setindex"); //TODO: Make this not use direct name
 						names.add(0,listExpr.retVar);
-						expr.add(new Operation(OpType.MOVI, expr.type.type, e.range, names.toArray(new String[0])));
+						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else {
 						if (rfn.nameFound) {
