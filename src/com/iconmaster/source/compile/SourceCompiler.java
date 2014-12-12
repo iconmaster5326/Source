@@ -590,7 +590,7 @@ public class SourceCompiler {
 				Function fn = cd.pkg.getFunction(callName, new FunctionCall(callName, a, retType, e.directives));
 				
 				if (fn==null) {
-					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.toString()+" and "+rexpr.type));
+					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type+" and "+rexpr.type));
 				} else {
 					expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar, rexpr.retVar));
 				}
