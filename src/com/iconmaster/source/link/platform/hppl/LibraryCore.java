@@ -1,6 +1,5 @@
 package com.iconmaster.source.link.platform.hppl;
 
-import com.iconmaster.source.compile.CompileLookup;
 import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.compile.Operation.OpType;
@@ -17,6 +16,8 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class LibraryCore extends SourcePackage {
+	public static Function listIndexFn;
+	
 	public LibraryCore() {
 		this.name = "core";
 		
@@ -175,6 +176,20 @@ public class LibraryCore extends SourcePackage {
 		};
 		this.addField(f);
 		
+		fn = Function.libraryFunction("list._getindex", new String[] {"item"}, new Object[] {ltdt}, ltt);
+		fn.getDirectives().add("pure");
+		fn.rawParams = new ArrayList<>();
+		fn.rawParams.add(new Field("T"));
+		fn.onCompile = (pkg,args)->{
+			PlatformContext ctx = (PlatformContext) args[0];
+			ctx.sb.append(ctx.op.args[1]);
+			ctx.sb.append("[");
+			ctx.sb.append(HPPLAssembler.getInlineString(ctx.ad, ctx.expr, ctx.op.args[2]));
+			return "]";
+		};
+		listIndexFn = fn;
+		this.addFunction(fn);
+		
 		Iterator iter = Iterator.libraryIterator("list.pairs", new String[] {"lst"}, new Object[] {ltdt}, new Object[] {TypeDef.INT, ltt});
 		iter.rawParams = new ArrayList<>();
 		iter.rawParams.add(new Field("T"));
@@ -187,7 +202,7 @@ public class LibraryCore extends SourcePackage {
 		pairsOps.add(new Operation(OpType.CALL, TypeDef.INT, null, "R2","list.size","lst"));
 		pairsOps.add(new Operation(OpType.MOVN, TypeDef.INT, null, "R1", "1"));
 		pairsOps.add(new Operation(OpType.FORR, TypeDef.INT, null, "R0", "1", "R1", "R2"));
-		pairsOps.addAll(CompileLookup.mathOp(null, "_getindex", "R3", iter.rawParams.get(0), new String[] {"lst","R0"}, new Object[] {ltt,TypeDef.INT}));
+		pairsOps.add(new Operation(OpType.CALL, ltt, null, "R0", listIndexFn.getFullName(), "R1", "R2"));
 		pairsOps.add(new Operation(OpType.RET, ltt, null, "R0", "R3"));
 		pairsOps.add(new Operation(OpType.ENDB));
 		pairsOps.add(new Operation(OpType.END));

@@ -58,7 +58,7 @@ public class CompileUtils {
 				a.add(new Operation(OpType.FORR, TypeDef.INT, op.range, temp, "1", temp3, temp2));
 				i++;
 				a.add(new Operation(OpType.BEGIN, op.range));
-				a.add(new Operation(OpType.INDEX, op.type, op.range, op.args[1], op.args[0], temp));
+				a.add(new Operation(OpType.CALL, op.type, op.range, op.args[1], "core.list._getindex", op.args[0], temp));
 			} else {
 				a.add(op);
 			}
@@ -258,9 +258,9 @@ public class CompileUtils {
 						} else {
 							step = forOp.args[4];
 						}
-						old.add(new Operation(OpType.ADD, forOp.type, null, forOp.args[0], forOp.args[0], step));
+						old.add(new Operation(OpType.CALL, forOp.type, null, forOp.args[0], "core."+forOp.type.name+"._add", forOp.args[0], step));
 						String temp = pkg.nameProvider.getTempName();
-						old.add(new Operation(OpType.GT, TypeDef.BOOLEAN, null, temp, forOp.args[0], forOp.args[3]));
+						old.add(new Operation(OpType.CALL, TypeDef.BOOLEAN, null, temp, "core."+forOp.type.name+"._gt", forOp.args[0], forOp.args[3]));
 						old.add(new Operation(OpType.GOTOF, temp, forLabel));
 						a = old;
 						forBlock = null;
