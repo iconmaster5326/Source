@@ -5,7 +5,7 @@ import com.iconmaster.source.SourceOptions;
 import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.exception.SourceImportException;
-import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
+import com.iconmaster.source.link.platform.test.PlatformTest;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.Import;
@@ -24,7 +24,8 @@ public class Linker {
 	public static HashMap<String,Platform> platforms = new HashMap<>();
 	
 	static {
-		registerPlatform(new PlatformHPPL());
+		//registerPlatform(new PlatformHPPL());
+		registerPlatform(new PlatformTest());
 	}
 	
 	public static void registerPlatform(Platform p) {

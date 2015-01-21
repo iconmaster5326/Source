@@ -572,9 +572,8 @@ public class SourceCompiler {
 					return CompileLookup.rvalLookup(cd, retVar, e);
 			}
 		} else {
-			if (StringUtils.mathElementToString(e)!=null) {
-				String callName = StringUtils.mathElementToString(e);
-				
+			String callName = StringUtils.mathElementToString(e);
+			if (callName!=null) {
 				Expression lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 				Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
 				
