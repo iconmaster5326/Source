@@ -586,7 +586,7 @@ public class SourceCompiler {
 				
 				DataType retType = DataType.commonType(lexpr.type, rexpr.type);
 				
-				Function fn = cd.pkg.getFunction(callName, new FunctionCall(callName, a, retType, e.directives));
+				Function fn = cd.pkg.getFunction(lexpr.type.type+"."+callName, new FunctionCall(callName, a, retType, e.directives));
 				
 				if (fn==null) {
 					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type+" and "+rexpr.type));

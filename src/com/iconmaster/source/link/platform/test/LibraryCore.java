@@ -33,5 +33,8 @@ public class LibraryCore extends SourcePackage {
 		
 		fn = Function.libraryFunction("print", new String[] {"item"}, new TypeDef[] {TypeDef.UNKNOWN}, null);
 		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("int._add", new String[] {"item1","item2"}, new TypeDef[] {TypeDef.INT,TypeDef.INT}, null);
+		this.addFunction(fn);
 	}
 }
