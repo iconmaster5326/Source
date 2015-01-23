@@ -290,6 +290,19 @@ public class CompileLookup {
 						td = td.parent;
 					}
 				}
+				
+				for (Iterator iter : cd.pkg.getIterators()) {
+					TypeDef td = (TypeDef) node.data;
+					while (td!=null) {
+						if (iter.getName().startsWith(td.name+".")) {
+							String methodName = iter.getName();
+							methodName = methodName.substring(td.name.length()+1);
+							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.ITER, node, iter, methodName, null, false);
+							getLookupTree(cd, tree);
+						}
+						td = td.parent;
+					}
+				}
 				break;
 		}
 		return node;
@@ -521,9 +534,9 @@ public class CompileLookup {
 		}
 		
 		//check for the presence of an _iter for the given type
-		LookupNode newNode = new LookupNode(LookupType.RAWITER, raw, new LookupFunction("_iter", new ArrayList<>(), null, cd.dirs), forCond.range, "_iter");
-		raw.c.add(newNode);
-		LookupNode tree = lookup(cd, newNode);
+		LookupNode newNode = new LookupNode(LookupType.RAWITER, last, new LookupFunction("_iter", new ArrayList<>(), null, cd.dirs), forCond.range, "_iter");
+		last.c.add(newNode);
+		LookupNode tree = lookup(cd, raw.c.get(0));
 		if (tree!=null) {
 			LookupNode iterNode = tree;
 			LookupFunction data = (LookupFunction) iterNode.data;
