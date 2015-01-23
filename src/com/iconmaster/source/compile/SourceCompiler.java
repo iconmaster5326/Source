@@ -819,6 +819,10 @@ public class SourceCompiler {
 						listExpr.type = expr2.type;
 					}
 
+					if (listExpr.type==null) {
+						listExpr.type = new DataType(true);
+					}
+					
 					ArrayList<DataType> arga = new ArrayList<>();
 					arga.add(listExpr.type);
 					arga.add(new DataType(true)); //TODO: make it so we KNOW this
