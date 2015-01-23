@@ -14,7 +14,7 @@ public class Operation {
 	public enum OpType {
 		MOV,MOVN,MOVS,MOVL,CALL,RET,BRK,
 		BEGIN,END,PROP,NOP,DEF,
-		IF,ELSE,FORR,FORE,FORP,FORC,DO,WHILE,REP,
+		IF,ELSE,FOR,ITER,DO,WHILE,REP,
 		ENDB,NATIVE,
 		LABEL,GOTO,GOTOT,GOTOF,TRUE,FALSE;
 		
@@ -36,9 +36,8 @@ public class Operation {
 				case GOTOF:
 				case NATIVE:
 				case DEF:
-				case FORE:
-				case FORP:
-				case FORC:
+				case FOR:
+				case ITER:
 					return false;
 				default:
 					return true;
@@ -51,10 +50,7 @@ public class Operation {
 				case ELSE:
 				case WHILE:
 				case REP:
-				case FORR:
-				case FORE:
-				case FORP:
-				case FORC:
+				case FOR:
 					return true;
 				default:
 					return false;
@@ -144,15 +140,7 @@ public class Operation {
 					a.add(true);
 				}
 				return a.toArray(new Boolean[0]);
-			case FORR:
-				a = new ArrayList<>();
-				a.add(true);
-				a.add(false);
-				for (int i=2;i<args.length;i++) {
-					a.add(true);
-				}
-				return a.toArray(new Boolean[0]);
-			case FORC:
+			case ITER:
 				a = new ArrayList<>();
 				a.add(false);
 				for (int i=1;i<args.length;i++) {

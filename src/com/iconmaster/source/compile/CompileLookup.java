@@ -455,6 +455,17 @@ public class CompileLookup {
 		return toExpr(cd, retVar, lookup(cd, args));
 	}
 	
+	public static Expression iteratorLookup(CompileData cd, String retVar, Object... args) {
+		LookupNode tree = lookup(cd, args);
+		LookupNode last = tree;
+		tree = tree.p;
+		tree.c.clear();
+		
+		Expression expr = toExpr(cd, retVar, tree);
+		
+		return expr;
+	}
+	
 	public static LookupNode getType(LookupNode tree, String name) {
 		for (LookupNode node : (ArrayList<LookupNode>) tree.c) {
 			if (node.type==LookupType.TYPE && name.equals(node.match)) {
