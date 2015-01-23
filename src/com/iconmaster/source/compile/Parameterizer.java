@@ -74,6 +74,18 @@ public class Parameterizer {
 		return type;
 	}
 	
+	public static boolean canParameterize(CompileData cd, Range range, ArrayList<DataType> callTypes, ArrayList<DataType> gotTypes) {
+		ArrayList<SourceException> errs = cd.errs;
+		ArrayList<SourceException> newErrs = new ArrayList<>();
+		cd.errs = newErrs;
+		
+		parameterize(cd, range, callTypes, gotTypes);
+		
+		cd.errs = errs;
+		
+		return newErrs.isEmpty();
+	}
+	
 	public static Object test() {
 		ArrayList<DataType> a1 = new ArrayList<>();
 		DataType dt = new DataType(TypeDef.LIST);

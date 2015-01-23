@@ -520,8 +520,19 @@ public class CompileLookup {
 										fcall.args.get(0).type = node.dataType;
 									}
 									FunctionCall fcall2 = fcall.toFuncCall();
+									
+									ArrayList<DataType> ct = new ArrayList<>();
+									ArrayList<DataType> gt = new ArrayList<>();
+									for (Field f : ((Function)child.data).getArguments()) {
+										ct.add(f.getType()==null?new DataType():f.getType());
+									}
+									for (Expression expr : fcall.args) {
+										gt.add(expr.type);
+									}
+									
+									boolean canParam = Parameterizer.canParameterize(cd, rawnode.range, ct, gt);
 
-									if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2)) {
+									if (cd.pkg.isFunctionCallCompatible((Function) child.data, fcall2) && canParam) {
 										LookupNode newNode = child.cloneNode();
 										node.c.add(newNode);
 										newNode.p = node;
