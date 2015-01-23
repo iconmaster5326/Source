@@ -1,8 +1,11 @@
 package com.iconmaster.source.link.platform.test;
 
+import com.iconmaster.source.compile.CompileUtils;
+import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.link.platform.PlatformLoader.LoadedPlatform;
 import com.iconmaster.source.prototype.SourcePackage;
+import java.util.ArrayList;
 
 /**
  *
@@ -15,6 +18,14 @@ public class PlatformTest extends Platform {
 		this.name = "Test";
 		
 		this.registerLibrary(new LibraryCore());
+		
+		transforms.add(new CompileUtils.IteratorTransformer(LibraryCore.range) {
+			
+			@Override
+			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, String[] vars, ArrayList<Operation> forBlock) {
+				return new ArrayList<>();
+			}
+		});
 		
 		//transforms.add(CompileUtils.gotoReplacer); //if you want ALL SIL branches/loops replaced with SIL GOTOs
 	}

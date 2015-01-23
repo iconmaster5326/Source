@@ -44,6 +44,78 @@ public class CompileUtils {
 		public abstract ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op);
 	}
 	
+	public static abstract class IteratorTransformer implements CodeTransformer {
+
+		public Iterator iterator;
+
+		public IteratorTransformer(Iterator function) {
+			this.iterator = function;
+		}
+
+		@Override
+		public ArrayList<Operation> transform(SourcePackage pkg, Object work, ArrayList<Operation> code) {
+			ArrayList<Operation> a = new ArrayList<>();
+			ArrayList<Operation> iterCode = null;
+			ArrayList<Operation> forCode = null;
+			ArrayList<Operation> doCode = null;
+			String[] forVars = null;
+			Operation doOp = null;
+			int depth = 0;
+			for (Operation op : code) {
+				boolean add = true;
+				if (op.op==OpType.DO && depth==0) {
+					add = false;
+					doOp = op;
+					doCode = new ArrayList<>();
+				} else if (op.op==OpType.ITER && depth==0) {
+					add = false;
+					doOp = null;
+					a.addAll(doCode);
+					doCode = null;
+
+					String iterName = op.args[0];
+					Iterator iter = pkg.getIterator(iterName);
+					if (op.args[0].equals(iterator.getFullName())) {
+						iterCode = iter.getCode();
+						forCode = new ArrayList<>();
+					}
+				} else if (op.op==OpType.FOR) {
+					if (depth==0 && forCode != null) {
+						add = false;
+
+						forVars = op.args;
+					}
+					depth++;
+				} else if (op.op.isBlockStarter() && depth==0 && doOp!=null) {
+					a.add(doOp);
+					a.addAll(doCode);
+					doOp = null;
+					doCode = null;
+				} else if (op.op==OpType.ENDB) {
+					depth--;
+					if (depth==0) {
+						add = false;
+
+						a.addAll(transform(pkg,work,onCall(pkg, work, forVars, forCode)));
+					}
+				}
+
+				if (add) {
+					if (doOp!=null) {
+						doCode.add(op);
+					} else if (depth==0) {
+						a.add(op);
+					} else {
+						forCode.add(op);
+					}
+				}
+			}
+			return a;
+		}
+
+		public abstract ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, String[] vars, ArrayList<Operation> forBlock);
+	}
+	
 	public static final CodeTransformer iteratorReplacer = new CodeTransformer() {
 		@Override
 		public ArrayList<Operation> transform(SourcePackage pkg, Object work, ArrayList<Operation> code) {

@@ -2,6 +2,7 @@ package com.iconmaster.source.link.platform.test;
 
 import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.ParamTypeDef;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
@@ -11,6 +12,8 @@ import com.iconmaster.source.prototype.TypeDef;
  * @author iconmaster
  */
 public class LibraryCore extends SourcePackage {
+	
+	public static Iterator range;
 
 	public LibraryCore() {
 		this.name = "core";
@@ -31,5 +34,12 @@ public class LibraryCore extends SourcePackage {
 		
 		fn = Function.libraryFunction("int._add", new String[] {"item1","item2"}, new TypeDef[] {TypeDef.INT,TypeDef.INT}, null);
 		this.addFunction(fn);
+		
+		Iterator iter;
+
+		iter = Iterator.libraryIterator("range", new String[] {"b","e"}, new Object[] {TypeDef.INT,TypeDef.INT}, new Object[] {TypeDef.INT});
+		this.addIterator(iter);
+		
+		range = iter;
 	}
 }
