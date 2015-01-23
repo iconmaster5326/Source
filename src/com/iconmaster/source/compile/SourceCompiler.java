@@ -791,6 +791,7 @@ public class SourceCompiler {
 			}
 		} else {
 			switch ((Rule)e.type) {
+				case ICALL_REF:
 				case ICALL:
 					ArrayList<String> names = new ArrayList<>();
 					ArrayList<Expression> exprs = new ArrayList<>();
@@ -804,9 +805,20 @@ public class SourceCompiler {
 						exprs.add(expr2);
 						names.add(name2);
 					}
-					Element listE = new Element(e.range, TokenRule.WORD);
-					listE.args[0] = e.args[0];
-					Expression listExpr = resolveLValue(cd, expr, listE);
+					
+					Expression listExpr;
+					if (e.type==Rule.ICALL) {
+						Element listE = new Element(e.range, TokenRule.WORD);
+						listE.args[0] = e.args[0];
+						listExpr = resolveLValue(cd, expr, listE);
+					} else {
+						Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						code.addAll(expr2);
+						listExpr = new Expression();
+						listExpr.retVar = expr2.retVar;
+						listExpr.type = expr2.type;
+					}
+
 					ArrayList<DataType> arga = new ArrayList<>();
 					arga.add(listExpr.type);
 					arga.add(new DataType(true)); //TODO: make it so we KNOW this
@@ -831,7 +843,7 @@ public class SourceCompiler {
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						names.add(0,rfn.fn.getFullName());
-						names.add(0,listExpr.retVar);
+						names.add(0,cd.frame.newVarName());
 						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else {
