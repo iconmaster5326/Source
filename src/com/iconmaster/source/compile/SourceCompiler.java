@@ -378,7 +378,19 @@ public class SourceCompiler {
 						code.addAll(lexpr1);
 						break;
 					case FOR:
-						//TODO: re-implement FOR loops
+						ArrayList<String> forVars = new ArrayList<>();
+						es = (ArrayList<Element>) e.args[0];
+						for (Element e2 : es) {
+							forVars.add(resolveLValueRaw(cd, e2));
+						}
+						Expression iterExpr = CompileLookup.iteratorLookup(cd, null, (Element) e.args[1]);
+						code.add(new Operation(OpType.DO, e.range));
+						code.addAll(iterExpr);
+						code.add(new Operation(OpType.FOR, (TypeDef) null, e.range, forVars.toArray(new String[0])));
+						code.add(new Operation(OpType.BEGIN, e.range));
+						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+						code.add(new Operation(OpType.END, e.range));
+						code.add(new Operation(OpType.ENDB, e.range));
 						break;
 					default:
 						code.addAll(compileExpr(cd, cd.frame.newVarName(), e));

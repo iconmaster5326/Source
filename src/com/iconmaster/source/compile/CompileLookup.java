@@ -9,6 +9,7 @@ import com.iconmaster.source.exception.SourceUninitializedVariableException;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.FunctionCall;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.TypeDef;
 import com.iconmaster.source.tokenize.TokenRule;
 import com.iconmaster.source.util.Range;
@@ -23,14 +24,14 @@ import java.util.HashMap;
  */
 public class CompileLookup {
 	public static enum LookupType {
-		RAWSTR,RAWCALL,RAWINDEX,
-		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,INDEX,EXPR;
+		RAWSTR,RAWCALL,RAWITER,
+		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,ITER,EXPR;
 		
 		public boolean isRaw() {
 			switch(this) {
 				case RAWSTR:
 				case RAWCALL:
-				case RAWINDEX:
+				case RAWITER:
 				case EXPR:
 					return true;
 				default:
@@ -57,14 +58,14 @@ public class CompileLookup {
 					return "field";
 				case GLOBAL:
 					return "field";
-				case INDEX:
-					return "index";
+				case ITER:
+					return "iterator";
 				case RAWSTR:
 					return "member";
 				case RAWCALL:
 					return "function";
-				case RAWINDEX:
-					return "index";
+				case RAWITER:
+					return "iterator";
 				case EXPR:
 					return "expression";
 			}
@@ -177,6 +178,15 @@ public class CompileLookup {
 			return new FunctionCall(name, a, retType, dirs);
 		}
 		
+		public FunctionCall toIterCall() {
+			ArrayList<DataType> a = new ArrayList<>();
+			for (Expression expr : args) {
+				a.add(expr.type);
+			}
+			ArrayList<DataType> r = new ArrayList<>();
+			return new FunctionCall(name, a, r, dirs);
+		}
+		
 		public LookupFunction cloneFunc() {
 			LookupFunction fcall = new LookupFunction(name, (ArrayList<Expression>) args.clone(), retType, (ArrayList<String>) dirs.clone());
 			fcall.index = index;
@@ -238,6 +248,12 @@ public class CompileLookup {
 					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.TYPE, node, td, td.name, null, false);
 					getLookupTree(cd, tree);
 				}
+				for (Iterator iter : cd.pkg.getIterators()) {
+					LookupNode tree = LookupNode.addFromFullName(cd,LookupType.ITER, node, iter, iter.getName(), null, false);
+					getLookupTree(cd, tree);
+					tree = LookupNode.addFromFullName(cd,LookupType.ITER, node, iter, iter.pkgName+"."+iter.getName(), null, false);
+					getLookupTree(cd, tree);
+				}
 				break;
 			case VAR:
 				String varName = (String) node.data;
@@ -248,6 +264,14 @@ public class CompileLookup {
 							String methodName = fn.getName();
 							methodName = methodName.substring(methodName.indexOf(".")+1);
 							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.METHOD, node, fn, methodName, null, false);
+							getLookupTree(cd, tree);
+						}
+					}
+					for (Iterator iter : cd.pkg.getIterators()) {
+						if (iter.getName().startsWith(type.type.name+".")) {
+							String methodName = iter.getName();
+							methodName = methodName.substring(methodName.indexOf(".")+1);
+							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.ITER, node, iter, methodName, null, false);
 							getLookupTree(cd, tree);
 						}
 					}
@@ -455,14 +479,74 @@ public class CompileLookup {
 		return toExpr(cd, retVar, lookup(cd, args));
 	}
 	
-	public static Expression iteratorLookup(CompileData cd, String retVar, Object... args) {
-		LookupNode tree = lookup(cd, args);
-		LookupNode last = tree;
-		tree = tree.p;
-		tree.c.clear();
+	public static Expression iteratorLookup(CompileData cd, ArrayList<Expression> vars, Element forCond) {
+		ArrayList<SourceException> errs = cd.errs;
+		ArrayList<SourceException> newErrs = new ArrayList<>();
+		Expression expr = new Expression();
 		
-		Expression expr = toExpr(cd, retVar, tree);
+		LookupNode raw = parseArgs(cd, forCond);
+		LookupNode last = raw;
+		while (!last.c.isEmpty()) {
+			last = (LookupNode) last.c.get(0);
+		}
+		if (last.type==LookupType.RAWCALL) {
+			//replace the last RAWCALL with a RAWITER
+			last.type = LookupType.RAWITER;
+			
+			LookupNode tree = lookup(cd, raw.c.get(0));
+			if (tree!=null) {
+				//we have the iterator
+				LookupNode iterNode = tree;
+				LookupFunction data = (LookupFunction) iterNode.data;
+				Iterator iter = (Iterator) data.fn;
+				tree = tree.p;
+				
+				String rv = cd.frame.newVarName();
+				Expression expr2 = toExpr(cd, rv, tree);
+				expr.addAll(expr2);
+				ArrayList<String> args = new ArrayList<>();
+				args.add(iter.getFullName());
+				for (Expression arg : data.args) {
+					expr.addAll(arg);
+					args.add(arg.retVar);
+				}
+				expr.add(new Operation(OpType.ITER, (TypeDef) null, forCond.range, args.toArray(new String[0])));
+				
+				cd.errs = errs;
+				return expr;
+			} else {
+				//revert state, check for _iter below
+				last.type = LookupType.RAWCALL;
+			}
+		}
 		
+		//check for the presence of an _iter for the given type
+		LookupNode newNode = new LookupNode(LookupType.RAWITER, raw, new LookupFunction("_iter", new ArrayList<>(), null, cd.dirs), forCond.range, "_iter");
+		raw.c.add(newNode);
+		LookupNode tree = lookup(cd, newNode);
+		if (tree!=null) {
+			LookupNode iterNode = tree;
+			LookupFunction data = (LookupFunction) iterNode.data;
+			Iterator iter = (Iterator) data.fn;
+			tree = tree.p;
+
+			String rv = cd.frame.newVarName();
+			Expression expr2 = toExpr(cd, rv, tree);
+			expr.addAll(expr2);
+			ArrayList<String> args = new ArrayList<>();
+			args.add(iter.getFullName());
+			for (Expression arg : data.args) {
+				expr.addAll(arg);
+				args.add(arg.retVar);
+			}
+			expr.add(new Operation(OpType.ITER, (TypeDef) null, forCond.range, args.toArray(new String[0])));
+			
+			cd.errs = errs;
+			return expr;
+		}
+		
+		cd.errs = errs;
+		cd.errs.addAll(newErrs);
 		return expr;
 	}
 	
@@ -530,14 +614,20 @@ public class CompileLookup {
 									newLookupNodes.add(child);
 								}
 								break;
+							case RAWITER:
 							case RAWCALL:
-								if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
+								if (rawnode.match.equals(child.match) && ((rawnode.type==LookupType.RAWCALL && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) || (rawnode.type==LookupType.RAWITER && child.type==LookupType.ITER))) {
 									LookupFunction fcall = ((LookupFunction) rawnode.data).cloneFunc();
-									if (lookupNode.type==LookupType.TYPE && child.type==LookupType.METHOD) {
+									if (lookupNode.type==LookupType.TYPE) {
 										fcall.args.add(0,new Expression());
 										fcall.args.get(0).type = node.dataType;
 									}
-									FunctionCall fcall2 = fcall.toFuncCall();
+									FunctionCall fcall2;
+									if (rawnode.type==LookupType.RAWCALL) {
+										fcall2 = fcall.toFuncCall();
+									} else {
+										fcall2 = fcall.toIterCall();
+									}
 									
 									ArrayList<DataType> ct = new ArrayList<>();
 									ArrayList<DataType> gt = new ArrayList<>();
