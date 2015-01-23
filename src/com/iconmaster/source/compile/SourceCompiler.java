@@ -101,7 +101,6 @@ public class SourceCompiler {
 		//inline stuff
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
-		//CompileUtils.transform(cd.pkg, CompileUtils.iteratorReplacer);
 		CompileUtils.transform(cd.pkg, nameConflictResolver);
 		CompileUtils.transform(cd.pkg, optimizer);
 		Optimizer.countUsages(pkg);
