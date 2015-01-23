@@ -22,7 +22,6 @@ public class Linker {
 	public static HashMap<String,Platform> platforms = new HashMap<>();
 	
 	static {
-		//registerPlatform(new PlatformHPPL());
 		registerPlatform(new PlatformTest());
 	}
 	
