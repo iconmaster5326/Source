@@ -322,6 +322,26 @@ public class CompileLookup {
 							tree2.p = node;
 							node = tree2;
 							break;
+						case ICALL:
+							fcall = new LookupFunction(null, new ArrayList<>(), (DataType) null, new ArrayList<>());
+							node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, e.args[0], (String) e.args[0],e.range, false);
+							
+							fcall.name = "_getindex";
+							es = (ArrayList<Element>) e.args[1];
+							if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+								es = (ArrayList<Element>) es.get(0).args[0];
+							}
+							for (Element e2 : es) {
+								Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e2);
+								fcall.args.add(expr2);
+							}
+							if (e.dataType!=null) {
+								DataType dt = SourceCompiler.compileDataType(cd, e.dataType);
+								fcall.retType = dt;
+							}
+							fcall.dirs.addAll(e.directives);
+							node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, fcall, fcall.name,e.range, false);
+							break;
 						default:
 							Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e);
 							node = new LookupNode(LookupType.EXPR, node, expr2, e.range, SourceDecompiler.elementToString(e));
