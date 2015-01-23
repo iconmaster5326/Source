@@ -604,6 +604,7 @@ public class SourceCompiler {
 					case FCALL:
 					case ICALL:
 					case CHAIN:
+					case ICALL_REF:
 						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
 					case INDEX:
 						ArrayList<String> names = new ArrayList<>();
