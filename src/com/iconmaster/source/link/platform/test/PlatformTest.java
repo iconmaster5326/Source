@@ -30,13 +30,13 @@ public class PlatformTest extends Platform {
 	}
 
 	@Override
-	public String assemble(SourcePackage pkg) {
-		return "done";
+	public Object assemble(SourcePackage pkg) {
+		return null;
 	}
 
 	@Override
-	public void run(SourcePackage pkg) {
-		
+	public Object run(SourcePackage pkg) {
+		return null;
 	}
 	
 }

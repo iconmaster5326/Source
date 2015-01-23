@@ -34,7 +34,7 @@ public class Source {
 		System.out.println("https://github.com/iconmaster5326/Source");
 		System.out.println();
 		CLA cla = CLAHelper.getArgs(args);
-		SourceOptions op = new SourceOptions(null, /*"HPPL"*/ "Test", true);
+		SourceOptions op = new SourceOptions(null, "Test", true);
 		if (cla.containsKey("p")) {
 			op.platform = cla.get("p");
 		}
@@ -200,7 +200,7 @@ public class Source {
 					so.output = Assembler.assemble(opts.platform, linker.outputPackage);
 					
 					if (opts.outputFile!=null) {
-						(new FileWriter(opts.outputFile)).append(so.output).close();
+						(new FileWriter(opts.outputFile)).append(so.output.toString()).close();
 					}
 				} catch (Exception ex) {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);

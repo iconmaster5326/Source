@@ -6,6 +6,7 @@ import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -23,10 +24,14 @@ public class Field implements IDirectable {
 	private DataType type;
 	
 	public String pkgName;
-	public String compileName;
 	
 	public OnCompile onCompile;
 	public OnRun onRun;
+	
+	/**
+	 * A map used to store item information for the platform.
+	 */
+	public HashMap data = new HashMap<>();
 
 	public Field(String name) {
 		this(name,null);

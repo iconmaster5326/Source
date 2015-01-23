@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class SourceOutput {
-	public String output;
+	public Object output;
 	public ArrayList<SourceException> errs = new ArrayList<>();
 	public ArrayList<ErrorDetails> dets = new ArrayList<>();
 	public String errMsgs;

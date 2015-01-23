@@ -11,7 +11,7 @@ import com.iconmaster.source.prototype.SourcePackage;
  * @author iconmaster
  */
 public class Assembler {
-	public static String assemble(String platform, SourcePackage pkg) {
+	public static Object assemble(String platform, SourcePackage pkg) {
 		Platform p = Linker.platforms.get(platform);
 		for (CodeTransformer t : p.transforms) {
 			CompileUtils.transform(pkg, t);
