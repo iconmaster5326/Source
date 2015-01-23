@@ -586,7 +586,12 @@ public class SourceCompiler {
 				
 				DataType retType = DataType.commonType(lexpr.type, rexpr.type);
 				
-				Function fn = cd.pkg.getFunction(lexpr.type.type+"."+callName, new FunctionCall(callName, a, retType, e.directives)); //TODO: use lookup instead of "."-chaining
+				Function fn;
+				TypeDef td = lexpr.type.type;
+				do {
+					fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+					td = td.parent;
+				} while (fn == null && td != null);
 				
 				if (fn==null) {
 					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type+" and "+rexpr.type));
