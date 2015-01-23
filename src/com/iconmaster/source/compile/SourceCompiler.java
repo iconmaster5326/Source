@@ -399,7 +399,7 @@ public class SourceCompiler {
 		}
 		//change types of known lvars to correct parent types
 		for (Operation op : code) {
-			if ((op.op.hasLVar() && op.op!=OpType.MOVL) || op.op==OpType.DEF) {
+			if ((op.op.hasLVar() && op.op!=OpType.MOVL && op.op!=OpType.MOVA) || op.op==OpType.DEF) {
 				DataType type = cd.frame.getVarType(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
@@ -494,8 +494,8 @@ public class SourceCompiler {
 						}
 						
 						names.add(0,retVar);
-						expr.add(new Operation(OpType.MOVL, common, e.range, names.toArray(new String[0])));
-						expr.type = new DataType(TypeDef.LIST,true);
+						expr.add(new Operation(OpType.MOVA, common, e.range, names.toArray(new String[0])));
+						expr.type = new DataType(TypeDef.ARRAY,true);
 						expr.type.params = new DataType[] {common};
 						break;
 					case PAREN:

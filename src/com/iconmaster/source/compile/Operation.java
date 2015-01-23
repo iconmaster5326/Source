@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,MOVS,MOVL,CALL,RET,BRK,
+		MOV,MOVN,MOVS,MOVL,MOVA,CALL,RET,BRK,CONT,
 		BEGIN,END,PROP,NOP,DEF,
 		IF,ELSE,FOR,ITER,DO,WHILE,REP,
 		ENDB,NATIVE,
@@ -25,6 +25,7 @@ public class Operation {
 			switch (this) {
 				case RET:
 				case BRK:
+				case CONT:
 				case PROP:
 				case BEGIN:
 				case END:
