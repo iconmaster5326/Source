@@ -1,6 +1,5 @@
 package com.iconmaster.source.link.platform.hppl;
 
-import com.iconmaster.source.compile.CompileUtils;
 import com.iconmaster.source.compile.Optimizer;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.prototype.Field;
@@ -24,8 +23,8 @@ public class PlatformHPPL extends Platform {
 		this.registerLibrary(new LibraryPrimeDraw());
 		this.registerLibrary(new LibraryPrimeIO());
 		
-		transforms.add(CompileUtils.iteratorReplacer);
-		transforms.add(CompileUtils.forEachReplacer);
+//		transforms.add(CompileUtils.iteratorReplacer);
+//		transforms.add(CompileUtils.forEachReplacer);
 //		transforms.add(new CompileUtils.FunctionCallTransformer(LibraryPrimeIO.fnChoose1) {
 //			@Override
 //			public ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op) {

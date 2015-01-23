@@ -3,7 +3,6 @@ package com.iconmaster.source.compile;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
-import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.prototype.TypeDef;
 import java.util.ArrayList;
@@ -44,90 +43,90 @@ public class CompileUtils {
 		public abstract ArrayList<Operation> onCall(SourcePackage pkg, Object workingOn, ArrayList<Operation> code, Operation op);
 	}
 
-	public static final CodeTransformer forEachReplacer = (pkg, workingOn, code) -> {
-		ArrayList<Operation> a = new ArrayList<>();
-		for (int i = 0; i < code.size(); i++) {
-			Operation op = code.get(i);
+//	public static final CodeTransformer forEachReplacer = (pkg, workingOn, code) -> {
+//		ArrayList<Operation> a = new ArrayList<>();
+//		for (int i = 0; i < code.size(); i++) {
+//			Operation op = code.get(i);
+//
+//			if (op.op == OpType.FORE) {
+//				String temp = pkg.nameProvider.getTempName();
+//				String temp2 = pkg.nameProvider.getTempName();
+//				String temp3 = pkg.nameProvider.getTempName();
+//				a.add(new Operation(OpType.MOVN, TypeDef.INT, op.range, temp3, "1"));
+//				a.add(new Operation(OpType.CALL, TypeDef.INT, op.range, temp2, "list.size", op.args[0]));
+//				a.add(new Operation(OpType.FORR, TypeDef.INT, op.range, temp, "1", temp3, temp2));
+//				i++;
+//				a.add(new Operation(OpType.BEGIN, op.range));
+//				a.add(new Operation(OpType.CALL, op.type, op.range, op.args[1], "list._getindex", op.args[0], temp)); //TODO: Make this not use a direct name
+//			} else {
+//				a.add(op);
+//			}
+//		}
+//		return a;
+//	};
 
-			if (op.op == OpType.FORE) {
-				String temp = pkg.nameProvider.getTempName();
-				String temp2 = pkg.nameProvider.getTempName();
-				String temp3 = pkg.nameProvider.getTempName();
-				a.add(new Operation(OpType.MOVN, TypeDef.INT, op.range, temp3, "1"));
-				a.add(new Operation(OpType.CALL, TypeDef.INT, op.range, temp2, "list.size", op.args[0]));
-				a.add(new Operation(OpType.FORR, TypeDef.INT, op.range, temp, "1", temp3, temp2));
-				i++;
-				a.add(new Operation(OpType.BEGIN, op.range));
-				a.add(new Operation(OpType.CALL, op.type, op.range, op.args[1], "list._getindex", op.args[0], temp)); //TODO: Make this not use a direct name
-			} else {
-				a.add(op);
-			}
-		}
-		return a;
-	};
-
-	public static final CodeTransformer iteratorReplacer = (pkg, work, code) -> {
-		ArrayList<Operation> a = new ArrayList<>();
-		ArrayList<Operation> old = a;
-		Iterator iter = null;
-		Operation forOp = null;
-		int depth = 0;
-		boolean found = false;
-
-		for (int i = 0; i < code.size(); i++) {
-			Operation op = code.get(i);
-
-			if (op.op == OpType.FORC) {
-				found = true;
-				a = new ArrayList<>();
-				iter = pkg.getIterator(op.args[0]);
-				forOp = op;
-				depth++;
-			} else if (op.op == OpType.ENDB) {
-				if (found) {
-					depth--;
-					if (depth == 0) {
-						ArrayList<Operation> block = a;
-						a = old;
-						ArrayList<Operation> trans = new ArrayList<>();
-						for (int k = 1; k < 1 + iter.getArguments().size(); k++) {
-							trans.add(new Operation(OpType.MOV, iter.getArguments().get(k - 1).getName(), forOp.args[k]));
-						}
-						for (Operation op2 : iter.getCode()) {
-							if (op2.op == OpType.RET) {
-								int ii = 1 + iter.getArguments().size();
-								for (String arg : op2.args) {
-									trans.add(new Operation(OpType.MOV, forOp.args[ii], arg));
-									ii++;
-								}
-								trans.addAll(CompileUtils.iteratorReplacer.transform(pkg, work, block));
-							} else {
-								trans.add(op2);
-							}
-						}
-						old.addAll(trans);
-						found = false;
-					} else {
-						a.add(op);
-					}
-				} else {
-					a.add(op);
-				}
-			} else if (op.op.isBlockStarter()) {
-				if (found) {
-					depth++;
-				}
-				a.add(op);
-			} else {
-				a.add(op);
-			}
-		}
-		return a;
-	};
+//	public static final CodeTransformer iteratorReplacer = (pkg, work, code) -> {
+//		ArrayList<Operation> a = new ArrayList<>();
+//		ArrayList<Operation> old = a;
+//		Iterator iter = null;
+//		Operation forOp = null;
+//		int depth = 0;
+//		boolean found = false;
+//
+//		for (int i = 0; i < code.size(); i++) {
+//			Operation op = code.get(i);
+//
+//			if (op.op == OpType.FORC) {
+//				found = true;
+//				a = new ArrayList<>();
+//				iter = pkg.getIterator(op.args[0]);
+//				forOp = op;
+//				depth++;
+//			} else if (op.op == OpType.ENDB) {
+//				if (found) {
+//					depth--;
+//					if (depth == 0) {
+//						ArrayList<Operation> block = a;
+//						a = old;
+//						ArrayList<Operation> trans = new ArrayList<>();
+//						for (int k = 1; k < 1 + iter.getArguments().size(); k++) {
+//							trans.add(new Operation(OpType.MOV, iter.getArguments().get(k - 1).getName(), forOp.args[k]));
+//						}
+//						for (Operation op2 : iter.getCode()) {
+//							if (op2.op == OpType.RET) {
+//								int ii = 1 + iter.getArguments().size();
+//								for (String arg : op2.args) {
+//									trans.add(new Operation(OpType.MOV, forOp.args[ii], arg));
+//									ii++;
+//								}
+//								trans.addAll(CompileUtils.iteratorReplacer.transform(pkg, work, block));
+//							} else {
+//								trans.add(op2);
+//							}
+//						}
+//						old.addAll(trans);
+//						found = false;
+//					} else {
+//						a.add(op);
+//					}
+//				} else {
+//					a.add(op);
+//				}
+//			} else if (op.op.isBlockStarter()) {
+//				if (found) {
+//					depth++;
+//				}
+//				a.add(op);
+//			} else {
+//				a.add(op);
+//			}
+//		}
+//		return a;
+//	};
 
 	public static final CodeTransformer gotoReplacer = (pkg, workingOn, code) -> {
-		code = iteratorReplacer.transform(pkg, workingOn, code);
-		code = forEachReplacer.transform(pkg, workingOn, code);
+		//code = iteratorReplacer.transform(pkg, workingOn, code);
+		//code = forEachReplacer.transform(pkg, workingOn, code);
 		return replaceWithGotos(pkg, code);
 	};
 
@@ -295,23 +294,23 @@ public class CompileUtils {
 						break;
 					}
 					break;
-				case FORR:
-					if (isWhile || isRep || isIf || isFor) {
-						a.add(op);
-						break;
-					}
-					isFor = true;
-					forBlock = new ArrayList<>();
-					forOp = op;
-					if (doBlock!=null) {
-						old.addAll(replaceWithGotos(pkg, doBlock));
-					}
-					doBlock = null;
-					forLabel = pkg.nameProvider.getTempName();
-					old.add(new Operation(OpType.MOV, op.type, op.range, op.args[0], op.args[2]));
-					old.add(new Operation(OpType.LABEL, forLabel));
-					a = forBlock;
-					break;
+//				case FORR:
+//					if (isWhile || isRep || isIf || isFor) {
+//						a.add(op);
+//						break;
+//					}
+//					isFor = true;
+//					forBlock = new ArrayList<>();
+//					forOp = op;
+//					if (doBlock!=null) {
+//						old.addAll(replaceWithGotos(pkg, doBlock));
+//					}
+//					doBlock = null;
+//					forLabel = pkg.nameProvider.getTempName();
+//					old.add(new Operation(OpType.MOV, op.type, op.range, op.args[0], op.args[2]));
+//					old.add(new Operation(OpType.LABEL, forLabel));
+//					a = forBlock;
+//					break;
 				default:
 					a.add(op);
 			}
