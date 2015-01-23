@@ -392,6 +392,9 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.END, e.range));
 						code.add(new Operation(OpType.ENDB, e.range));
 						break;
+					case BREAK:
+						code.add(new Operation(OpType.BRK, e.range));
+						break;
 					default:
 						code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
 				}
