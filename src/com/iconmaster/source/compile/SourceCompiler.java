@@ -381,10 +381,14 @@ public class SourceCompiler {
 						ArrayList<String> forVars = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[0];
 						for (Element e2 : es) {
-							forVars.add(resolveLValueRaw(cd, e2));
-						}
-						for (String var : forVars) {
+							String var = resolveLValueRaw(cd, e2);
+							forVars.add(var);
 							cd.frame.putVariable(var, false);
+							if (e2.dataType!=null) {
+								cd.frame.setVarType(var, compileDataType(cd, e2.dataType));
+							} else {
+								cd.frame.setVarType(var, new DataType(true));
+							}
 						}
 						Expression iterExpr = CompileLookup.iteratorLookup(cd, null, (Element) e.args[1]);
 						code.add(new Operation(OpType.DO, e.range));
