@@ -101,6 +101,7 @@ public class SourceCompiler {
 		//inline stuff
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
+		//CompileUtils.transform(cd.pkg, CompileUtils.iteratorReplacer);
 		CompileUtils.transform(cd.pkg, nameConflictResolver);
 		CompileUtils.transform(cd.pkg, optimizer);
 		Optimizer.countUsages(pkg);
@@ -383,6 +384,9 @@ public class SourceCompiler {
 						for (Element e2 : es) {
 							forVars.add(resolveLValueRaw(cd, e2));
 						}
+						for (String var : forVars) {
+							cd.frame.putVariable(var, false);
+						}
 						Expression iterExpr = CompileLookup.iteratorLookup(cd, null, (Element) e.args[1]);
 						code.add(new Operation(OpType.DO, e.range));
 						code.addAll(iterExpr);
@@ -391,6 +395,7 @@ public class SourceCompiler {
 						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
 						code.add(new Operation(OpType.END, e.range));
 						code.add(new Operation(OpType.ENDB, e.range));
+						
 						break;
 					case BREAK:
 						code.add(new Operation(OpType.BRK, e.range));
