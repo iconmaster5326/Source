@@ -367,14 +367,28 @@ public class SourceCompiler {
 						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
 						
-						if (!DataType.canCastTo(lexpr2.type,rexpr.type)) {
-							cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rexpr.type+" to variable "+lexpr1.retVar+" of type "+lexpr1.type));
-						}
+						ArrayList<DataType> a = new ArrayList<>();
+						a.add(lexpr2.type);
+						a.add(rexpr.type);
+						
+						retType = DataType.commonType(lexpr2.type, rexpr.type);
+						
+						Function fn;
+						TypeDef td = lexpr2.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+asnType, new FunctionCall(asnType, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
 									
 						code.addAll(rexpr);
 						code.addAll(lexpr2);
-						TypeDef cp = TypeDef.getCommonParent(lexpr2.type.type,rexpr.type.type);
-						code.add(new Operation(OpType.CALL, cp, e.range, lexpr1.retVar, cp.name+"."+asnType, lexpr2.retVar, rexpr.retVar));
+						
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+asnType+" on types "+lexpr2.type+" and "+rexpr.type));
+						} else {
+							code.add(new Operation(OpType.CALL, lexpr1.retVar, fn.getFullName(), lexpr2.retVar, rexpr.retVar));
+						}
+						
 						code.addAll(lexpr1);
 						break;
 					case FOR:
