@@ -495,7 +495,7 @@ public class CompileLookup {
 							case RAWCALL:
 								if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
 									LookupFunction fcall = (LookupFunction) rawnode.data;
-									if (node.type!=LookupType.ROOT) {
+									if (lookupNode.type==LookupType.TYPE) {
 										fcall.args.add(0,new Expression());
 										fcall.args.get(0).type = node.dataType;
 									}
