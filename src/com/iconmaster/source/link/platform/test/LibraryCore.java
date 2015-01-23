@@ -16,12 +16,7 @@ public class LibraryCore extends SourcePackage {
 		this.name = "core";
 		
 		//Add all the base data types in core:
-		this.addType(TypeDef.UNKNOWN);
-		this.addType(TypeDef.REAL);
-		this.addType(TypeDef.STRING);
-		this.addType(TypeDef.LIST);
-		this.addType(TypeDef.INT);
-		this.addType(TypeDef.BOOLEAN);
+		TypeDef.addBaseTypes(this);
 		
 		//define list parameter types here, becuse it's kind of complex:
 		DataType ltdt = new DataType(TypeDef.LIST); //this is list[T]
