@@ -30,14 +30,16 @@ public class Parameterizer {
 				if (map.containsKey(dt.type.name)) {
 					DataType pType = map.get(dt.type.name);
 					TypeDef mutual = TypeDef.getCommonParent(pType.type, got.type);
-					if (!DataType.canCastTo(new DataType(maxParent), new DataType(mutual))) {
+					if (!DataType.canCastTo(new DataType(pType.type), new DataType(mutual))) {
 						cd.errs.add(new SourceException(range, "Cannot parameterize data type "+dt+" to type "+got));
 					}
 					map.put(dt.type.name, new DataType(mutual));
 				} else {
 					map.put(dt.type.name, got);
 				}
-			} else {
+			}
+			
+			if (dt.params.length>0 || got.params.length>0) {
 				if (got==null) {
 					got = new DataType();
 				}
