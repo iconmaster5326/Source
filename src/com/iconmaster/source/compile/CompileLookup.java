@@ -25,7 +25,7 @@ import java.util.HashMap;
 public class CompileLookup {
 	public static enum LookupType {
 		RAWSTR,RAWCALL,RAWITER,
-		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,ITER,EXPR;
+		ROOT,VAR,PKG,TYPE,FUNC,METHOD,FIELD,GLOBAL,ITER,MITER,EXPR;
 		
 		public boolean isRaw() {
 			switch(this) {
@@ -60,6 +60,8 @@ public class CompileLookup {
 					return "field";
 				case ITER:
 					return "iterator";
+				case MITER:
+					return "iterator method";
 				case RAWSTR:
 					return "member";
 				case RAWCALL:
@@ -297,7 +299,7 @@ public class CompileLookup {
 						if (iter.getName().startsWith(td.name+".")) {
 							String methodName = iter.getName();
 							methodName = methodName.substring(td.name.length()+1);
-							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.ITER, node, iter, methodName, null, false);
+							LookupNode tree = LookupNode.addFromFullName(cd,LookupType.MITER, node, iter, methodName, null, false);
 							getLookupTree(cd, tree);
 						}
 						td = td.parent;
@@ -513,6 +515,7 @@ public class CompileLookup {
 				LookupFunction data = (LookupFunction) iterNode.data;
 				Iterator iter = (Iterator) data.fn;
 				tree = tree.p;
+				tree.c.clear();
 				
 				String rv = cd.frame.newVarName();
 				Expression expr2 = toExpr(cd, rv, tree);
@@ -520,6 +523,9 @@ public class CompileLookup {
 				ArrayList<String> args = new ArrayList<>();
 				args.add(iter.getFullName());
 				for (Expression arg : data.args) {
+					if (arg.retVar==null) {
+						arg.retVar = expr2.retVar;
+					}
 					expr.addAll(arg);
 					args.add(arg.retVar);
 				}
@@ -629,7 +635,7 @@ public class CompileLookup {
 								break;
 							case RAWITER:
 							case RAWCALL:
-								if (rawnode.match.equals(child.match) && ((rawnode.type==LookupType.RAWCALL && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) || (rawnode.type==LookupType.RAWITER && child.type==LookupType.ITER))) {
+								if (rawnode.match.equals(child.match) && ((rawnode.type==LookupType.RAWCALL && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) || (rawnode.type==LookupType.RAWITER && (child.type==LookupType.ITER || child.type==LookupType.MITER)))) {
 									LookupFunction fcall = ((LookupFunction) rawnode.data).cloneFunc();
 									if (lookupNode.type==LookupType.TYPE) {
 										fcall.args.add(0,new Expression());
