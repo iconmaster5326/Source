@@ -508,10 +508,10 @@ public class SourceCompiler {
 								if (listExpr.type==null) {
 									listExpr.type = new DataType(true);
 								}
-								if (!listExpr.type.type.indexable) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot iterate over data type "+listExpr.type));
-								}
-								DataType rtd = new DataType(listExpr.type.type.indexReturns);
+//								if (!listExpr.type.type.indexable) {
+//									cd.errs.add(new SourceDataTypeException(e.range,"Cannot iterate over data type "+listExpr.type));
+//								}
+								DataType rtd = new DataType(/*listExpr.type.type.indexReturns*/); //TODO: fix
 								if (rtd.type instanceof ParamTypeDef && listExpr.type.params.length>((ParamTypeDef)rtd.type).paramNo) {
 									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
 								}
@@ -597,86 +597,11 @@ public class SourceCompiler {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
 					case FCALL:
+					case ICALL:
 					case CHAIN:
 						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
-					case ICALL:
-						ArrayList<String> names = new ArrayList<>();
-						ArrayList<Expression> exprs = new ArrayList<>();
-						es = (ArrayList<Element>) e.args[1];
-						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
-							es = (ArrayList<Element>) es.get(0).args[0];
-						}
-						for (Element e2 : es) {
-							String name = cd.frame.newVarName();
-							Expression expr2 = compileExpr(cd, name, e2);
-							exprs.add(expr2);
-							names.add(name);
-						}
-						Element listE = new Element(e.range, TokenRule.WORD);
-						listE.args[0] = e.args[0];
-						Expression listExpr = resolveLValue(cd, expr, listE);
-						ArrayList<DataType> arga = new ArrayList<>();
-						arga.add(listExpr.type);
-						for (Expression expr3 : exprs) {
-							arga.add(expr3.type);
-						}
-						RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, new DataType(true), e.directives));
-						if (rfn.fn!=null) {
-							int i = 0;
-							if (rfn.fn.getArguments().size()-1!=exprs.size()) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-1)+" indices, got "+exprs.size()));
-							} else {
-								for (Expression expr3 : exprs) {
-									if (!DataType.canCastTo(expr3.type, rfn.fn.getArguments().get(i+1).getType())) {
-										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-									}
-									expr.addAll(expr3);
-									i++;
-								}
-							}
-							names.add(0,listExpr.retVar);
-							names.add(0,rfn.fn.getFullName());
-							names.add(0,retVar);
-							expr.type = rfn.fn.getReturnType();
-							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
-							expr.addAll(listExpr);
-						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
-							int i = 0;
-							if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
-							} else {
-								for (Expression expr3 : exprs) {
-									TypeDef argtd = listExpr.type.type.indexableBy[i];
-									if (argtd instanceof ParamTypeDef) {
-										argtd = listExpr.type.type.params[((ParamTypeDef)argtd).paramNo];
-									}
-									if (!DataType.canCastTo(expr3.type, new DataType(argtd))) {
-										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-									}
-									expr.addAll(expr3);
-									i++;
-								}
-							}
-							names.add(0,listExpr.retVar);
-							names.add(0,"list._getindex"); //TODO: Make this not use a direct name
-							names.add(0,retVar);
-							DataType rtd = new DataType(listExpr.type.type.indexReturns);
-							if (rtd.type instanceof ParamTypeDef) {
-								rtd = ((ParamTypeDef)rtd.type).paramNo>=listExpr.type.params.length?null:listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-							}
-							expr.type = rtd;
-							expr.add(new Operation(OpType.CALL, expr.type, e.range, names.toArray(new String[0])));
-							expr.addAll(listExpr);
-						} else {
-							if (rfn.nameFound) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+"; no overload _getindex found"));
-							} else {
-								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
-							}
-						}
-						break;
 					case INDEX:
-						names = new ArrayList<>();
+						ArrayList<String> names = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[0];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
@@ -744,7 +669,7 @@ public class SourceCompiler {
 						String fnName = rtype.type.name+"._cast";
 						ArrayList<DataType> argl = new ArrayList<>();
 						argl.add(lexpr.type);
-						rfn = getRealFunction(cd, new FunctionCall(fnName, argl, rtype, e.directives));
+						RealFunction rfn = getRealFunction(cd, new FunctionCall(fnName, argl, rtype, e.directives));
 						if (rfn.fn==null) {
 							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
 						} else {
@@ -806,17 +731,10 @@ public class SourceCompiler {
 						}
 					}
 					dt.type = def;
-					if (!def.hasParams) {
-						cd.errs.add(new SourceSyntaxException(e.range, "Cannot parameterize type "+def));
-						break;
-					}
 					ArrayList<DataType> pList = new ArrayList<>();
 					ArrayList<Element> es = (ArrayList<Element>) e.args[1];
 					if (es.size()>0 && es.get(0).type==Rule.TUPLE) {
 						es = (ArrayList<Element>) es.get(0).args[0];
-					}
-					if (!def.varargParams && def.params.length!=es.size()) {
-						cd.errs.add(new SourceSyntaxException(e.range, "Type "+def+" expects "+def.params.length+" parameters, got "+es.size()));
 					}
 					for (Element e2 : es) {
 						DataType param = compileDataType(cd, e2);
@@ -907,35 +825,6 @@ public class SourceCompiler {
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						names.add(0,rfn.fn.getFullName());
-						names.add(0,listExpr.retVar);
-						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
-						expr.addAll(listExpr);
-					} else if (listExpr.type!=null && listExpr.type.type.indexable) {
-						if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
-							cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
-						} else {
-							int i = 0;
-							for (Expression expr3 : exprs) {
-								DataType rtd = new DataType(listExpr.type.type.indexableBy[i]);
-								if (rtd.type instanceof ParamTypeDef) {
-									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-								}
-								expr.type = rtd;
-								if (!DataType.canCastTo(expr3.type, rtd)) {
-									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-								}
-								code.addAll(expr3);
-								i++;
-							}
-						}
-						expr.retVar = cd.pkg.nameProvider.getTempName();
-						DataType rtd = new DataType(listExpr.type.type.indexReturns);
-						if (rtd.type instanceof ParamTypeDef) {
-							rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-						}
-						expr.type = rtd;
-						names.add(0,expr.retVar);
-						names.add(0,"list._setindex"); //TODO: Make this not use direct name
 						names.add(0,listExpr.retVar);
 						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
