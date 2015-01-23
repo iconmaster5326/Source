@@ -322,9 +322,16 @@ public class CompileLookup {
 							tree2.p = node;
 							node = tree2;
 							break;
+						case ICALL_REF:
+							Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+							node = new LookupNode(LookupType.EXPR, node, expr2, e.range, SourceDecompiler.elementToString((Element) e.args[0]));
+							node.p.c.add(node);
 						case ICALL:
 							fcall = new LookupFunction(null, new ArrayList<>(), (DataType) null, new ArrayList<>());
-							node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, e.args[0], (String) e.args[0],e.range, false);
+							
+							if (e.type==Rule.ICALL) {
+								node = LookupNode.addFromFullName(cd, LookupType.RAWSTR, node, e.args[0], (String) e.args[0],e.range, false);
+							}
 							
 							fcall.name = "_getindex";
 							es = (ArrayList<Element>) e.args[1];
@@ -332,7 +339,7 @@ public class CompileLookup {
 								es = (ArrayList<Element>) es.get(0).args[0];
 							}
 							for (Element e2 : es) {
-								Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e2);
+								expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e2);
 								fcall.args.add(expr2);
 							}
 							if (e.dataType!=null) {
@@ -343,7 +350,7 @@ public class CompileLookup {
 							node = LookupNode.addFromFullName(cd, LookupType.RAWCALL, node, fcall, fcall.name,e.range, false);
 							break;
 						default:
-							Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e);
+							expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), e);
 							node = new LookupNode(LookupType.EXPR, node, expr2, e.range, SourceDecompiler.elementToString(e));
 							node.p.c.add(node);
 							break;

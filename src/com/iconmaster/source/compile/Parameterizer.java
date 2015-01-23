@@ -25,6 +25,11 @@ public class Parameterizer {
 		int i = 0;
 		for (DataType dt : callTypes) {
 			DataType got = gotTypes.get(i);
+			
+			if (got==null) {
+				got = new DataType();
+			}
+			
 			if (dt.type instanceof ParamTypeDef) {
 				TypeDef maxParent = dt.type.parent;
 				if (map.containsKey(dt.type.name)) {
@@ -40,9 +45,6 @@ public class Parameterizer {
 			}
 			
 			if (dt.params.length>0 || got.params.length>0) {
-				if (got==null) {
-					got = new DataType();
-				}
 				ArrayList<DataType> ct2 = new ArrayList<>();
 				ArrayList<DataType> gt2 = new ArrayList<>();
 				int max = Math.max(dt.params.length,got.params.length);
