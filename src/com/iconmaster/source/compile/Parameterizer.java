@@ -27,7 +27,6 @@ public class Parameterizer {
 			DataType got = gotTypes.get(i);
 			if (dt.type instanceof ParamTypeDef) {
 				TypeDef maxParent = dt.type.parent;
-				DataType common  = dt.cloneType();
 				if (map.containsKey(dt.type.name)) {
 					DataType pType = map.get(dt.type.name);
 					TypeDef mutual = TypeDef.getCommonParent(pType.type, got.type);
@@ -79,7 +78,7 @@ public class Parameterizer {
 		ArrayList<SourceException> newErrs = new ArrayList<>();
 		cd.errs = newErrs;
 		
-		parameterize(cd, range, callTypes, gotTypes);
+		parameterize(cd, range, callTypes, gotTypes, new HashMap<>());
 		
 		cd.errs = errs;
 		
