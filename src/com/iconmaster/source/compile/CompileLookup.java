@@ -178,7 +178,7 @@ public class CompileLookup {
 		}
 		
 		public LookupFunction cloneFunc() {
-			LookupFunction fcall = new LookupFunction(name, args, retType, dirs);
+			LookupFunction fcall = new LookupFunction(name, (ArrayList<Expression>) args.clone(), retType, (ArrayList<String>) dirs.clone());
 			fcall.index = index;
 			fcall.fn = fn;
 			return fcall;
@@ -514,8 +514,8 @@ public class CompileLookup {
 								break;
 							case RAWCALL:
 								if (rawnode.match.equals(child.match) && (child.type==LookupType.FUNC || child.type==LookupType.METHOD)) {
-									LookupFunction fcall = (LookupFunction) rawnode.data;
-									if (lookupNode.type==LookupType.TYPE) {
+									LookupFunction fcall = ((LookupFunction) rawnode.data).cloneFunc();
+									if (lookupNode.type==LookupType.TYPE && child.type==LookupType.METHOD) {
 										fcall.args.add(0,new Expression());
 										fcall.args.get(0).type = node.dataType;
 									}
