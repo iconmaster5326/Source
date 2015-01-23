@@ -210,7 +210,6 @@ public class Validator {
 				
 				//other cases
 
-				case ICALL_REF:
 				case FCALL:
 					if (e.args[2]!=null) {
 						a.addAll(validate((ArrayList<Element>) e.args[2],Scope.LVALUE));
@@ -218,6 +217,7 @@ public class Validator {
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.CODE);
 					break;
 				case ICALL:
+				case ICALL_REF:
 					ensureScope(a,e,scope,Scope.RVALUE,Scope.LVALUE);
 					break;
 				case CHAIN:

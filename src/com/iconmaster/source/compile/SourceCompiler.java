@@ -102,7 +102,7 @@ public class SourceCompiler {
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
 		CompileUtils.transform(cd.pkg, nameConflictResolver);
-		CompileUtils.transform(cd.pkg, optimizer);
+		//CompileUtils.transform(cd.pkg, optimizer);
 		Optimizer.countUsages(pkg);
 		
 		return cd.errs;
@@ -813,7 +813,7 @@ public class SourceCompiler {
 					for (Expression expr3 : exprs) {
 						arga.add(expr3.type);
 					}
-					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, listExpr.type, e.directives));
+					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, (DataType) null, e.directives));
 					if (rfn.fn!=null) {
 						int i = 0;
 						if (rfn.fn.getArguments().size()-2!=exprs.size()) {
