@@ -34,7 +34,6 @@ public class HPPLInliner {
 		//make tallies of used vars
 		for (i=ops.size()-1;i>=0;i--) {
 			InlineOp op = expr.get(i);
-			expr.add(op);
 			int j = 0;
 			for (boolean b : op.op.getVarSlots()) {
 				if (b && j!=0) {
