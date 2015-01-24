@@ -71,7 +71,7 @@ public class HPPLInliner {
 				op.matchingBlock = k;
 			}
 		}
-		System.out.println(expr);
+		
 		return expr;
 	}
 	
