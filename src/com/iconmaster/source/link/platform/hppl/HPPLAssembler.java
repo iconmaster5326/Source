@@ -109,6 +109,17 @@ public class HPPLAssembler {
 	
 	public static String getString(AssemblyData ad, InlinedExpression expr) {
 		StringBuilder sb = new StringBuilder();
+		for (InlineOp op : expr) {
+			if (op.spec!=null) {
+				switch (op.spec) {
+					
+				}
+			} else {
+				switch (op.op.op) {
+					
+				}
+			}
+		}
 		return sb.toString();
 	}
 	

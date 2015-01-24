@@ -48,7 +48,9 @@ public class HPPLFunction {
 			sb.append(")\nBEGIN\n");
 		}
 		
+		ad.pushFrame();
 		sb.append(HPPLAssembler.getString(ad, code));
+		ad.popFrame();
 		
 		if (!ad.minify) {
 			sb.append("\n");
