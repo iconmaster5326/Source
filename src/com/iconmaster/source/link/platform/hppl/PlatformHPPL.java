@@ -36,7 +36,7 @@ public class PlatformHPPL extends Platform {
 
 	@Override
 	public Object assemble(SourcePackage pkg) {
-		return null; //return an object that represents the compiler output.
+		return HPPLAssembler.assemble(pkg); //return an object that represents the compiler output.
 	}
 
 	@Override
