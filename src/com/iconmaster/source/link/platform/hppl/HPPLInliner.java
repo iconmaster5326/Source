@@ -36,7 +36,7 @@ public class HPPLInliner {
 			InlineOp op = expr.get(i);
 			int j = 0;
 			for (boolean b : op.op.getVarSlots()) {
-				if (b && j!=0) {
+				if (b && !(op.op.op.hasLVar() && j==0)) {
 					int pos = findLine(refMap, op.op.args[j], i);
 					if (pos!=-1) {
 						expr.get(pos).addRef();

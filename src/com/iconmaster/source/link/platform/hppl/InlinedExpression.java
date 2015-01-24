@@ -14,7 +14,7 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 	}
 	
 	public static enum Status {
-		KEEP_NO_LVAL, INLINE, KEEP
+		KEEP_NO_LVAL, INLINE, KEEP, NOT_APPLICABLE
 	}
 	
 	public static class InlineOp {
@@ -37,7 +37,9 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 		}
 		
 		public void setStatus() {
-			if (refs==0) {
+			if (!op.op.hasLVar()) {
+				status = Status.NOT_APPLICABLE;
+			} else if (refs==0) {
 				status = Status.KEEP_NO_LVAL;
 			} else if (refs==1) {
 				status = Status.INLINE;

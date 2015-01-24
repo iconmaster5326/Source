@@ -37,7 +37,6 @@ public class Operation {
 				case GOTOF:
 				case NATIVE:
 				case DEF:
-				case FOR:
 				case ITER:
 					return false;
 				default:
