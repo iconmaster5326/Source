@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.compile.CompileUtils;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.link.platform.PlatformLoader.LoadedPlatform;
@@ -39,7 +40,7 @@ public class PlatformHPPL extends Platform {
 	}
 
 	@Override
-	public Object assemble(SourcePackage pkg) {
+	public AssembledOutput assemble(SourcePackage pkg) {
 		return HPPLAssembler.assemble(pkg); //return an object that represents the compiler output.
 	}
 

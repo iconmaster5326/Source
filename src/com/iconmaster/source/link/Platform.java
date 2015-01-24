@@ -1,5 +1,6 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
@@ -25,7 +26,7 @@ public abstract class Platform {
 	public abstract boolean canAssemble();
 	public abstract boolean canRun();
 
-	public abstract Object assemble(SourcePackage pkg);
+	public abstract AssembledOutput assemble(SourcePackage pkg);
 	public abstract Object run(SourcePackage pkg);
 	
 	public static boolean shouldIncludeFunction(Function fn) {

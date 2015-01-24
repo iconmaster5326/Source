@@ -16,7 +16,6 @@ import com.iconmaster.source.validate.Validator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -92,7 +91,7 @@ public class Source {
 				System.out.println(so.operationLog);
 			} else if (cla.containsKey("show")) {
 				System.out.println();
-				System.out.println(so.output);
+				System.out.println(so.output.getOutputString());
 			}
 			System.out.print("Compiled sucsessfully");
 			if (op.outputFile!=null) {
@@ -199,14 +198,19 @@ public class Source {
 				try {
 					so.output = Assembler.assemble(opts.platform, linker.outputPackage);
 					
+					errs.addAll(so.output.errs);
+					for (SourceException ex :  so.output.errs) {
+						dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+					}
+					
 					if (opts.outputFile!=null) {
-						(new FileWriter(opts.outputFile)).append(String.valueOf(so.output)).close();
+						so.output.saveToFile(opts);
 					}
 				} catch (Exception ex) {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
 				}
-				so.operationLog += so.output + "\n";
+				so.operationLog += so.output.getOutputString() + "\n";
 			} else {
 				so.operationLog += "Running...\n";
 				try {

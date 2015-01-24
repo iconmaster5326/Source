@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class HPPLAssembler {
-	public static String assemble(SourcePackage pkg) {
+	public static AssembledOutput assemble(SourcePackage pkg) {
 		AssemblyData ad = new AssemblyData(pkg);
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n//This program compiled with Source version @VERSION@, found at www.github.com/iconmaster5326/Source.\n\n");
 		
@@ -78,7 +79,7 @@ public class HPPLAssembler {
 			}
 		}	
 		
-		return sb.toString();
+		return new HPPLOutput(sb.toString());
 	}
 	
 	public static HPPLFunction assembleFunction(AssemblyData ad, Function fn) {
