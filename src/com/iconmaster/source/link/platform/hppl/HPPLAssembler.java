@@ -168,6 +168,20 @@ public class HPPLAssembler {
 						sb.append("}");
 						addSto(ad, op, sb);
 						break;
+					case TRUE:
+						ad.addLVar(ad, op);
+						sb.append("1");
+						addSto(ad, op, sb);
+						break;
+					case FALSE:
+						ad.addLVar(ad, op);
+						sb.append("0");
+						addSto(ad, op, sb);
+						break;
+					case RET:
+						sb.append("RETURN ");
+						sb.append(ad.getInline(op.op.args[0]));
+						break;
 					case CALL:
 						ad.addLVar(ad, op);
 						CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
@@ -196,6 +210,7 @@ public class HPPLAssembler {
 					break;
 				case KEEP:
 				case KEEP_NO_LVAL:
+				case NOT_APPLICABLE:
 					lines.append(sb);
 					lines.append(";");
 					if (!ad.minify) {
