@@ -180,7 +180,7 @@ public class HPPLAssembler {
 		}
 		
 		lines.deleteCharAt(lines.length()-1);
-		if (ad.minify) {
+		if (!ad.minify) {
 			lines.deleteCharAt(lines.length()-1);
 		}
 		return lines.toString();
