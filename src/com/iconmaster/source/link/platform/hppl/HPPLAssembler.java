@@ -126,9 +126,10 @@ public class HPPLAssembler {
 	public static String getString(AssemblyData ad, InlinedExpression expr) {
 		StringBuilder lines = new StringBuilder();
 		
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb;
 		for (InlineOp op : expr) {
 			sb = new StringBuilder();
+			boolean endLine = true;
 			
 			if (op.spec!=null) {
 				switch (op.spec) {
@@ -212,9 +213,11 @@ public class HPPLAssembler {
 				case KEEP_NO_LVAL:
 				case NOT_APPLICABLE:
 					lines.append(sb);
-					lines.append(";");
-					if (!ad.minify) {
-						lines.append("\n");
+					if (endLine) {
+						lines.append(";");
+						if (!ad.minify) {
+							lines.append("\n");
+						}
 					}
 					break;
 			}
