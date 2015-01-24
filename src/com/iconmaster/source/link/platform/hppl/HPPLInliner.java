@@ -26,8 +26,12 @@ public class HPPLInliner {
 		
 		//create new inlined expression
 		InlinedExpression expr = new InlinedExpression();
+		for (Operation oop : ops) {
+			InlineOp op = new InlineOp(oop);
+			expr.add(op);
+		}
 		for (i=ops.size()-1;i>=0;i--) {
-			InlineOp op = new InlineOp(ops.get(i));
+			InlineOp op = expr.get(i);
 			expr.add(op);
 			int j = 0;
 			for (boolean b : op.op.getVarSlots()) {
