@@ -139,6 +139,18 @@ public class HPPLAssembler {
 				switch (op.op.op) {
 					case MOVN:
 						ad.addLVar(ad, op);
+						sb.append(op.op.args[1]);
+						addSto(ad, op, sb);
+						break;
+					case MOVS:
+						ad.addLVar(ad, op);
+						sb.append("\"");
+						sb.append(op.op.args[1]);
+						sb.append("\"");
+						addSto(ad, op, sb);
+						break;
+					case MOV:
+						ad.addLVar(ad, op);
 						sb.append(ad.getInline(op.op.args[1]));
 						addSto(ad, op, sb);
 						break;

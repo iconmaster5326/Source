@@ -484,6 +484,7 @@ public class SourceCompiler {
 					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type+" and "+rexpr.type));
 				} else {
 					expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar, rexpr.retVar));
+					expr.type = fn.getReturnType();
 				}
 			} else {
 				ArrayList<Element> es;
