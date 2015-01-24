@@ -86,7 +86,6 @@ public class HPPLAssembler {
 		ArrayList<HPPLVariable> args = new ArrayList<>();
 		for (Field arg : fn.getArguments()) {
 			HPPLVariable var = new HPPLVariable(arg.getName(), HPPLNaming.getNewName());
-			//ad.vars.add(var);
 			args.add(var);
 		}
 		return new HPPLFunction(PlatformHPPL.shouldKeepName(fn) ? HPPLNaming.formatFuncName(fn) : HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);

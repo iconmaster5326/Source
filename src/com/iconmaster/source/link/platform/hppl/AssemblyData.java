@@ -17,6 +17,7 @@ public class AssemblyData {
 	public static class Frame {
 		public Frame parent;
 		public HashMap<String,String> inlines = new HashMap<>();
+		public ArrayList<HPPLVariable> localVars = new ArrayList<>();
 		public String blockEnd;
 
 		public Frame(Frame parent) {
@@ -25,6 +26,15 @@ public class AssemblyData {
 		
 		public String getInline(String name) {
 			return inlines.containsKey(name) ? inlines.get(name) : (parent==null ? null : parent.getInline(name));
+		}
+		
+		public String getLocalVar(String name) {
+			for (HPPLVariable v : localVars) {
+				if (v.name.equals(name)) {
+					return v.compileName;
+				}
+			}
+			return parent==null? name : parent.getLocalVar(name);
 		}
 	}
 	
@@ -70,6 +80,10 @@ public class AssemblyData {
 	}
 	
 	public String getVarMap(String name) {
+		String local = frame().getLocalVar(name);
+		if (!local.equals(name)) {
+			return local;
+		}
 		for (HPPLVariable v : vars) {
 			if (v.name.equals(name)) {
 				return v.compileName;

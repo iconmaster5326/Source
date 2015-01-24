@@ -49,6 +49,9 @@ public class HPPLFunction {
 		}
 		
 		ad.pushFrame();
+		for (HPPLVariable var : args) {
+			ad.frame().localVars.add(var);
+		}
 		sb.append(HPPLAssembler.getString(ad, code));
 		ad.popFrame();
 		
