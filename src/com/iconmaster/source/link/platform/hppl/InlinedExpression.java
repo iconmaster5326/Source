@@ -1,6 +1,7 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
 import java.util.ArrayList;
 
@@ -41,7 +42,7 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 				status = Status.NOT_APPLICABLE;
 			} else if (refs==0) {
 				status = Status.KEEP_NO_LVAL;
-			} else if (refs==1) {
+			} else if (refs==1 && op.op!=OpType.MOVA && op.op!=OpType.MOVL) {
 				status = Status.INLINE;
 			} else {
 				status = Status.KEEP;

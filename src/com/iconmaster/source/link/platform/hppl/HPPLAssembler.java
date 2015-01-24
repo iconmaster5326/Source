@@ -154,6 +154,20 @@ public class HPPLAssembler {
 						sb.append(ad.getInline(op.op.args[1]));
 						addSto(ad, op, sb);
 						break;
+					case MOVA:
+					case MOVL:
+						ad.addLVar(ad, op);
+						sb.append("{");
+						if (op.op.args.length!=1) {
+							for (int i=1;i<op.op.args.length;i++) {
+								sb.append(ad.getInline(op.op.args[i]));
+								sb.append(",");
+							}
+							sb.deleteCharAt(sb.length()-1);
+						}
+						sb.append("}");
+						addSto(ad, op, sb);
+						break;
 					case CALL:
 						ad.addLVar(ad, op);
 						CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
