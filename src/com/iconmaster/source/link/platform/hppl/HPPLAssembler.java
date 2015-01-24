@@ -236,6 +236,22 @@ public class HPPLAssembler {
 						}
 						ad.popFrame();
 						break;
+					case NATIVE:
+						if (op.op.args[0].equals("hppl")) {
+							sb.append(op.op.args[1]);
+							endLine = false;
+						} else if (op.op.args[0].equals("comment")) {
+							sb.append(" //");
+							sb.append(op.op.args[1]);
+							sb.append("\n");
+							endLine = false;
+						} else {
+							sb.append(" //ERROR: statement in unknown language ");
+							sb.append(op.op.args[0]);
+							sb.append(" located here\n");
+							endLine = false;
+						}
+						break;
 					default:
 						endLine = false;
 						break;
