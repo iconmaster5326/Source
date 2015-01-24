@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class HPPLAssembler {
 	public static String assemble(SourcePackage pkg) {
 		AssemblyData ad = new AssemblyData(pkg);
-		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n//This program compiled with Source: www.github.com/iconmaster5326/Source\n\n");
+		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n//This program compiled with Source version @VERSION@, found at www.github.com/iconmaster5326/Source.\n\n");
 		
 		//get assembled data of everything
 		for (Function fn : pkg.getFunctions()) {
