@@ -202,6 +202,9 @@ public class HPPLAssembler {
 						}
 						addSto(ad, op, sb);
 						break;
+					default:
+						endLine = false;
+						break;
 				}
 			}
 			
