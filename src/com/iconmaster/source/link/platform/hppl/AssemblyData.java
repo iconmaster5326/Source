@@ -78,4 +78,9 @@ public class AssemblyData {
 		String s = frame().getInline(name);
 		return s==null ? compName : s;
 	}
+	
+	public void addInline(String name, String code) {
+		String compName = getVarMap(name);
+		frame().inlines.put(compName, code);
+	}
 }

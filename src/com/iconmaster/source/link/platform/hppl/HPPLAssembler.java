@@ -107,9 +107,23 @@ public class HPPLAssembler {
 		return HPPLInliner.getStatements(expr);
 	}
 	
+	public static void addSto(AssemblyData ad, InlineOp op, StringBuilder sb) {
+		switch (op.status) {
+			case KEEP:
+				sb.append(HPPLCharacters.STO);
+				sb.append(ad.getVarMap(op.op.args[0]));
+				break;
+			case INLINE:
+			case KEEP_NO_LVAL:
+				break;
+		}
+	}
+	
 	public static String getString(AssemblyData ad, InlinedExpression expr) {
 		StringBuilder sb = new StringBuilder();
 		for (InlineOp op : expr) {
+			sb = new StringBuilder();
+			
 			if (op.spec!=null) {
 				switch (op.spec) {
 					case CALL_IFN:
@@ -119,21 +133,21 @@ public class HPPLAssembler {
 				switch (op.op.op) {
 					case MOVN:
 						sb.append(ad.getInline(op.op.args[1]));
-						switch (op.status) {
-							case KEEP:
-								sb.append(HPPLCharacters.STO);
-								sb.append(ad.getVarMap(op.op.args[0]));
-								break;
-							case INLINE:
-							case KEEP_NO_LVAL:
-								break;
-						}
-						break;
-					case MOV:
+						addSto(ad, op, sb);
 						break;
 					case CALL:
+						sb.append("func()");
+						addSto(ad, op, sb);
 						break;
 				}
+			}
+			
+			switch (op.status) {
+				case INLINE:
+					ad.addInline(op.op.args[0], sb.toString());
+					break;
+				case KEEP:
+				case KEEP_NO_LVAL:
 			}
 		}
 		return sb.toString();
