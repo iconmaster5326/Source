@@ -12,6 +12,8 @@ public class AssemblyData {
 	public HashMap<String,String> varNames = new HashMap<>();
 	public ArrayList<String> vars = new ArrayList<>();
 	
+	public ArrayList<String> funcs = new ArrayList<>();
+	
 	public SourcePackage pkg;
 	
 	public AssemblyData(SourcePackage pkg) {
@@ -41,5 +43,9 @@ public class AssemblyData {
 	
 	public String getMapping(String var) {
 		return varNames.get(var);
+	}
+	
+	public void addFuncPrototype(String var) {
+		funcs.add(var);
 	}
 }
