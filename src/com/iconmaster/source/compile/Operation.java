@@ -129,6 +129,7 @@ public class Operation {
 		switch (this.op) {
 			case PROP:
 			case DEF:
+			case FOR:
 				return new Boolean[] {};
 			case MOVN:
 			case MOVS:

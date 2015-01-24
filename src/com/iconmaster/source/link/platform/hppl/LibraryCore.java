@@ -53,9 +53,11 @@ public class LibraryCore extends SourcePackage {
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("typeof", new String[] {"item"}, new Object[] {TypeDef.UNKNOWN}, null);
+		fn.getDirectives().add("pure");
 		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("sizeof", new String[] {"item"}, new Object[] {TypeDef.UNKNOWN}, null);
+		fn.getDirectives().add("pure");
 		this.addFunction(fn);
 		
 		for (TypeDef type : MATH_TYPES) {
@@ -63,15 +65,19 @@ public class LibraryCore extends SourcePackage {
 			array.params = new DataType[] {new DataType(type)};
 			
 			fn = Function.libraryFunction("range", new String[] {"begin","end"}, new Object[] {type,type}, array);
+			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 			
 			fn = Function.libraryFunction("range", new String[] {"begin","end","step"}, new Object[] {type,type,type}, array);
+			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 			
 			iter = Iterator.libraryIterator("range", new String[] {"begin","end"}, new Object[] {type,type}, new Object[] {type});
+			fn.getDirectives().add("pure");
 			this.addIterator(iter);
 		
 			iter = Iterator.libraryIterator("range", new String[] {"begin","end","step"}, new Object[] {type,type,type}, new Object[] {type});
+			fn.getDirectives().add("pure");
 			this.addIterator(iter);
 		}
 		
@@ -79,6 +85,7 @@ public class LibraryCore extends SourcePackage {
 		for (TypeDef type : MATH_TYPES) {
 			for (String op : MATH_OPS) {
 				fn = Function.libraryFunction(type.name+"."+op, new String[] {"a1","a2"}, new Object[] {type,type}, type);
+				fn.getDirectives().add("pure");
 				this.addFunction(fn);
 			}
 		}
@@ -86,6 +93,7 @@ public class LibraryCore extends SourcePackage {
 		for (TypeDef type : MATH_TYPES) {
 			for (String op : BOOL_OPS) {
 				fn = Function.libraryFunction(type.name+"."+op, new String[] {"a1","a2"}, new Object[] {type,type}, TypeDef.BOOLEAN);
+				fn.getDirectives().add("pure");
 				this.addFunction(fn);
 			}
 		}
@@ -93,17 +101,20 @@ public class LibraryCore extends SourcePackage {
 		for (TypeDef type : INT_TYPES) {
 			for (String op : BIT_OPS) {
 				fn = Function.libraryFunction(type.name+"."+op, new String[] {"a1","a2"}, new Object[] {type,type}, type);
+				fn.getDirectives().add("pure");
 				this.addFunction(fn);
 			}
 		}
 		
 		fn = Function.libraryFunction("?._concat", new String[] {"a1","a2"}, new Object[] {TypeDef.UNKNOWN,TypeDef.UNKNOWN}, TypeDef.STRING);
+		fn.getDirectives().add("pure");
 		this.addFunction(fn);
 		
 		for (TypeDef type1 : MATH_TYPES_EXT) {
 			for (TypeDef type2 : MATH_TYPES_EXT) {
 				if (type1!=type2) {
 					fn = Function.libraryFunction(type2.name+"._cast", new String[] {"from"}, new Object[] {type1}, type2);
+					fn.getDirectives().add("pure");
 					this.addFunction(fn);
 				}
 			}
@@ -124,6 +135,7 @@ public class LibraryCore extends SourcePackage {
 		
 		for (TypeDef type : INT_TYPES) {
 			fn = Function.libraryFunction("array._getindex", new String[] {"a","i"}, new Object[] {atdt,type}, att);
+			fn.getDirectives().add("pure");
 			fn.rawParams = new ArrayList<>();
 			fn.rawParams.add(new Field("T"));
 			this.addFunction(fn);
@@ -140,6 +152,7 @@ public class LibraryCore extends SourcePackage {
 		this.addIterator(iter);
 		
 		fn = Function.libraryFunction("array._cast", new String[] {"a"}, new Object[] {TypeDef.LIST}, TypeDef.ARRAY);
+		fn.getDirectives().add("pure");
 		this.addFunction(fn);
 		
 		//list functions
@@ -149,6 +162,7 @@ public class LibraryCore extends SourcePackage {
 		
 		for (TypeDef type : INT_TYPES) {
 			fn = Function.libraryFunction("list._getindex", new String[] {"a","i"}, new Object[] {ltdt,type}, att);
+			fn.getDirectives().add("pure");
 			fn.rawParams = new ArrayList<>();
 			fn.rawParams.add(new Field("T"));
 			this.addFunction(fn);
@@ -165,11 +179,13 @@ public class LibraryCore extends SourcePackage {
 		this.addIterator(iter);
 		
 		fn = Function.libraryFunction("list._cast", new String[] {"a"}, new Object[] {TypeDef.ARRAY}, TypeDef.LIST);
+		fn.getDirectives().add("pure");
 		this.addFunction(fn);
 		
 		//string functions
 		for (TypeDef type : INT_TYPES) {
 			fn = Function.libraryFunction("string._getindex", new String[] {"s","i"}, new Object[] {TypeDef.STRING,type}, TypeDef.CHAR);
+			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 
 			fn = Function.libraryFunction("string._setindex", new String[] {"s","v","i"}, new Object[] {TypeDef.STRING,TypeDef.CHAR,type}, null);
@@ -181,13 +197,16 @@ public class LibraryCore extends SourcePackage {
 		
 		for (TypeDef type : MATH_TYPES_EXT) {
 			fn = Function.libraryFunction("string._cast", new String[] {"s"}, new Object[] {type}, TypeDef.STRING);
+			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 			
 			fn = Function.libraryFunction(type.name+"._cast", new String[] {"s"}, new Object[] {TypeDef.STRING}, type);
+			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 		}
 		
 		fn = Function.libraryFunction("string._cast", new String[] {"s"}, new Object[] {TypeDef.UNKNOWN}, TypeDef.STRING);
+		fn.getDirectives().add("pure");
 		this.addFunction(fn);
 		
 		//map functions
@@ -203,6 +222,7 @@ public class LibraryCore extends SourcePackage {
 		this.addIterator(iter);
 		
 		fn = Function.libraryFunction("map._getindex", new String[] {"m","i"}, new Object[] {mkvdt,mkt}, mvt);
+		fn.getDirectives().add("pure");
 		fn.rawParams = new ArrayList<>();
 		fn.rawParams.add(new Field("K"));
 		fn.rawParams.add(new Field("V"));

@@ -19,7 +19,8 @@ public class HPPLAssembler {
 		
 		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n//This program compiled with Source: www.github.com/iconmaster5326/Source\n\n");
 		
-		
+		sb.append(HPPLCharacters.VAR_BEGIN);
+		sb.append("var");
 		return sb.toString();
 	}
 	

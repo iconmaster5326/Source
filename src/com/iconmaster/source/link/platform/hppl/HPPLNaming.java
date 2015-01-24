@@ -9,7 +9,7 @@ public class HPPLNaming {
 	
 	public static String getNewName() {
 		varsMade++;
-		return "%"+varsMade;
+		return HPPLCharacters.VAR_BEGIN+varsMade;
 	}
 	
 	public static String formatVarName(String name) {
