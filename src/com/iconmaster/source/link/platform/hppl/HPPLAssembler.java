@@ -1,6 +1,8 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.SpecialOp;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
@@ -50,6 +52,17 @@ public class HPPLAssembler {
 			args.add(var);
 		}
 		return new HPPLFunction(HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
+	}
+	
+	public static InlinedExpression encapsulate(AssemblyData ad, ArrayList<InlinedExpression> expr) {
+		if (expr.size()==1) {
+			return expr.get(0);
+		}
+		
+		HPPLFunction fn = new HPPLFunction(HPPLNaming.getNewName(), new ArrayList<>(), expr, null);
+		InlinedExpression expr2 = new InlinedExpression();
+		expr2.add(new InlineOp(new Operation(Operation.OpType.CALL, fn.compileName), SpecialOp.CALL_IFN));
+		return expr2;
 	}
 	
 	public static ArrayList<InlinedExpression> assembleCode(AssemblyData ad, ArrayList<Operation> code) {

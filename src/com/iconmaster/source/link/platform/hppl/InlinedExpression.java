@@ -9,6 +9,10 @@ import java.util.ArrayList;
  * @author iconmaster
  */
 public class InlinedExpression extends ArrayList<InlineOp> {
+	public static enum SpecialOp {
+		CALL_IFN;
+	}
+	
 	public static enum Status {
 		KEEP_NO_LVAL, INLINE, KEEP
 	}
@@ -17,9 +21,15 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 		public Operation op;
 		public Status status = null;
 		public int refs = 0;
+		public SpecialOp spec;
 
 		public InlineOp(Operation op) {
 			this.op = op;
+		}
+		
+		public InlineOp(Operation op, SpecialOp spec) {
+			this.op = op;
+			this.spec = spec;
 		}
 		
 		public void addRef() {
