@@ -1,7 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.assemble.AssembledOutput;
-import com.iconmaster.source.compile.CompileUtils;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.link.platform.PlatformLoader.LoadedPlatform;
 import com.iconmaster.source.prototype.Function;
@@ -25,7 +24,7 @@ public class PlatformHPPL extends Platform {
 		
 		//load code transformers:
 		
-		transforms.add(CompileUtils.iteratorReplacer); //if you want all non-system iterators inlined
+		//transforms.add(CompileUtils.iteratorReplacer); //if you want all non-system iterators inlined
 		//transforms.add(CompileUtils.gotoReplacer); //if you want ALL SIL branches/loops replaced with SIL GOTOs
 	}
 

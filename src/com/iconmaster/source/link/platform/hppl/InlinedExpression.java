@@ -45,5 +45,31 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 				status = Status.KEEP;
 			}
 		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("<");
+			sb.append(refs);
+			sb.append("-");
+			sb.append(status);
+			if (spec!=null) {
+				sb.append(" ");
+				sb.append(spec);
+			}
+			sb.append("> ");
+			sb.append(op);
+			return sb.toString();
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (InlineOp op : this) {
+			sb.append(op);
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 }
