@@ -27,6 +27,14 @@ public class HPPLAssembler {
 		
 		//convert assembled data into a string
 		for (HPPLFunction fn : ad.funcs) {
+			fn.toString(ad);
+		}
+		for (HPPLField f : ad.fields) {
+			f.toString(ad);
+		}
+		
+		//add prototypes
+		for (HPPLFunction fn : ad.funcs) {
 			sb.append(fn.compileName);
 			sb.append("(");
 			if (!fn.args.isEmpty()) {
@@ -39,7 +47,35 @@ public class HPPLAssembler {
 			sb.append(")");
 			sb.append(";");
 		}
-		sb.append("\n");
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		for (HPPLField f : ad.fields) {
+			sb.append(f.compileName);
+			sb.append(";");
+		}
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		for (HPPLVariable v : ad.vars) {
+			sb.append(v.compileName);
+			sb.append(";");
+		}
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		//add the content
+		for (HPPLFunction fn : ad.funcs) {
+			if (fn.output!=null) {
+				sb.append(fn.output);
+			}
+			if (!ad.minify) {
+				sb.append("\n");
+			}
+		}	
 		
 		return sb.toString();
 	}
@@ -69,6 +105,26 @@ public class HPPLAssembler {
 	public static ArrayList<InlinedExpression> assembleCode(AssemblyData ad, ArrayList<Operation> code) {
 		InlinedExpression expr = HPPLInliner.inlineCode(ad, code);
 		return HPPLInliner.getStatements(expr);
+	}
+	
+	public static String getString(AssemblyData ad, InlinedExpression expr) {
+		StringBuilder sb = new StringBuilder();
+		return sb.toString();
+	}
+	
+	public static String getString(AssemblyData ad, ArrayList<InlinedExpression> exprs) {
+		StringBuilder sb = new StringBuilder();
+		for (InlinedExpression expr : exprs) {
+			sb.append(getString(ad, expr));
+			sb.append(";");
+			if (!ad.minify) {
+				sb.append("\n");
+			}
+		}
+		if (!exprs.isEmpty() && ad.minify) {
+			sb.deleteCharAt(sb.length()-1);
+		}
+		return sb.toString();
 	}
 	
 	public static boolean shouldAssemble(AssemblyData ad, Function fn) {

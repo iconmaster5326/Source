@@ -17,4 +17,10 @@ public class HPPLField {
 		this.expr = expr;
 		this.f = f;
 	}
+	
+	public String output;
+	
+	public void toString(AssemblyData ad) {
+		
+	}
 }

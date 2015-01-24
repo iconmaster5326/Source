@@ -1,6 +1,7 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
 
 /**
@@ -18,5 +19,44 @@ public class HPPLFunction {
 		this.args = args;
 		this.code = expr;
 		this.fn = fn;
+	}
+	
+	public String output;
+	
+	public void toString(AssemblyData ad) {
+		boolean oldM = ad.minify;
+		ad.minify = !Directives.has(fn, "!minify");
+		
+		StringBuilder sb = new StringBuilder();
+		
+		if (PlatformHPPL.shouldExport(fn)) {
+			sb.append("EXPORT ");
+		}
+		
+		sb.append(compileName);
+		sb.append("(");
+		if (!args.isEmpty()) {
+			for (HPPLVariable var : args) {
+				sb.append(var.compileName);
+				sb.append(",");
+			}
+			sb.deleteCharAt(sb.length()-1);
+		}
+		if (ad.minify) {
+			sb.append(")BEGIN ");
+		} else {
+			sb.append(")\nBEGIN\n");
+		}
+		
+		sb.append(HPPLAssembler.getString(ad, code));
+		
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		sb.append("END;");
+		output = sb.toString();
+		
+		ad.minify = oldM;
 	}
 }

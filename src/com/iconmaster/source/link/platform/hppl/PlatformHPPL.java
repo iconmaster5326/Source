@@ -3,7 +3,9 @@ package com.iconmaster.source.link.platform.hppl;
 import com.iconmaster.source.compile.CompileUtils;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.link.platform.PlatformLoader.LoadedPlatform;
+import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.util.Directives;
 
 /**
  *
@@ -44,4 +46,7 @@ public class PlatformHPPL extends Platform {
 		return null; //interpret SIL here.
 	}
 	
+	public static boolean shouldExport(Function fn) {
+		return Directives.has(fn, "export") || Directives.has(fn, "main");
+	}
 }
