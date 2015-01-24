@@ -145,7 +145,7 @@ public class CompileUtils {
 						forCode = new ArrayList<>();
 					}
 				} else if (op.op==OpType.FOR) {
-					if (depth==0) {
+					if (depth==0 && forCode != null) {
 						add = false;
 
 						forVars = op.args;

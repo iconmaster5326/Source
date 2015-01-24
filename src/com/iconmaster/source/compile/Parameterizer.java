@@ -24,7 +24,7 @@ public class Parameterizer {
 	public static HashMap<String,DataType> parameterize(CompileData cd, Range range, ArrayList<DataType> callTypes, ArrayList<DataType> gotTypes, HashMap<String,DataType> map) {
 		int i = 0;
 		for (DataType dt : callTypes) {
-			DataType got = gotTypes.get(i);
+			DataType got = i >= gotTypes.size() ? new DataType(true) : gotTypes.get(i);
 			
 			if (got==null) {
 				got = new DataType();
