@@ -103,7 +103,7 @@ public class Source {
 			if (cla.containsKey("v")) {
 				System.out.println(so.operationLog);
 			}
-			System.out.println("There were errors in compiling:");
+			System.out.print("There were errors in compiling:\n\t");
 			System.out.println(so.errMsgs.replace("\n", "\n\t"));
 		}
 	}
@@ -126,6 +126,9 @@ public class Source {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in tokenization", ex);
 				}
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Tokenization"));
+				
+				onError(so, errs, dets);
+				return so;
 			}
 			so.operationLog += a + "\n";
 			so.operationLog += "Parsing...\n";
@@ -138,6 +141,9 @@ public class Source {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in parsing", ex);
 				}
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Parsing"));
+				
+				onError(so, errs, dets);
+				return so;
 			}
 			so.operationLog += a + "\n";
 			so.operationLog += "Validating...\n";
@@ -147,9 +153,16 @@ public class Source {
 				for (SourceException ex : errs2) {
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
 				}
+				if (!errs2.isEmpty()) {
+					onError(so, errs, dets);
+					return so;
+				}
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in validation", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Validation"));
+				
+				onError(so, errs, dets);
+				return so;
 			}
 			so.operationLog += "Prototyping...\n";
 			Prototyper.PrototypeResult res = null;
@@ -160,9 +173,16 @@ public class Source {
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
 				}
 				so.operationLog += res.result + "\n";
+				if (!res.errors.isEmpty()) {
+					onError(so, errs, dets);
+					return so;
+				}
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in prototyping", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Prototyping"));
+				
+				onError(so, errs, dets);
+				return so;
 			}
 			so.operationLog += "Linking...\n";
 			Linker linker = null;
@@ -173,9 +193,17 @@ public class Source {
 				for (SourceException ex :  linker.errs) {
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
 				}
+				
+				if (!linker.errs.isEmpty()) {
+					onError(so, errs, dets);
+					return so;
+				}
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in linking", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Linking"));
+				
+				onError(so, errs, dets);
+				return so;
 			}
 
 			so.operationLog += linker + "\n";
@@ -187,9 +215,17 @@ public class Source {
 				for (SourceException ex :  linker.errs) {
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
 				}
+				
+				if (!linker.errs.isEmpty()) {
+					onError(so, errs, dets);
+					return so;
+				}
 			} catch (Exception ex) {
 				Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in compiling", ex);
 				dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Compiling"));
+				
+				onError(so, errs, dets);
+				return so;
 			}
 
 			so.operationLog += linker + "\n";
@@ -203,12 +239,20 @@ public class Source {
 						dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
 					}
 					
+					if (!so.output.errs.isEmpty()) {
+						onError(so, errs, dets);
+						return so;
+					}
+					
 					if (opts.outputFile!=null) {
 						so.output.saveToFile(opts);
 					}
 				} catch (Exception ex) {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+					
+					onError(so, errs, dets);
+					return so;
 				}
 				so.operationLog += so.output.getOutputString() + "\n";
 			} else {
@@ -218,24 +262,31 @@ public class Source {
 				} catch (Exception ex) {
 					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in running", ex);
 					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
+					
+					onError(so, errs, dets);
+					return so;
 				}
 			}
 			so.operationLog += "Done!\n";
-			so.errs = errs;
-			so.dets = dets;
-			so.errMsgs = "";
-			for (ErrorDetails det : dets) {
-				so.errMsgs+=det.errorType+" in "+det.phase+": "+det.errorMsg+"\n";
-			}
-			if (!dets.isEmpty()) {
-				so.operationLog += "There were errors detected:\n\t";
-				so.operationLog += so.errMsgs.replace("\n","\n\t") + "\n";
-			}
+
 		} catch (Exception ex) {
 			Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "general Source error", ex);
 		}
 		
 		return so;
+	}
+	
+	public static void onError(SourceOutput so, ArrayList<SourceException> errs, ArrayList<ErrorDetails> dets) {
+		so.errs = errs;
+		so.dets = dets;
+		so.errMsgs = "";
+		for (ErrorDetails det : dets) {
+			so.errMsgs+=det.errorType+" in "+det.phase+": "+det.errorMsg+"\n";
+		}
+		if (!dets.isEmpty()) {
+			so.operationLog += "There were errors detected:\n\t";
+			so.operationLog += so.errMsgs.replace("\n","\n\t") + "\n";
+		}
 	}
 	
 	public static SourcePackage prototypeFile(File f, ArrayList<SourceException> errs) {
