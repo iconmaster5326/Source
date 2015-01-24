@@ -2,6 +2,7 @@ package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.Status;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -30,6 +31,7 @@ public class HPPLInliner {
 			InlineOp op = new InlineOp(oop);
 			expr.add(op);
 		}
+		//make tallies of used vars
 		for (i=ops.size()-1;i>=0;i--) {
 			InlineOp op = expr.get(i);
 			expr.add(op);
@@ -54,7 +56,18 @@ public class HPPLInliner {
 	}
 	
 	public static ArrayList<InlinedExpression> getStatements(InlinedExpression expr) {
-		return null;
+		ArrayList<InlinedExpression> a = new ArrayList<>();
+		InlinedExpression stat = new InlinedExpression();
+		
+		for (InlineOp op : expr) {
+			stat.add(op);
+			if (op.status!=Status.INLINE) {
+				a.add(stat);
+				stat = new InlinedExpression();
+			}
+		}
+		
+		return a;
 	}
 	
 	public static int findLine(HashMap<String,ArrayList<Integer>> refMap, String var, int pos) {
