@@ -159,6 +159,7 @@ public class Validator {
 					a.addAll(validateElement((Element) e.args[0],Scope.RVALUE));
 				case RETURN_NULL:
 				case BREAK:
+				case CONTINUE:
 					ensureScope(a,e,scope,Scope.CODE);
 					break;
 					

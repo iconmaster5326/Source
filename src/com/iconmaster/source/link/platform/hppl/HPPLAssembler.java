@@ -228,6 +228,12 @@ public class HPPLAssembler {
 						ad.pushFrame();
 						ad.frame().blockEnd = "UNTIL "+ad.getInline(op.op.args[0]);
 						break;
+					case BRK:
+						sb.append("BREAK");
+						break;
+					case CONT:
+						sb.append("CONTINUE");
+						break;
 					case ENDB:
 						if (ad.frame().blockEnd==null) {
 							sb.append("END");

@@ -417,6 +417,9 @@ public class SourceCompiler {
 					case BREAK:
 						code.add(new Operation(OpType.BRK, e.range));
 						break;
+					case CONTINUE:
+						code.add(new Operation(OpType.CONT, e.range));
+						break;
 					default:
 						code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
 				}
