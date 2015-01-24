@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
 import java.util.ArrayList;
@@ -51,11 +52,16 @@ public class AssemblyData {
 	}
 	
 	public String getFuncMap(String name) {
+		Function rfn = pkg.getFunction(name);
+		if (rfn.data.containsKey("compName")) {
+			return (String) rfn.data.get("compName");
+		}
 		for (HPPLFunction fn : funcs) {
-			if (fn.fn.getFullName().equals(name)) {
+			if (fn.fn==rfn) {
 				return fn.compileName;
 			}
 		}
+		
 		return name;
 	}
 	
