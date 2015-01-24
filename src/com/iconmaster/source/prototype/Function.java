@@ -23,8 +23,6 @@ public class Function implements IDirectable {
 	protected ArrayList<Operation> code;
 	private DataType returns;
 	
-	public OnCompile onCompile;
-	public OnRun onRun;
 	public String pkgName;
 	
 	public int order = 0;
@@ -129,15 +127,6 @@ public class Function implements IDirectable {
 	public boolean isLibrary() {
 		return library;
 	}
-	
-	public String compileFunction(SourcePackage pkg, Object... args) {
-		if (this.onCompile==null) {
-			return null;
-		} else {
-			return this.onCompile.compile(pkg,args);
-		}
-	}
-
 
 	public Element getReturn() {
 		return rawReturns;

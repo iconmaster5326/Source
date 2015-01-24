@@ -34,7 +34,7 @@ public class Source {
 		System.out.println("https://github.com/iconmaster5326/Source");
 		System.out.println();
 		CLA cla = CLAHelper.getArgs(args);
-		SourceOptions op = new SourceOptions(null, "Test", true);
+		SourceOptions op = new SourceOptions(null, "HPPL", true);
 		if (cla.containsKey("p")) {
 			op.platform = cla.get("p");
 		}

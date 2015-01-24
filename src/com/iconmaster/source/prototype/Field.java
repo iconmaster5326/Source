@@ -25,9 +25,6 @@ public class Field implements IDirectable {
 	
 	public String pkgName;
 	
-	public OnCompile onCompile;
-	public OnRun onRun;
-	
 	/**
 	 * A map used to store item information for the platform.
 	 */
