@@ -1,6 +1,7 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.prototype.Field;
+import java.util.ArrayList;
 
 /**
  *
@@ -8,10 +9,10 @@ import com.iconmaster.source.prototype.Field;
  */
 public class HPPLField {
 	public String compileName;
-	public InlinedExpression expr;
+	public ArrayList<InlinedExpression> expr;
 	public Field f;
 
-	public HPPLField(String compileName, InlinedExpression expr, Field f) {
+	public HPPLField(String compileName, ArrayList<InlinedExpression> expr, Field f) {
 		this.compileName = compileName;
 		this.expr = expr;
 		this.f = f;
