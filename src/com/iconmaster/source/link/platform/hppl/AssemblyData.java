@@ -1,6 +1,8 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.Status;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
@@ -94,5 +96,11 @@ public class AssemblyData {
 	public CustomFunction getFuncAssembler(String name) {
 		Function rfn = pkg.getFunction(name);
 		return (CustomFunction) rfn.data.get("onAssemble");
+	}
+	
+	public void addLVar(AssemblyData ad, InlineOp op) {
+		if (op.status==Status.KEEP) {
+			ad.vars.add(new HPPLVariable(op.op.args[0], HPPLNaming.getNewName()));
+		}
 	}
 }

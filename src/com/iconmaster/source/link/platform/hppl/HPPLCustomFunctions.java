@@ -25,6 +25,5 @@ public class HPPLCustomFunctions {
 				return null;
 			});
 		}
-		
 	}
 }

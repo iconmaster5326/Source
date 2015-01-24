@@ -133,10 +133,12 @@ public class HPPLAssembler {
 			} else {
 				switch (op.op.op) {
 					case MOVN:
+						ad.addLVar(ad, op);
 						sb.append(ad.getInline(op.op.args[1]));
 						addSto(ad, op, sb);
 						break;
 					case CALL:
+						ad.addLVar(ad, op);
 						CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
 						if (cf!=null) {
 							cf.assemble(ad, op, sb);
