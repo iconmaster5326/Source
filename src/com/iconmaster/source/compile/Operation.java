@@ -23,6 +23,7 @@ public class Operation {
 				return false;
 			}
 			switch (this) {
+				case ELSE:
 				case RET:
 				case BRK:
 				case CONT:
@@ -47,7 +48,6 @@ public class Operation {
 		public boolean isBlockStarter() {
 			switch (this) {
 				case IF:
-				case ELSE:
 				case WHILE:
 				case REP:
 				case FOR:

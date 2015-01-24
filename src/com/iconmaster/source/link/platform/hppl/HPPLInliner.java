@@ -1,10 +1,12 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.Status;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
 /**
  *
@@ -51,6 +53,25 @@ public class HPPLInliner {
 			op.setStatus();
 		}
 		
+		//be nice, and tell us what blocks match up with what
+		Stack<Integer> doStack = new Stack<>();
+		Stack<Integer> loopStack = new Stack<>();
+		for (int j = 0;j<expr.size();j++) {
+			InlineOp op = expr.get(j);
+			
+			if (op.op.op==OpType.DO) {
+				doStack.push(j);
+			} else if (op.op.op.isBlockStarter()) {
+				int k = doStack.pop();
+				expr.get(k).matchingBlock = j;
+				loopStack.push(j);
+			} else if (op.op.op==OpType.ENDB) {
+				int k = loopStack.pop();
+				expr.get(k).matchingBlock = j;
+				op.matchingBlock = k;
+			}
+		}
+		System.out.println(expr);
 		return expr;
 	}
 	

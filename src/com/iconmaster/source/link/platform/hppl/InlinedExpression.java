@@ -23,6 +23,7 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 		public Status status = null;
 		public int refs = 0;
 		public SpecialOp spec;
+		public int matchingBlock = -1;
 
 		public InlineOp(Operation op) {
 			this.op = op;
@@ -59,6 +60,11 @@ public class InlinedExpression extends ArrayList<InlineOp> {
 			if (spec!=null) {
 				sb.append(" ");
 				sb.append(spec);
+			}
+			if (matchingBlock!=-1) {
+				sb.append("(loop ");
+				sb.append(matchingBlock);
+				sb.append(")");
 			}
 			sb.append("> ");
 			sb.append(op);
