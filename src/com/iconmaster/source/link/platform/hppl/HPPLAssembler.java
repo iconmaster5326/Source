@@ -207,13 +207,34 @@ public class HPPLAssembler {
 						sb.append(ad.getInline(op.op.args[0]));
 						sb.append(" THEN\n");
 						endLine = false;
+						ad.pushFrame();
 						break;
 					case ELSE:
+						ad.popFrame();
+						ad.pushFrame();
 						sb.append("ELSE\n");
 						endLine = false;
 						break;
+					case WHILE:
+						sb.append("WHILE ");
+						sb.append(ad.getInline(op.op.args[0]));
+						sb.append(" DO\n");
+						endLine = false;
+						ad.pushFrame();
+						break;
+					case REP:
+						sb.append("REPEAT\n");
+						endLine = false;
+						ad.pushFrame();
+						ad.frame().blockEnd = "UNTIL "+ad.getInline(op.op.args[0]);
+						break;
 					case ENDB:
-						sb.append("END");
+						if (ad.frame().blockEnd==null) {
+							sb.append("END");
+						} else {
+							sb.append(ad.frame().blockEnd);
+						}
+						ad.popFrame();
 						break;
 					default:
 						endLine = false;

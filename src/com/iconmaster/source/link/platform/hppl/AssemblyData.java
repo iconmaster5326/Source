@@ -17,6 +17,7 @@ public class AssemblyData {
 	public static class Frame {
 		public Frame parent;
 		public HashMap<String,String> inlines = new HashMap<>();
+		public String blockEnd;
 
 		public Frame(Frame parent) {
 			this.parent = parent;
