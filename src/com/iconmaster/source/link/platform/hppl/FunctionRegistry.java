@@ -26,4 +26,14 @@ public class FunctionRegistry {
 	public static String assembleFunction(String name) {
 		return isFunctionCustom(name) ? functions.get(name).assemble() : defaultFunction.assemble();
 	}
+	
+	public static String assembleDefault(String name) {
+		return "";
+	}
+	
+	public static void addSimpleFunction(String fn, String name) {
+		addFunction(fn, () -> {
+			return assembleDefault(name);
+		});
+	}
 }
