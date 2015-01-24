@@ -121,7 +121,10 @@ public class HPPLAssembler {
 				sb.append("\n");
 			}
 		}
-		if (!exprs.isEmpty() && ad.minify) {
+		if (!exprs.isEmpty()) {
+			if (ad.minify) {
+				sb.deleteCharAt(sb.length()-1);
+			}
 			sb.deleteCharAt(sb.length()-1);
 		}
 		return sb.toString();
