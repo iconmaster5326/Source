@@ -92,21 +92,23 @@ public class HPPLAssembler {
 		return new HPPLFunction(PlatformHPPL.shouldKeepName(fn) ? HPPLNaming.formatFuncName(fn) : HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
 	}
 	
-	public static InlinedExpression encapsulate(AssemblyData ad, ArrayList<InlinedExpression> expr) {
+	public static InlinedExpression encapsulate(AssemblyData ad, InlinedExpression code) {
+		ArrayList<InlinedExpression> expr = HPPLInliner.getStatements(code);
+		
 		if (expr.size()==1) {
-			return expr.get(0);
+			return code;
 		}
 		
-		HPPLFunction fn = new HPPLFunction(HPPLNaming.getNewName(), new ArrayList<>(), expr, null);
+		HPPLFunction fn = new HPPLFunction(HPPLNaming.getNewName(), new ArrayList<>(), code, null);
 		InlinedExpression expr2 = new InlinedExpression();
 		expr2.add(new InlineOp(new Operation(Operation.OpType.CALL, fn.compileName), SpecialOp.CALL_IFN));
 		ad.funcs.add(fn);
 		return expr2;
 	}
 	
-	public static ArrayList<InlinedExpression> assembleCode(AssemblyData ad, ArrayList<Operation> code) {
+	public static InlinedExpression assembleCode(AssemblyData ad, ArrayList<Operation> code) {
 		InlinedExpression expr = HPPLInliner.inlineCode(ad, code);
-		return HPPLInliner.getStatements(expr);
+		return expr;
 	}
 	
 	public static void addSto(AssemblyData ad, InlineOp op, StringBuilder sb) {
@@ -122,6 +124,8 @@ public class HPPLAssembler {
 	}
 	
 	public static String getString(AssemblyData ad, InlinedExpression expr) {
+		StringBuilder lines = new StringBuilder();
+		
 		StringBuilder sb = new StringBuilder();
 		for (InlineOp op : expr) {
 			sb = new StringBuilder();
@@ -166,27 +170,20 @@ public class HPPLAssembler {
 					break;
 				case KEEP:
 				case KEEP_NO_LVAL:
+					lines.append(sb);
+					lines.append(";");
+					if (!ad.minify) {
+						lines.append("\n");
+					}
+					break;
 			}
 		}
-		return sb.toString();
-	}
-	
-	public static String getString(AssemblyData ad, ArrayList<InlinedExpression> exprs) {
-		StringBuilder sb = new StringBuilder();
-		for (InlinedExpression expr : exprs) {
-			sb.append(getString(ad, expr));
-			sb.append(";");
-			if (!ad.minify) {
-				sb.append("\n");
-			}
+		
+		lines.deleteCharAt(lines.length()-1);
+		if (ad.minify) {
+			lines.deleteCharAt(lines.length()-1);
 		}
-		if (!exprs.isEmpty()) {
-			if (ad.minify) {
-				sb.deleteCharAt(sb.length()-1);
-			}
-			sb.deleteCharAt(sb.length()-1);
-		}
-		return sb.toString();
+		return lines.toString();
 	}
 	
 	public static boolean shouldAssemble(AssemblyData ad, Function fn) {

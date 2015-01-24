@@ -11,10 +11,10 @@ import java.util.ArrayList;
 public class HPPLFunction {
 	public String compileName;
 	public ArrayList<HPPLVariable> args;
-	public ArrayList<InlinedExpression> code;
+	public InlinedExpression code;
 	public Function fn;
 
-	public HPPLFunction(String compileName, ArrayList<HPPLVariable> args, ArrayList<InlinedExpression> expr, Function fn) {
+	public HPPLFunction(String compileName, ArrayList<HPPLVariable> args, InlinedExpression expr, Function fn) {
 		this.compileName = compileName;
 		this.args = args;
 		this.code = expr;
