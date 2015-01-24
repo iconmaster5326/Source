@@ -62,6 +62,7 @@ public class HPPLAssembler {
 		HPPLFunction fn = new HPPLFunction(HPPLNaming.getNewName(), new ArrayList<>(), expr, null);
 		InlinedExpression expr2 = new InlinedExpression();
 		expr2.add(new InlineOp(new Operation(Operation.OpType.CALL, fn.compileName), SpecialOp.CALL_IFN));
+		ad.funcs.add(fn);
 		return expr2;
 	}
 	
