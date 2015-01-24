@@ -1,4 +1,4 @@
-package com.iconmaster.link.platform.hppl;
+package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.CompileUtils;
 import com.iconmaster.source.link.Platform;

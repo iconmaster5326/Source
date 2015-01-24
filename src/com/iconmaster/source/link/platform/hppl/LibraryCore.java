@@ -1,4 +1,4 @@
-package com.iconmaster.link.platform.hppl;
+package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.DataType;
 import com.iconmaster.source.prototype.Field;

@@ -1,6 +1,6 @@
 package com.iconmaster.source.link;
 
-import com.iconmaster.link.platform.hppl.PlatformHPPL;
+import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
 import com.iconmaster.source.Source;
 import com.iconmaster.source.SourceOptions;
 import com.iconmaster.source.compile.SourceCompiler;
