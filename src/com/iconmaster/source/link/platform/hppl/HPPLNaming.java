@@ -1,5 +1,7 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.prototype.Function;
+
 /**
  *
  * @author iconmaster
@@ -20,10 +22,14 @@ public class HPPLNaming {
 		return name;
 	}
 	
-	public static String formatFuncName(String name) {
+	public static String formatFuncName(Function fn) {
+		String name = fn.getName();
 		name = name.replace(".", "_").replace("?", "_");
 		if (name.startsWith("_")) {
 			name = "a"+name;
+		}
+		if (fn.order!=0) {
+			name += "%" + fn.order;
 		}
 		return name;
 	}

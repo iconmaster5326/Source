@@ -51,4 +51,8 @@ public class PlatformHPPL extends Platform {
 	public static boolean shouldExport(Function fn) {
 		return Directives.has(fn, "export") || Directives.has(fn, "main");
 	}
+	
+	public static boolean shouldKeepName(Function fn) {
+		return shouldExport(fn) || Directives.has(fn, "!rename");
+	}
 }

@@ -88,7 +88,7 @@ public class HPPLAssembler {
 			//ad.vars.add(var);
 			args.add(var);
 		}
-		return new HPPLFunction(HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
+		return new HPPLFunction(PlatformHPPL.shouldKeepName(fn) ? HPPLNaming.formatFuncName(fn) : HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
 	}
 	
 	public static InlinedExpression encapsulate(AssemblyData ad, ArrayList<InlinedExpression> expr) {
