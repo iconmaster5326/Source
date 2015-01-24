@@ -18,7 +18,9 @@ public class PlatformHPPL extends Platform {
 		this.name = "HPPL";
 		
 		//load all the default library packages:
-		this.registerLibrary(new LibraryCore());
+		SourcePackage lib = new LibraryCore();
+		this.registerLibrary(lib);
+		HPPLCustomFunctions.loadCore(lib);
 		
 		//load code transformers:
 		

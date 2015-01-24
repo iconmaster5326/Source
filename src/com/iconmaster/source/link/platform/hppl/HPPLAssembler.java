@@ -1,6 +1,7 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.SpecialOp;
 import com.iconmaster.source.prototype.Field;
@@ -136,15 +137,20 @@ public class HPPLAssembler {
 						addSto(ad, op, sb);
 						break;
 					case CALL:
-						sb.append(ad.getFuncMap(op.op.args[1]));
-						if (op.op.args.length>2) {
-							sb.append("(");
-							for (int i=2;i<op.op.args.length;i++) {
-								sb.append(ad.getInline(op.op.args[i]));
-								sb.append(",");
+						CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
+						if (cf!=null) {
+							cf.assemble(ad, op, sb);
+						} else {
+							sb.append(ad.getFuncMap(op.op.args[1]));
+							if (op.op.args.length>2) {
+								sb.append("(");
+								for (int i=2;i<op.op.args.length;i++) {
+									sb.append(ad.getInline(op.op.args[i]));
+									sb.append(",");
+								}
+								sb.deleteCharAt(sb.length()-1);
+								sb.append(")");
 							}
-							sb.deleteCharAt(sb.length()-1);
-							sb.append(")");
 						}
 						addSto(ad, op, sb);
 						break;

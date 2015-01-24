@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
@@ -88,5 +89,10 @@ public class AssemblyData {
 	public void addInline(String name, String code) {
 		String compName = getVarMap(name);
 		frame().inlines.put(compName, code);
+	}
+	
+	public CustomFunction getFuncAssembler(String name) {
+		Function rfn = pkg.getFunction(name);
+		return (CustomFunction) rfn.data.get("onAssemble");
 	}
 }
