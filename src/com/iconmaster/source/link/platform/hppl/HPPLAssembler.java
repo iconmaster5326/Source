@@ -112,11 +112,27 @@ public class HPPLAssembler {
 		for (InlineOp op : expr) {
 			if (op.spec!=null) {
 				switch (op.spec) {
-					
+					case CALL_IFN:
+						break;
 				}
 			} else {
 				switch (op.op.op) {
-					
+					case MOVN:
+						sb.append(ad.getInline(op.op.args[1]));
+						switch (op.status) {
+							case KEEP:
+								sb.append(HPPLCharacters.STO);
+								sb.append(ad.getVarMap(op.op.args[0]));
+								break;
+							case INLINE:
+							case KEEP_NO_LVAL:
+								break;
+						}
+						break;
+					case MOV:
+						break;
+					case CALL:
+						break;
 				}
 			}
 		}

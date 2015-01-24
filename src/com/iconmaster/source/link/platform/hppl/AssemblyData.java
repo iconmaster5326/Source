@@ -30,11 +30,11 @@ public class AssemblyData {
 	public ArrayList<HPPLField> fields = new ArrayList<>();
 	public ArrayList<HPPLVariable> vars = new ArrayList<>();
 	
-	public ArrayList<Frame> frames;
+	public ArrayList<Frame> frames = new ArrayList<>();
 	
 	public AssemblyData(SourcePackage pkg) {
 		this.pkg = pkg;
-		pushFrame();
+		frames.add(new Frame(null));
 		minify = !Directives.has(pkg, "!minify");
 	}
 	
@@ -48,5 +48,34 @@ public class AssemblyData {
 	
 	public Frame popFrame() {
 		return frames.remove(frames.size()-1);
+	}
+	
+	public String getFuncMap(String name) {
+		for (HPPLFunction fn : funcs) {
+			if (fn.fn.getFullName().equals(name)) {
+				return fn.compileName;
+			}
+		}
+		return name;
+	}
+	
+	public String getVarMap(String name) {
+		for (HPPLVariable v : vars) {
+			if (v.name.equals(name)) {
+				return v.compileName;
+			}
+		}
+		for (HPPLField f : fields) {
+			if (f.f.getName().equals(name)) {
+				return f.compileName;
+			}
+		}
+		return name;
+	}
+	
+	public String getInline(String name) {
+		String compName = getVarMap(name);
+		String s = frame().getInline(name);
+		return s==null ? compName : s;
 	}
 }
