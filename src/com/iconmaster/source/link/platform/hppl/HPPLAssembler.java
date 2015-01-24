@@ -202,6 +202,19 @@ public class HPPLAssembler {
 						}
 						addSto(ad, op, sb);
 						break;
+					case IF:
+						sb.append("IF ");
+						sb.append(ad.getInline(op.op.args[0]));
+						sb.append(" THEN\n");
+						endLine = false;
+						break;
+					case ELSE:
+						sb.append("ELSE\n");
+						endLine = false;
+						break;
+					case ENDB:
+						sb.append("END");
+						break;
 					default:
 						endLine = false;
 						break;
