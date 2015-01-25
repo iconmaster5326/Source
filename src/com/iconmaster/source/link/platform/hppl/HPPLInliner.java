@@ -36,6 +36,12 @@ public class HPPLInliner {
 		//make tallies of used vars
 		for (i=ops.size()-1;i>=0;i--) {
 			InlineOp op = expr.get(i);
+			
+			if (op.op.op.hasLVar() && ad.pkg.getField(op.op.args[0])!=null) { //make fileds always KEEP
+				op.addRef();
+				op.addRef();
+			}
+			
 			int j = 0;
 			for (boolean b : op.op.getVarSlots()) {
 				if (b && !(op.op.op.hasLVar() && j==0)) {
