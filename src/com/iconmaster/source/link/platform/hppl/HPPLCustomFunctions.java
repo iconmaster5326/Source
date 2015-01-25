@@ -33,6 +33,17 @@ public class HPPLCustomFunctions {
 			});
 		}
 		
+		for (TypeDef type : LibraryCore.MATH_TYPES) {
+			pkg.getFunction("core."+type+"._neg").data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
+				sb.append("(");
+				sb.append(HPPLCharacters.NEG);
+				sb.append("(");
+				sb.append(ad.getInline(op.op.args[2]));
+				sb.append("))");
+				return null;
+			});
+		}
+		
 		for (Function fn : pkg.getFunctions("core.range")) {
 			if (fn.getArguments().size()==2) {
 				fn.data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
