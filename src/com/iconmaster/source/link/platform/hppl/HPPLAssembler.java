@@ -3,10 +3,12 @@ package com.iconmaster.source.link.platform.hppl;
 import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
+import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomIterator;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
 import com.iconmaster.source.link.platform.hppl.InlinedExpression.SpecialOp;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
@@ -184,7 +186,8 @@ public class HPPLAssembler {
 		StringBuilder lines = new StringBuilder();
 		
 		StringBuilder sb;
-		for (InlineOp op : expr) {
+		for (int opn=0;opn<expr.size();opn++) {
+			InlineOp op = expr.get(opn);
 			sb = new StringBuilder();
 			boolean endLine = true;
 			
@@ -253,6 +256,19 @@ public class HPPLAssembler {
 								sb.append(ad.frame().blockEnd);
 							}
 							ad.popFrame();
+							break;
+						case ITER:
+							InlineOp forOp = expr.get(opn+1);
+							int endPos = forOp.matchingBlock;
+							InlinedExpression expr2 = new InlinedExpression();
+							expr2.addAll(expr.subList(opn+2, endPos));
+							Iterator iter = ad.pkg.getIterator(op.op.args[0]);
+							if (iter.data.containsKey("onAssemble")) {
+								((CustomIterator)iter.data.get("onAssemble")).assemble(ad, op, forOp, expr2, sb);
+							} else {
+								
+							}
+							opn = endPos + 1;
 							break;
 						case NATIVE:
 							if (op.op.args[0].equals("hppl")) {
