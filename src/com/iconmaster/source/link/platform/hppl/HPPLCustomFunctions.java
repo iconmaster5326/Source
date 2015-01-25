@@ -18,20 +18,20 @@ public class HPPLCustomFunctions {
 		public Object assemble(AssemblyData ad, InlineOp iterOp, InlineOp forOp, InlinedExpression block, StringBuilder sb);
 	}
 	
+	public static void mathFunc(SourcePackage pkg, String fnName, String infix) {
+		pkg.getFunction(fnName).data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
+			sb.append("(");
+			sb.append(ad.getInline(op.op.args[2]));
+			sb.append(infix);
+			sb.append(ad.getInline(op.op.args[3]));
+			sb.append(")");
+			return null;
+		});
+	}
+	
 	public static void loadCore(SourcePackage pkg) {
 		pkg.getFunction("core.print").data.put("compName", "PRINT");
 		pkg.getFunction("core.ifte").data.put("compName", "IFTE");
-		
-		for (TypeDef type : LibraryCore.MATH_TYPES) {
-			pkg.getFunction("core."+type+"._add").data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
-				sb.append("(");
-				sb.append(ad.getInline(op.op.args[2]));
-				sb.append("+");
-				sb.append(ad.getInline(op.op.args[3]));
-				sb.append(")");
-				return null;
-			});
-		}
 		
 		for (TypeDef type : LibraryCore.MATH_TYPES) {
 			pkg.getFunction("core."+type+"._neg").data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
@@ -42,6 +42,35 @@ public class HPPLCustomFunctions {
 				sb.append("))");
 				return null;
 			});
+			
+			mathFunc(pkg, "core."+type+"._add", "+");
+			mathFunc(pkg, "core."+type+"._sub", "-");
+			mathFunc(pkg, "core."+type+"._mul", "*");
+			mathFunc(pkg, "core."+type+"._div", "/");
+			mathFunc(pkg, "core."+type+"._mod", " MOD");
+			mathFunc(pkg, "core."+type+"._pow", "^");
+			
+			mathFunc(pkg, "core."+type+"._eq", "==");
+			mathFunc(pkg, "core."+type+"._neq", "<>");
+			mathFunc(pkg, "core."+type+"._lt", "<");
+			mathFunc(pkg, "core."+type+"._gt", ">");
+			mathFunc(pkg, "core."+type+"._le", "<=");
+			mathFunc(pkg, "core."+type+"._ge", ">=");
+		}
+		
+		mathFunc(pkg, "core.?._concat", "+");
+		
+		pkg.getFunction("core.bool._not").data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
+			sb.append("(NOT ");
+			sb.append(ad.getInline(op.op.args[2]));
+			sb.append(")");
+			return null;
+		});
+		
+		for (TypeDef type : LibraryCore.INT_TYPES) {
+			pkg.getFunction("core."+type.name+"._bit_not").data.put("compName", "BITNOT");
+			pkg.getFunction("core."+type.name+"._bit_and").data.put("compName", "BITAND");
+			pkg.getFunction("core."+type.name+"._bit_or").data.put("compName", "BITOR");
 		}
 		
 		for (Function fn : pkg.getFunctions("core.range")) {
