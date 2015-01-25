@@ -235,10 +235,12 @@ public class SourcePackage implements IDirectable {
 		if (call.isIter || (call.ret == null || call.ret.type==TypeDef.UNKNOWN || DataType.canCastTo(call.ret, v.getReturnType()))) {
 			if (call.args.size()==v.args.size()) {
 				boolean dirsMatch = true;
-				for (String dir : call.dirs) {
-					if (!Directives.has(v, dir) && call.dirsMatter) {
-						dirsMatch = false;
-						break;
+				if (call.dirsMatter) {
+					for (String dir : call.dirs) {
+						if (!Directives.has(v, dir)) {
+							dirsMatch = false;
+							break;
+						}
 					}
 				}
 				if (dirsMatch) {
@@ -261,6 +263,10 @@ public class SourcePackage implements IDirectable {
 				}
 			}
 		}
+		if (call.dirsMatter) {
+			call.dirsMatter = false;
+			return isFunctionCallCompatible(v, call);
+		}
 		return false;
 	}
 	
@@ -273,10 +279,6 @@ public class SourcePackage implements IDirectable {
 					return v;
 				}
 			}
-		}
-		if (call.dirsMatter) {
-			call.dirsMatter = false;
-			return getFunction(name, call);
 		}
 		return null;
 	}
