@@ -304,12 +304,23 @@ public class SourcePackage implements IDirectable {
 		return directives;
 	}
 	
+	public ArrayList<Iterator> getIterators(String name) {
+		ArrayList<Iterator> a = new ArrayList<>();
+		for (Iterator v : iters) {
+			if (v.getName().equals(name) || (v.pkgName+"."+v.getName()).equals(name)) {
+				a.add(v);
+			}
+		}
+		return a;
+	}
+	
 	public ArrayList<Iterator> getIterators() {
 		return iters;
 	}
 	
 	public void addIterator(Iterator def) {
 		def.pkgName = this.getName();
+		def.order = getIterators(def.name).size();
 		iters.add(def);
 	}
 	

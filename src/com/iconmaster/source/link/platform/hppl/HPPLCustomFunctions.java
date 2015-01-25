@@ -67,41 +67,39 @@ public class HPPLCustomFunctions {
 			}
 		}
 		
-		for (Function iter : pkg.getIterators()) {
-			if (iter.getFullName().startsWith("core.range")) {
-				if (iter.getArguments().size()==2) {
-					iter.data.put("onAssemble", (CustomIterator) (ad,op1,op2,block,sb) -> {
-						ad.vars.add(new HPPLVariable(op2.op.args[0], HPPLAssembler.getRenamed(ad, op2.op.args[0])));
-						
-						sb.append("FOR ");
-						sb.append(ad.getVarMap(op2.op.args[0]));
-						sb.append(" FROM ");
-						sb.append(ad.getInline(op1.op.args[1]));
-						sb.append(" TO ");
-						sb.append(ad.getInline(op1.op.args[2]));
-						sb.append(" DO\n");
-						sb.append(HPPLAssembler.getString(ad, block));
-						sb.append("END");
-						return null;
-					});
-				} else {
-					iter.data.put("onAssemble", (CustomIterator) (ad,op1,op2,block,sb) -> {
-						ad.vars.add(new HPPLVariable(op2.op.args[0], HPPLAssembler.getRenamed(ad, op2.op.args[0])));
-						
-						sb.append("FOR ");
-						sb.append(ad.getVarMap(op2.op.args[0]));
-						sb.append(" FROM ");
-						sb.append(ad.getInline(op1.op.args[1]));
-						sb.append(" TO ");
-						sb.append(ad.getInline(op1.op.args[2]));
-						sb.append(" STEP ");
-						sb.append(ad.getInline(op1.op.args[3]));
-						sb.append(" DO\n");
-						sb.append(HPPLAssembler.getString(ad, block));
-						sb.append("END");
-						return null;
-					});
-				}
+		for (Function iter : pkg.getIterators("core.range")) {
+			if (iter.getArguments().size()==2) {
+				iter.data.put("onAssemble", (CustomIterator) (ad,op1,op2,block,sb) -> {
+					ad.vars.add(new HPPLVariable(op2.op.args[0], HPPLAssembler.getRenamed(ad, op2.op.args[0])));
+
+					sb.append("FOR ");
+					sb.append(ad.getVarMap(op2.op.args[0]));
+					sb.append(" FROM ");
+					sb.append(ad.getInline(op1.op.args[1]));
+					sb.append(" TO ");
+					sb.append(ad.getInline(op1.op.args[2]));
+					sb.append(" DO\n");
+					sb.append(HPPLAssembler.getString(ad, block));
+					sb.append("END");
+					return null;
+				});
+			} else {
+				iter.data.put("onAssemble", (CustomIterator) (ad,op1,op2,block,sb) -> {
+					ad.vars.add(new HPPLVariable(op2.op.args[0], HPPLAssembler.getRenamed(ad, op2.op.args[0])));
+
+					sb.append("FOR ");
+					sb.append(ad.getVarMap(op2.op.args[0]));
+					sb.append(" FROM ");
+					sb.append(ad.getInline(op1.op.args[1]));
+					sb.append(" TO ");
+					sb.append(ad.getInline(op1.op.args[2]));
+					sb.append(" STEP ");
+					sb.append(ad.getInline(op1.op.args[3]));
+					sb.append(" DO\n");
+					sb.append(HPPLAssembler.getString(ad, block));
+					sb.append("END");
+					return null;
+				});
 			}
 		}
 	}
