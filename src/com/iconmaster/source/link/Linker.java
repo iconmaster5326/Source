@@ -1,13 +1,11 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
 import com.iconmaster.source.Source;
 import com.iconmaster.source.SourceOptions;
 import com.iconmaster.source.compile.SourceCompiler;
 import com.iconmaster.source.exception.SourceException;
 import com.iconmaster.source.exception.SourceImportException;
-import com.iconmaster.source.link.platform.hppl.PlatformHPPL;
-import com.iconmaster.source.prototype.Field;
-import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.Import;
 import com.iconmaster.source.prototype.ImportAlias;
 import com.iconmaster.source.prototype.SourcePackage;
@@ -171,8 +169,6 @@ public class Linker {
 			outputPackage.addContents(imp.pkg);
 		}
 		outputPackage.addContents(platform.pkgs.get("core"));
-		
-		giveCompileNames();
 	}
 	
 	public void addNeeded(SourcePackage pkg, SourcePackage pkg2, HashSet<String> has) {
@@ -192,19 +188,6 @@ public class Linker {
 		linker.loadUserLibs();
 		linker.resolveLinks();
 		return linker;
-	}
-	
-	public void giveCompileNames() {
-		for (Function fn : outputPackage.getFunctions()) {
-			if (fn.compileName==null) {
-				fn.compileName = platform.getCompileName(outputPackage, fn, fn.getName());
-			}
-		}
-		for (Field fn : outputPackage.getFields()) {
-			if (fn.compileName==null) {
-				fn.compileName = platform.getCompileName(outputPackage, fn, fn.getName());
-			}
-		}
 	}
 
 	@Override

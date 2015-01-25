@@ -11,6 +11,7 @@ import java.util.ArrayList;
  */
 public class Iterator extends Function {
 	public ArrayList<DataType> iterReturns;
+	public boolean shouldInline = true;
 	
 	public Iterator(String name, ArrayList<Field> args, Element returns) {
 		super(name, args, returns);

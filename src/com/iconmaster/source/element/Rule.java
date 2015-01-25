@@ -248,6 +248,7 @@ public enum Rule implements IElementType {
 	RETURN_NULL("R","'return'!"),
 	RETURN(null,"R!A@0?"),
 	BREAK(null,"'break'!"),
+	CONTINUE(null,"'continue'!"),
 	PACKAGE(null,"'package'!a@0"),
 	IMPORT(null,"'import'!a@0?"),
 	FUNC(null,"'function'!F013?c2"),

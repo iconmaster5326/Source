@@ -5,6 +5,7 @@ import com.iconmaster.source.compile.Operation;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
@@ -22,15 +23,17 @@ public class Function implements IDirectable {
 	protected ArrayList<Operation> code;
 	private DataType returns;
 	
-	public OnCompile onCompile;
-	public OnRun onRun;
 	public String pkgName;
-	public String compileName;
 	
 	public int order = 0;
 	public int references = 0;
 	
 	public ArrayList<Field> rawParams;
+	
+	/**
+	 * A map used to store item information for the platform.
+	 */
+	public HashMap data = new HashMap<>();
 
 	public Function(String name, ArrayList<Field> args, Element returns) {
 		this.name = name;
@@ -124,15 +127,6 @@ public class Function implements IDirectable {
 	public boolean isLibrary() {
 		return library;
 	}
-	
-	public String compileFunction(SourcePackage pkg, Object... args) {
-		if (this.onCompile==null) {
-			return null;
-		} else {
-			return this.onCompile.compile(pkg,args);
-		}
-	}
-
 
 	public Element getReturn() {
 		return rawReturns;

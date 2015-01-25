@@ -105,10 +105,8 @@ public class Optimizer {
 			case WHILE:
 			case IF:
 			case REP:
-			case FORR:
-			case FORC:
-			case FORP:
-			case FORE:
+			case FOR:
+			case ITER:
 				return true;
 			case CALL:
 				if (!Directives.has(pkg.getFunction(op.args[1]),"pure")) {
@@ -137,7 +135,7 @@ public class Optimizer {
 				arg++;
 			}
 		}
-		return false;
+		return pkg.getField(var)!=null;
 	}
 	
 	public static void countUsages(SourcePackage pkg) {
@@ -149,7 +147,7 @@ public class Optimizer {
 						fn.references++;
 					}
 					
-					if (op.op == OpType.FORC && op.args[0].equals(fn.getFullName())) {
+					if (op.op == OpType.FOR && op.args[0].equals(fn.getFullName())) {
 						fn.references++;
 					}
 				}

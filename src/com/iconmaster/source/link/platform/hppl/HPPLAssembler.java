@@ -1,474 +1,328 @@
 package com.iconmaster.source.link.platform.hppl;
 
-import com.iconmaster.source.assemble.AssemblyUtils;
+import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.compile.Operation;
+import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
+import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomIterator;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.SpecialOp;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
+import com.iconmaster.source.prototype.Iterator;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.util.Directives;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
-import java.util.Stack;
 
 /**
  *
  * @author iconmaster
  */
 public class HPPLAssembler {
-	public static String assemble(SourcePackage pkg) {
-		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n\n//This program compiled with Source: www.github.com/iconmaster5326/Source\n\n");
-		AssemblyData ad = new AssemblyData();
-		ad.pkg = pkg;
-		ad.vs = new Stack<>();
-		ad.vs.add(new AssembleVarSpace());
+	public static AssembledOutput assemble(SourcePackage pkg) {
+		AssemblyData ad = new AssemblyData(pkg);
+		StringBuilder sb = new StringBuilder("#pragma mode( separator(.,;) integer(h32) )\n//This program compiled with Source version @VERSION@, found at www.github.com/iconmaster5326/Source.\n\n");
+		
+		//get assembled data of everything
 		for (Function fn : pkg.getFunctions()) {
-			if (PlatformHPPL.shouldIncludeFunction(fn)) {
-				sb.append(fn.compileName);
-				sb.append("(");
-				if (!fn.getArguments().isEmpty()) {
-					for (Field arg : fn.getArguments()) {
-						sb.append(arg.getName());
-						sb.append(',');
+			if (shouldAssemble(ad, fn)) {
+				HPPLFunction hfn = assembleFunction(ad, fn);
+				ad.funcs.add(hfn);
+			}
+		}
+		for (Field f : pkg.getFields()) {
+			if (shouldAssemble(ad, f)) {
+				HPPLField hf = assembleField(ad, f);
+				ad.fields.add(hf);
+			}
+		}
+		
+		//convert assembled data into a string
+		for (HPPLFunction fn : ad.funcs) {
+			fn.toString(ad);
+		}
+		for (HPPLField f : ad.fields) {
+			f.toString(ad);
+		}
+		
+		//add prototypes
+		for (HPPLFunction fn : ad.funcs) {
+			sb.append(fn.compileName);
+			sb.append("(");
+			if (!fn.args.isEmpty()) {
+				for (HPPLVariable var : fn.args) {
+					sb.append(var.compileName);
+					sb.append(",");
+				}
+				sb.deleteCharAt(sb.length()-1);
+			}
+			sb.append(")");
+			sb.append(";");
+		}
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		for (HPPLField f : ad.fields) {
+			sb.append(f.output);
+		}
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		for (HPPLVariable v : ad.vars) {
+			sb.append(v.compileName);
+			sb.append(";");
+		}
+		if (!ad.minify) {
+			sb.append("\n");
+		}
+		
+		//add the content
+		for (HPPLFunction fn : ad.funcs) {
+			if (fn.output!=null) {
+				sb.append(fn.output);
+			}
+			if (!ad.minify) {
+				sb.append("\n");
+			}
+		}	
+		
+		return new HPPLOutput(sb.toString());
+	}
+	
+	public static HPPLFunction assembleFunction(AssemblyData ad, Function fn) {
+		ArrayList<HPPLVariable> args = new ArrayList<>();
+		for (Field arg : fn.getArguments()) {
+			HPPLVariable var = new HPPLVariable(arg.getName(), getRenamed(arg,arg.getName()));
+			args.add(var);
+		}
+		return new HPPLFunction(PlatformHPPL.shouldKeepName(fn) ? HPPLNaming.formatFuncName(fn) : HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
+	}
+	
+	public static HPPLField assembleField(AssemblyData ad, Field f) {
+		return new HPPLField(getRenamed(f,f.getName()), assembleCode(ad, f.getValue()), f);
+	}
+	
+	public static String getRenamed(IDirectable f,String name) {
+		return PlatformHPPL.shouldKeepName(f) ? HPPLNaming.formatVarName(name) : HPPLNaming.getNewName();
+	}
+	
+	public static InlinedExpression encapsulate(AssemblyData ad, InlinedExpression code) {
+		ArrayList<InlinedExpression> expr = HPPLInliner.getStatements(code);
+		
+		if (expr.size()==1) {
+			return code;
+		}
+		
+		HPPLFunction fn = new HPPLFunction(HPPLNaming.getNewName(), new ArrayList<>(), code, null);
+		InlinedExpression expr2 = new InlinedExpression();
+		expr2.add(new InlineOp(new Operation(Operation.OpType.CALL, fn.compileName), SpecialOp.CALL_IFN));
+		ad.funcs.add(fn);
+		return expr2;
+	}
+	
+	public static InlinedExpression assembleCode(AssemblyData ad, ArrayList<Operation> code) {
+		if (code==null) {
+			return null;
+		}
+		InlinedExpression expr = HPPLInliner.inlineCode(ad, code);
+		return expr;
+	}
+	
+	public static String getString(AssemblyData ad, InlineOp op) {
+		StringBuilder sb = new StringBuilder();
+		switch (op.op.op) {
+			case MOVN:
+				sb.append(op.op.args[1]);
+				break;
+			case MOVS:
+				sb.append("\"");
+				sb.append(op.op.args[1]);
+				sb.append("\"");
+				break;
+			case MOV:
+				sb.append(ad.getInline(op.op.args[1]));
+				break;
+			case MOVA:
+			case MOVL:
+				sb.append("{");
+				if (op.op.args.length!=1) {
+					for (int i=1;i<op.op.args.length;i++) {
+						sb.append(ad.getInline(op.op.args[i]));
+						sb.append(",");
 					}
 					sb.deleteCharAt(sb.length()-1);
 				}
-				sb.append(");");
-			}
-		}
-		sb.append("\n");
-		for (Field var : pkg.getFields()) {
-			if (PlatformHPPL.shouldIncludeField(var)) {
-				ad.workingOn = var;
-				ad.dirs = var.getDirectives();
-				ad.vs.add(new AssembleVarSpace());
-				sb.append(assembleField(ad,var));
-				ad.vs.pop();
-			}
-		}
-		sb.append("\n");
-		for (Function fn : pkg.getFunctions()) {
-			if (PlatformHPPL.shouldIncludeFunction(fn)) {
-				ad.workingOn = fn;
-				ad.dirs = fn.getDirectives();
-				ad.vs.add(new AssembleVarSpace());
-				sb.append(assembleFunction(ad,fn));
-				ad.vs.pop();
-			}
-		}
-		return sb.toString();
-	}
-	
-	private static String assembleFunction(AssemblyData ad, Function fn) {
-		StringBuilder sb = new StringBuilder();
-		if (Directives.has(fn, "export")) {
-			sb.append("EXPORT ");
-		}
-		sb.append(fn.compileName);
-		sb.append("(");
-		if (!fn.getArguments().isEmpty()) {
-			for (Field arg : fn.getArguments()) {
-				sb.append(arg.getName());
-				sb.append(',');
-			}
-			sb.deleteCharAt(sb.length()-1);
-		}
-		sb.append(")\nBEGIN\n ");
-		if (fn.getCode()!=null) {
-			sb.append(assembleCode(ad,fn.getCode()).replace("\n", "\n "));
-			sb.deleteCharAt(sb.length()-1);
-			sb.deleteCharAt(sb.length()-1);
-		}
-		sb.append("\nEND;\n");
-		return sb.toString();
-	}
-	
-	private static String assembleField(AssemblyData ad, Field var) {
-		StringBuilder sb = new StringBuilder();
-		if (Directives.has(var, "export")) {
-			sb.append("EXPORT ");
-		}
-		if (var.getValue()!=null) {
-			sb.append(assembleCode(ad,var.getValue()));
-		} else {
-			sb.append(var.compileName);
-			sb.append(";");
-		}
-		return sb.toString();
-	}
-	
-	private static String assembleCode(AssemblyData ad, ArrayList<Operation> expr) {
-		Stack<AssembleVarSpace> vs = new Stack<>();
-		vs.add(new AssembleVarSpace());
-		
-		StringBuilder sb = new StringBuilder();
-		Stack<Operation> blockOp = new Stack<>();
-		Operation lastBlockOp = null;
-		for (Operation op : expr) {
-			boolean append = true;
-			if (canRemove(ad, expr, op, vs)) {
-				append = false;
-			} else if (op.op.hasLVar()) {
-				String s = assembleExpression(ad, expr, op);
-				if (s==null) {
-					append = false;
+				sb.append("}");
+				break;
+			case TRUE:
+				sb.append("1");
+				break;
+			case FALSE:
+				sb.append("0");
+				break;
+			case CALL:
+				CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
+				if (cf!=null) {
+					cf.assemble(ad, op, sb);
 				} else {
-					if (!ditchLValue(ad, expr, op)) {
-						addLocal(ad, expr, op, sb);
-						Field f = ad.pkg.getField(op.args[0]);
-						if (f!=null) {
-							if (f.onCompile==null) {
-								sb.append(op.args[0]);
-								sb.append(":=");
-							} else {
-								sb.append(f.onCompile.compile(ad.pkg, false, ad));
-								sb.append(":=");
-							}
-						} else {
-							sb.append(op.args[0]);
-							sb.append(":=");
-						}
-					}
-					sb.append(s);
-				}
-			} else {
-				switch (op.op) {
-					case RET:
-						sb.append("RETURN");
-						if (op.args.length>0) {
-							sb.append(" ");
-							sb.append(getInlineString(ad, expr, op.args[0]));
-						}
-						break;
-					case IF:
-						sb.append("IF ");
-						sb.append(getInlineString(ad, expr, op.args[0]));
-						sb.append(" THEN\n");
-						append = false;
-						blockOp.push(op);
-						break;
-					case ELSE:
-						sb.append("ELSE\n");
-						append = false;
-						blockOp.push(op);
-						break;
-					case WHILE:
-						sb.append("WHILE ");
-						sb.append(getInlineString(ad, expr, op.args[0]));
-						sb.append(" DO\n");
-						append = false;
-						blockOp.push(op);
-						break;
-					case REP:
-						sb.append("REPEAT\n");
-						append = false;
-						blockOp.push(op);
-						break;
-					case FORR:
-						addLocal(ad, expr, op, sb);
-						sb.append(op.args[0]);
-						sb.append(";\n");
-						sb.append("FOR ");
-						sb.append(op.args[0]);
-						sb.append(" FROM ");
-						sb.append(getInlineString(ad, expr, op.args[2]));
-						if (op.args[1].equals("-1")) {
-							sb.append(" DOWNTO ");
-						} else {
-							sb.append(" TO ");
-						}
-						sb.append(getInlineString(ad, expr, op.args[3]));
-						if (op.args.length>4) {
-							sb.append(" STEP ");
-							if (op.args[1].equals("-1")) {
-								sb.append(HPPLCharacters.NEG);
-								sb.append("(");
-							}
-							sb.append(getInlineString(ad, expr, op.args[4]));
-							if (op.args[1].equals("-1")) {
-								sb.append(")");
-							}
-						}
-						sb.append(" DO\n");
-						append = false;
-						blockOp.push(op);
-						break;
-					case ENDB:
-						lastBlockOp = blockOp.pop();
-						if (lastBlockOp.op == Operation.OpType.REP) {
-							sb.append("UNTIL ");
-							sb.append(getInlineString(ad, expr, lastBlockOp.args[0]));
-						} else {
-							sb.append("END");
-						}
-						break;
-					case BEGIN:
-						vs.push(new AssembleVarSpace());
-						append=false;
-						break;
-					case END:
-						vs.pop();
-						append=false;
-						break;
-					case PROP:
-						for (int i=1;i<op.args.length;i++) {
-							if ("const".equals(op.args[i])) {
-								vs.peek().consts.add(op.args[0]);
-							}
-						}
-						append = false;
-						break;
-					case MOVI:
-						sb.append(getInlineString(ad, expr, op.args[0]));
-						sb.append("[");
-						sb.append(getInlineString(ad, expr, op.args[2]));
-						sb.append("]");
-						sb.append(":=");
-						sb.append(getInlineString(ad, expr, op.args[1]));
-						break;
-					case NATIVE:
-						if (op.args[0].equalsIgnoreCase("hppl")) {
-							sb.append(op.args[1]);
-							sb.append("  ");
-							append = false;
-						} else if (op.args[0].equalsIgnoreCase("comment")) {
-							sb.append("//");
-							sb.append(op.args[1]);
-							sb.append("\n");
-							append = false;
-						} else {
-							sb.append("//Native code in unknown language ").append(op.args[0]).append(" specified here\n");
-							append = false;
-						}
-						break;
-					default:
-						append = false;
-				}
-			}
-			if (append) {
-				sb.append(";\n");
-			}
-		}
-		return sb.toString();
-	}
-	
-	private static String assembleExpression(AssemblyData ad, ArrayList<Operation> expr, Operation op) {
-		StringBuilder sb = new StringBuilder();
-		if (op.op.isMathOp()) {
-			sb.append("(");
-			sb.append(getInlineString(ad, expr, op.args[1]));
-			sb.append(getMathOp(op.op));
-			sb.append(getInlineString(ad, expr, op.args[2]));
-			sb.append(")");
-		} else {
-			switch (op.op) {
-				case MOVN:
-				case MOV:
-					sb.append(getInlineString(ad, expr, op.args[1]));
-					break;
-				case MOVS:
-					sb.append("\"");
-					sb.append(op.args[1]);
-					sb.append("\"");
-					break;
-				case MOVL:
-					sb.append("{");
-					if (op.args.length > 1) {
-						for (int i=1;i<op.args.length;i++) {
-							sb.append(getInlineString(ad, expr, op.args[i]));
+					sb.append(ad.getFuncMap(op.op.args[1]));
+					if (op.op.args.length>2) {
+						sb.append("(");
+						for (int i=2;i<op.op.args.length;i++) {
+							sb.append(ad.getInline(op.op.args[i]));
 							sb.append(",");
 						}
 						sb.deleteCharAt(sb.length()-1);
+						sb.append(")");
 					}
-					sb.append("}");
-					break;
-				case TRUE:
-					sb.append("1");
-					break;
-				case FALSE:
-					sb.append("0");
-					break;
-				case NOT:
-					sb.append("NOT ");
-					sb.append(getInlineString(ad, expr, op.args[1]));
-					break;
-				case NEG:
-					sb.append(HPPLCharacters.NEG);
-					sb.append(getInlineString(ad, expr, op.args[1]));
-					break;
-				case CALL:
-					Function fn = ad.pkg.getFunction(op.args[1]);
-					if (fn!=null) {
-						if (fn.isLibrary()) {
-							String oncomp = fn.compileFunction(ad.pkg,new PlatformContext(expr, op, sb, ad));
-							if (oncomp!=null) {
-								sb.append(oncomp);
-								break;
-							}
-						}
-						
-						String fs = fn.compileName;
-						sb.append(fs);
-						if (op.args.length > 2) {
-							sb.append("(");
-							for (int i=2;i<op.args.length;i++) {
-								sb.append(getInlineString(ad, expr, op.args[i]));
-								sb.append(",");
-							}
-							sb.deleteCharAt(sb.length()-1);
-							sb.append(")");
-						}
-					}
-					break;
-				case INDEX:
-					sb.append(getInlineString(ad, expr, op.args[1]));
-					sb.append("[");
-					sb.append(getInlineString(ad, expr, op.args[2]));
-					sb.append("]");
-					break;
-				default:
-					return null;
+				}
+				break;
 			}
-		}
 		return sb.toString();
 	}
 	
-	public static void addLocal(AssemblyData ad, ArrayList<Operation> code, Operation thisOp, StringBuilder sb) {
-		boolean need = true;
+	public static String getString(AssemblyData ad, InlinedExpression expr) {
+		StringBuilder lines = new StringBuilder();
 		
-		if (ad.pkg.getField(thisOp.args[0])!=null) {
-			need = false;
-		}
-		
-		for (AssembleVarSpace avs : ad.vs) {
-			if (avs.vars.contains(thisOp.args[0])) {
-				need = false;
-			}
-		}
-		for (AssembleVarSpace avs : ad.vs) {
-			if (avs.defs.contains(thisOp.args[0])) {
-				avs.defs.remove(thisOp.args[0]);
-				need = true;
-			}
-		}
-		
-		if (need) {
-			sb.append("LOCAL ");
-			ad.vs.peek().vars.add(thisOp.args[0]);
-		}
-	}
-	
-	public static String getMathOp(Operation.OpType type) {
-			switch (type) {
-				case ADD:
-					return "+";
-				case SUB:
-					return "-";
-				case MUL:
-					return "*";
-				case DIV:
-					return "/";
-				case MOD:
-					return "%";
-				case POW:
-					return "^";
-				case AND:
-					return " AND ";
-				case OR:
-					return " OR ";
-				case CONCAT:
-					return "+";
-				case EQ:
-					return "==";
-				case NEQ:
-					return "<>";
-				case LT:
-					return "<";
-				case GT:
-					return ">";
-				case LE:
-					return "<=";
-				case GE:
-					return ">=";
-				default:
-					return null;
-			}
-		}
-	
-	public static boolean isInlinable(AssemblyData ad, ArrayList<Operation> code, String var) {
-		if (Directives.has(ad.dirs, "!asmoptimize")) {
-			return false;
-		}
-		for (AssembleVarSpace avs : ad.vs) {
-			if (avs.consts.contains(var)) {
-				return true;
-			}
-		}
-		ArrayList<Operation> lref = AssemblyUtils.getLReferences(ad.pkg, code, var);
-		ArrayList<Operation> rref = AssemblyUtils.getRReferences(ad.pkg, code, var);
-		if (lref.size()==1 && rref.size()==1) {
-			Operation lop = lref.get(0);
-			Operation rop = rref.get(0);
-			if (rop.op == Operation.OpType.INDEX && rop.args[1].equals(var)) {
-				return false;
-			}
-			if (rop.op == Operation.OpType.MOVI && rop.args[0].equals(var)) {
-				return false;
-			}
-			if (lop.op == Operation.OpType.MOV && rop.op == Operation.OpType.MOV) {
-				ArrayList<Operation> sub = new ArrayList<>();
-				sub.addAll(code.subList(Math.min(code.indexOf(rop)-1,code.indexOf(lop)+1), Math.max(code.indexOf(rop)-1,code.indexOf(lop)+1)));
-				sub = AssemblyUtils.getReferences(ad.pkg, sub, rop.args[0]);
-				if (sub.isEmpty()) {
-					return false;
+		StringBuilder sb;
+		for (int opn=0;opn<expr.size();opn++) {
+			InlineOp op = expr.get(opn);
+			sb = new StringBuilder();
+			boolean endLine = true;
+			
+			if (op.spec!=null) {
+				switch (op.spec) {
+					case CALL_IFN:
+						break;
+				}
+			} else {
+				if (op.op.op.hasLVar()) {
+					if (op.status == InlinedExpression.Status.KEEP && !ad.exists(op.op.args[0])) {
+						ad.vars.add(new HPPLVariable(op.op.args[0], getRenamed(ad,op.op.args[0])));
+					}
+					sb.append(getString(ad, op));
+					switch (op.status) {
+						case KEEP:
+							sb.append(HPPLCharacters.STO);
+							sb.append(ad.getVarMap(op.op.args[0]));
+							break;
+						case INLINE:
+						case KEEP_NO_LVAL:
+							break;
+					}
+				} else {
+					switch (op.op.op) {
+						case RET:
+							sb.append("RETURN ");
+							sb.append(ad.getInline(op.op.args[0]));
+							break;
+						case IF:
+							sb.append("IF ");
+							sb.append(ad.getInline(op.op.args[0]));
+							sb.append(" THEN\n");
+							endLine = false;
+							ad.pushFrame();
+							break;
+						case ELSE:
+							ad.popFrame();
+							ad.pushFrame();
+							sb.append("ELSE\n");
+							endLine = false;
+							break;
+						case WHILE:
+							sb.append("WHILE ");
+							sb.append(ad.getInline(op.op.args[0]));
+							sb.append(" DO\n");
+							endLine = false;
+							ad.pushFrame();
+							break;
+						case REP:
+							sb.append("REPEAT\n");
+							endLine = false;
+							ad.pushFrame();
+							ad.frame().blockEnd = "UNTIL "+ad.getInline(op.op.args[0]);
+							break;
+						case BRK:
+							sb.append("BREAK");
+							break;
+						case CONT:
+							sb.append("CONTINUE");
+							break;
+						case ENDB:
+							if (ad.frame().blockEnd==null) {
+								sb.append("END");
+							} else {
+								sb.append(ad.frame().blockEnd);
+							}
+							ad.popFrame();
+							break;
+						case ITER:
+							InlineOp forOp = expr.get(opn+1);
+							int endPos = forOp.matchingBlock;
+							InlinedExpression expr2 = new InlinedExpression();
+							expr2.addAll(expr.subList(opn+2, endPos));
+							Iterator iter = ad.pkg.getIterator(op.op.args[0]);
+							if (iter.data.containsKey("onAssemble")) {
+								((CustomIterator)iter.data.get("onAssemble")).assemble(ad, op, forOp, expr2, sb);
+							} else {
+								
+							}
+							opn = endPos + 1;
+							break;
+						case NATIVE:
+							if (op.op.args[0].equals("hppl")) {
+								sb.append(op.op.args[1]);
+								endLine = false;
+							} else if (op.op.args[0].equals("comment")) {
+								sb.append(" //");
+								sb.append(op.op.args[1]);
+								sb.append("\n");
+								endLine = false;
+							} else {
+								sb.append(" //ERROR: statement in unknown language ");
+								sb.append(op.op.args[0]);
+								sb.append(" located here\n");
+								endLine = false;
+							}
+							break;
+						default:
+							endLine = false;
+							break;
+					}
 				}
 			}
-		}
-		return lref.size()<2 && rref.size()<2;
-	}
-	
-	public static String getInlineString(AssemblyData ad, ArrayList<Operation> code, String var) {
-		Field f = ad.pkg.getField(var);
-		if (f!=null) {
-			if (f.onCompile==null) {
-				return var;
-			} else {
-				return f.onCompile.compile(ad.pkg, true, ad);
+			
+			switch (op.status) {
+				case INLINE:
+					ad.addInline(op.op.args[0], sb.toString());
+					break;
+				case KEEP:
+				case KEEP_NO_LVAL:
+				case NOT_APPLICABLE:
+					lines.append(sb);
+					if (endLine) {
+						lines.append(";");
+						if (!ad.minify) {
+							lines.append("\n");
+						}
+					}
+					break;
 			}
 		}
-		if (isInlinable(ad, code, var)) {
-			ArrayList<Operation> a = AssemblyUtils.getLReferences(ad.pkg, code, var);
-			if (a.isEmpty()) {
-				return var;
-			}
-			return assembleExpression(ad, code, a.get(0));
-		} else {
-			return var;
-		}
+		
+//		lines.deleteCharAt(lines.length()-1);
+//		if (!ad.minify) {
+//			lines.deleteCharAt(lines.length()-1);
+//		}
+		return lines.toString();
 	}
 	
-	public static boolean canRemove(AssemblyData ad, ArrayList<Operation> ops, Operation op, Stack<AssembleVarSpace> vs) {
-		if (!op.op.hasLVar()) {
-			return false;
-		}
-		if (AssemblyUtils.getRReferences(ad.pkg, ops, op.args[0]).isEmpty()) {
-			return false;
-		}
-		return isInlinable(ad, ops, op.args[0]);
-//		return false;
+	public static boolean shouldAssemble(AssemblyData ad, Function fn) {
+		return !fn.isLibrary() && fn.isCompiled();
 	}
 	
-	public static boolean ditchLValue(AssemblyData ad, ArrayList<Operation> ops, Operation op) {
-		if (Directives.has(ad.dirs, "!asmoptimize")) {
-			return false;
-		}
-		if (!op.op.hasLVar()) {
-			return false;
-		}
-		if (ad.pkg.getField(op.args[0])!=null) {
-			return false;
-		}
-		if (AssemblyUtils.getReferences(ad.pkg, ops, op.args[0]).size()<=1) {
-			return true;
-		}
-		return false;
+	public static boolean shouldAssemble(AssemblyData ad, Field f) {
+		return !f.isLibrary();
 	}
 }

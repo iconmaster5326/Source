@@ -24,24 +24,27 @@ public class Parameterizer {
 	public static HashMap<String,DataType> parameterize(CompileData cd, Range range, ArrayList<DataType> callTypes, ArrayList<DataType> gotTypes, HashMap<String,DataType> map) {
 		int i = 0;
 		for (DataType dt : callTypes) {
-			DataType got = gotTypes.get(i);
+			DataType got = i >= gotTypes.size() ? new DataType(true) : gotTypes.get(i);
+			
+			if (got==null) {
+				got = new DataType();
+			}
+			
 			if (dt.type instanceof ParamTypeDef) {
 				TypeDef maxParent = dt.type.parent;
-				DataType common  = dt.cloneType();
 				if (map.containsKey(dt.type.name)) {
 					DataType pType = map.get(dt.type.name);
 					TypeDef mutual = TypeDef.getCommonParent(pType.type, got.type);
-					if (!DataType.canCastTo(new DataType(maxParent), new DataType(mutual))) {
+					if (!DataType.canCastTo(new DataType(pType.type), new DataType(mutual))) {
 						cd.errs.add(new SourceException(range, "Cannot parameterize data type "+dt+" to type "+got));
 					}
 					map.put(dt.type.name, new DataType(mutual));
 				} else {
 					map.put(dt.type.name, got);
 				}
-			} else {
-				if (got==null) {
-					got = new DataType();
-				}
+			}
+			
+			if (dt.params.length>0 || got.params.length>0) {
 				ArrayList<DataType> ct2 = new ArrayList<>();
 				ArrayList<DataType> gt2 = new ArrayList<>();
 				int max = Math.max(dt.params.length,got.params.length);
@@ -72,6 +75,18 @@ public class Parameterizer {
 		}
 		
 		return type;
+	}
+	
+	public static boolean canParameterize(CompileData cd, Range range, ArrayList<DataType> callTypes, ArrayList<DataType> gotTypes) {
+		ArrayList<SourceException> errs = cd.errs;
+		ArrayList<SourceException> newErrs = new ArrayList<>();
+		cd.errs = newErrs;
+		
+		parameterize(cd, range, callTypes, gotTypes, new HashMap<>());
+		
+		cd.errs = errs;
+		
+		return newErrs.isEmpty();
 	}
 	
 	public static Object test() {

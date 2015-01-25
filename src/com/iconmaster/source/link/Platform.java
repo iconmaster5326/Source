@@ -1,5 +1,6 @@
 package com.iconmaster.source.link;
 
+import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
@@ -25,16 +26,8 @@ public abstract class Platform {
 	public abstract boolean canAssemble();
 	public abstract boolean canRun();
 
-	public abstract String assemble(SourcePackage pkg);
-	public abstract void run(SourcePackage pkg);
-	
-	public String getCompileName(SourcePackage pkg, Function fn, String name) {
-		return name;
-	}
-
-	public String getCompileName(SourcePackage pkg, Field fn, String name) {
-		return name;
-	}
+	public abstract AssembledOutput assemble(SourcePackage pkg);
+	public abstract Object run(SourcePackage pkg);
 	
 	public static boolean shouldIncludeFunction(Function fn) {
 		if (Directives.has(fn, "keep") || Directives.has(fn, "export") || Directives.has(fn, "main")) {

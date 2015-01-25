@@ -25,7 +25,7 @@ public class Directives {
 	}
 	
 	public static boolean has(IDirectable obj, String dir) {
-		return has(obj.getDirectives(),dir);
+		return obj==null ? false : has(obj.getDirectives(),dir);
 	}
 	
 	public static ArrayList<String> getAll(IDirectable obj) {

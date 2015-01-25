@@ -16,13 +16,5 @@ public class ParamTypeDef extends TypeDef {
 		super(name,baseType);
 		this.paramNo = paramNo;
 		this.baseType = baseType;
-		
-		if (baseType.hasParams) {
-			this.setParamSettings(params, varargParams);
-		}
-		
-		if (baseType.indexable) {
-			this.setIndexSettings(indexableBy, indexReturns, varargIndex);
-		}
 	}
 }

@@ -6,25 +6,30 @@ package com.iconmaster.source.prototype;
  */
 public class TypeDef {
 	public static final TypeDef UNKNOWN = new TypeDef();
-	public static final TypeDef REAL = new TypeDef("real");
-	public static final TypeDef INT = new TypeDef("int");
-	public static final TypeDef STRING = new TypeDef("string").setIndexSettings(new TypeDef[] {TypeDef.INT}, TypeDef.INT, false);
-	public static final TypeDef LIST = new TypeDef("list").setIndexSettings(new TypeDef[] {TypeDef.INT}, new ParamTypeDef("T", 0), false).setParamSettings(new TypeDef[] {TypeDef.UNKNOWN}, false);
+	public static final TypeDef STRING = new TypeDef("string");
+	public static final TypeDef ARRAY = new TypeDef("array");
+	public static final TypeDef LIST = new TypeDef("list");
 	public static final TypeDef BOOLEAN = new TypeDef("bool");
+	public static final TypeDef MAP = new TypeDef("map");
+	public static final TypeDef PTR = new TypeDef("ptr");
+	public static final TypeDef FPTR = new TypeDef("fptr");
+	
+	public static final TypeDef INT8 = new TypeDef("int8");
+	public static final TypeDef INT16 = new TypeDef("int16");
+	public static final TypeDef INT32 = new TypeDef("int32");
+	public static final TypeDef INT64 = new TypeDef("int64");
+	
+	public static final TypeDef REAL32 = new TypeDef("real32");
+	public static final TypeDef REAL64 = new TypeDef("real64");
+	
+	public static final TypeDef REAL = new TypeDef("real", TypeDef.REAL32);
+	public static final TypeDef INT = new TypeDef("int", TypeDef.INT32);
+	public static final TypeDef CHAR = new TypeDef("char", TypeDef.INT8);
 	
 	public String name;
 	public String pkgName;
 	
 	public TypeDef parent = null;
-	
-	public boolean indexable = false;
-	public TypeDef[] indexableBy = new TypeDef[0];
-	public TypeDef indexReturns = null;
-	public boolean varargIndex = false;
-	
-	public boolean hasParams = false;
-	public TypeDef[] params = new TypeDef[0];
-	public boolean varargParams = false;
 	
 	public TypeDef() {
 		this.name = "?";
@@ -37,21 +42,6 @@ public class TypeDef {
 	public TypeDef(String name, TypeDef parent) {
 		this.name = name;
 		this.parent = parent;
-	}
-	
-	public TypeDef setIndexSettings(TypeDef[] indexableBy, TypeDef indexReturns, boolean varargIndex) {
-		indexable = true;
-		this.indexableBy = indexableBy;
-		this.varargIndex = varargIndex;
-		this.indexReturns = indexReturns;
-		return this;
-	}
-	
-	public TypeDef setParamSettings(TypeDef[] params, boolean varargParams) {
-		hasParams = true;
-		this.params = params;
-		this.varargParams = varargParams;
-		return this;
 	}
 	
 	@Override
@@ -73,5 +63,23 @@ public class TypeDef {
 			return type1;
 		}
 		return getCommonParent(type1.parent,type2.parent);
+	}
+	
+	public static void addBaseTypes(SourcePackage pkg) {
+		pkg.addType(TypeDef.UNKNOWN);
+		pkg.addType(TypeDef.INT);
+		pkg.addType(TypeDef.REAL);
+		pkg.addType(TypeDef.STRING);
+		pkg.addType(TypeDef.ARRAY);
+		pkg.addType(TypeDef.LIST);
+		pkg.addType(TypeDef.CHAR);
+		pkg.addType(TypeDef.BOOLEAN);
+		pkg.addType(TypeDef.MAP);
+		pkg.addType(TypeDef.INT8);
+		pkg.addType(TypeDef.INT16);
+		pkg.addType(TypeDef.INT32);
+		pkg.addType(TypeDef.INT64);
+		pkg.addType(TypeDef.REAL32);
+		pkg.addType(TypeDef.REAL64);
 	}
 }

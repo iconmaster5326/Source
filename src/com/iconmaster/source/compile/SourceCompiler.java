@@ -102,7 +102,7 @@ public class SourceCompiler {
 		CompileUtils.transform(cd.pkg, fnInliner);
 		CompileUtils.transform(cd.pkg, paramEraser);
 		CompileUtils.transform(cd.pkg, nameConflictResolver);
-		//CompileUtils.transform(cd.pkg, optimizer);
+		CompileUtils.transform(cd.pkg, optimizer);
 		Optimizer.countUsages(pkg);
 		
 		return cd.errs;
@@ -149,7 +149,7 @@ public class SourceCompiler {
 	
 	public static Expression compileCode(CompileData cd, ArrayList<Element> es, DataType retType) {
 		Expression code = new Expression();
-		OpType asnType = null;
+		String asnType = null;
 		for (Element e : es) {
 			if (e.type==TokenRule.STRING) {
 				//native code
@@ -350,184 +350,75 @@ public class SourceCompiler {
 						code.add(new Operation(OpType.RET, cond.type,e.range, rets.toArray(new String[0])));
 						break;
 					case ADD_ASN:
-						asnType = OpType.ADD;
+						asnType = "_add";
 					case SUB_ASN:
 						if (e.type==Rule.SUB_ASN) {
-							asnType = OpType.SUB;
+							asnType = "_sub";
 						}
 					case MUL_ASN:
 						if (e.type==Rule.MUL_ASN) {
-							asnType = OpType.MUL;
+							asnType = "_mul";
 						}
 					case DIV_ASN:
 						if (e.type==Rule.DIV_ASN) {
-							asnType = OpType.DIV;
+							asnType = "_div";
 						}
 						Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
 						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
 						
-						if (!DataType.canCastTo(lexpr2.type,rexpr.type)) {
-							cd.errs.add(new SourceDataTypeException(e.range,"Cannot assign a value of type "+rexpr.type+" to variable "+lexpr1.retVar+" of type "+lexpr1.type));
-						}
+						ArrayList<DataType> a = new ArrayList<>();
+						a.add(lexpr2.type);
+						a.add(rexpr.type);
+						
+						retType = DataType.commonType(lexpr2.type, rexpr.type);
+						
+						Function fn;
+						TypeDef td = lexpr2.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+asnType, new FunctionCall(asnType, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
 									
 						code.addAll(rexpr);
 						code.addAll(lexpr2);
-						code.add(new Operation(asnType, TypeDef.getCommonParent(lexpr2.type.type,rexpr.type.type), e.range, lexpr1.retVar, lexpr2.retVar, rexpr.retVar));
+						
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+asnType+" on types "+lexpr2.type+" and "+rexpr.type));
+						} else {
+							code.add(new Operation(OpType.CALL, lexpr1.retVar, fn.getFullName(), lexpr2.retVar, rexpr.retVar));
+						}
+						
 						code.addAll(lexpr1);
 						break;
 					case FOR:
+						ArrayList<String> forVars = new ArrayList<>();
+						es = (ArrayList<Element>) e.args[0];
+						for (Element e2 : es) {
+							String var = resolveLValueRaw(cd, e2);
+							forVars.add(var);
+							cd.frame.putVariable(var, false);
+							if (e2.dataType!=null) {
+								cd.frame.setVarType(var, compileDataType(cd, e2.dataType));
+							} else {
+								cd.frame.setVarType(var, new DataType(true));
+							}
+						}
+						Expression iterExpr = CompileLookup.iteratorLookup(cd, null, (Element) e.args[1]);
 						code.add(new Operation(OpType.DO, e.range));
-						ArrayList<String> iterVars = new ArrayList<>();
-						for (Element e2 : (ArrayList<Element>) e.args[0]) {
-							String exprRaw = resolveLValueRaw(cd, e2);
-							cd.frame.putDefined(exprRaw);
-							cd.frame.setVarType(exprRaw, compileDataType(cd, e2.dataType));
-							Expression expr2 = resolveLValue(cd, code, e2);
-							iterVars.add(expr2.retVar);
-							code.addAll(expr2);
-						}
-								
-						if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL && "range".equals(((Element)e.args[1]).args[0])) {
-							//for in range
-							es = (ArrayList<Element>) ((Element)e.args[1]).args[1];
-							if (es.size()>0 && es.get(0).type == Rule.TUPLE) {
-								es = (ArrayList<Element>) es.get(0).args[0];
-							}
-							if (es.size()<2 || es.size()>3) {
-								cd.errs.add(new SourceSyntaxException(e.range,"Function range must have 2 or 3 arguments"));
-							} else {
-								Expression begin = compileExpr(cd, cd.frame.newVarName(), es.get(0));
-								Expression end = compileExpr(cd, cd.frame.newVarName(), es.get(1));
-								Expression step = null;
-								if (es.size()==3) {
-									step = compileExpr(cd, cd.frame.newVarName(), es.get(2));
-								}
-								ArrayList<String> args = new ArrayList<>();
-								if (iterVars.size()!=1) {
-									cd.errs.add(new SourceSyntaxException(e.range,"Ranged for loop must only have 1 iterator variable"));
-								}
-								String iterVar = iterVars.get(0);
-								cd.frame.putVariable(iterVar, false);
-								args.add(iterVar);
-								if (Directives.has(e, "downloop") && !Directives.has(e, "uploop")) {
-									args.add("-1");
-								} else if (!Directives.has(e, "downloop") && Directives.has(e, "uploop")) {
-									args.add("1");
-								} else {
-									args.add("0");
-								}
-								args.add(begin.retVar);
-								code.addAll(begin);
-								args.add(end.retVar);
-								code.addAll(end);
-								if (step!=null) {
-									args.add(step.retVar);
-									code.addAll(step);
-								}
-								if (begin.type.type!=end.type.type) {
-									cd.errs.add(new SourceDataTypeException(e.range,"The arguments of range must be of the same type"));
-								}
-								System.out.println(cd.frame.getVarType(iterVar));
-								if (!DataType.canCastTo(cd.frame.getVarType(iterVar),begin.type)) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterVar)+" to "+begin.type));
-								}
-								cd.frame.setVarType(iterVar, begin.type);
-								code.add(new Operation(OpType.FORR, begin.type, e.range, args.toArray(new String[0])));
-								code.add(new Operation(OpType.BEGIN, e.range));
-								cd.frame = new ScopeFrame(cd);
-								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-								cd.frame = cd.frame.parent;
-								code.add(new Operation(OpType.END, e.range));
-								code.add(new Operation(OpType.ENDB, e.range));
-							}
-						} else {
-							boolean isIter = false;
-							RealFunction riter = null;
-							
-							ArrayList<DataType> arga = new ArrayList<>();
-							ArrayList<Expression> arge = new ArrayList<>();
-							ArrayList<DataType> irets = new ArrayList<>();
-							
-							if (e.args[1] instanceof Element && ((Element)e.args[1]).type==Rule.FCALL) {
-								String iterName = (String) ((Element)e.args[1]).args[0];
-								
-								es = (ArrayList<Element>) ((Element)e.args[1]).args[1];
-								if (es.size()>0 && es.get(0).type == Rule.TUPLE) {
-									es = (ArrayList<Element>) es.get(0).args[0];
-								}
-								for (Element e2 : es) {
-									Expression expr2 = compileExpr(cd, cd.frame.newVarName(), e2);
-									arga.add(expr2.type);
-									arge.add(expr2);
-								}
-								
-								riter = getRealFunction(cd, new FunctionCall(iterName, arga, irets, ((Element)e.args[1]).directives));
-								
-								if (riter.fn!=null) {
-									isIter = true;
-									
-									if (riter.method) {
-										Expression expr2 = new Expression();
-										expr2.retVar = riter.methodOf;
-										expr2.type = cd.frame.getVarType(riter.methodOf);
-										arge.add(expr2);
-									}
-								}
-							}
-							
-							if (isIter) {
-								Iterator iter = (Iterator) riter.fn;
-								int i = 0;
-								ArrayList<String> iterVars2 = new ArrayList<>();
-								for (Expression expr2 : arge) {
-									code.addAll(expr2);
-									iterVars2.add(expr2.retVar);
-								}
-								for (String var : iterVars) {
-									cd.frame.setVarType(var, iter.iterReturns.get(i));
-									iterVars2.add(var);
-									i++;
-								}
-								iterVars2.add(0,iter.getFullName());
-								code.add(new Operation(OpType.FORC, e.range, iterVars2.toArray(new String[0])));
-								code.add(new Operation(OpType.BEGIN, e.range));
-								cd.frame = new ScopeFrame(cd);
-								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-								cd.frame = cd.frame.parent;
-								code.add(new Operation(OpType.END, e.range));
-								code.add(new Operation(OpType.ENDB, e.range));
-							} else {
-								if (iterVars.size()!=1) {
-									cd.errs.add(new SourceSyntaxException(e.range,"For-each loop must only have 1 iterator variable"));
-								}
-								Expression listExpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
-								code.addAll(listExpr);
-								String iterName = iterVars.get(0);
-								if (listExpr.type==null) {
-									listExpr.type = new DataType(true);
-								}
-								if (!listExpr.type.type.indexable) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot iterate over data type "+listExpr.type));
-								}
-								DataType rtd = new DataType(listExpr.type.type.indexReturns);
-								if (rtd.type instanceof ParamTypeDef && listExpr.type.params.length>((ParamTypeDef)rtd.type).paramNo) {
-									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-								}
-								if (!DataType.canCastTo(cd.frame.getVarType(iterName), rtd)) {
-									cd.errs.add(new SourceDataTypeException(e.range,"Cannot cast range iterator data type "+cd.frame.getVarType(iterName)+" to "+rtd));
-								}
-								cd.frame.setVarType(iterName, rtd);
-								iterVars.add(0,listExpr.retVar);
-								code.add(new Operation(OpType.FORE, rtd, e.range, iterVars.toArray(new String[0])));
-								code.add(new Operation(OpType.BEGIN, e.range));
-								cd.frame = new ScopeFrame(cd);
-								code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
-								cd.frame = cd.frame.parent;
-								code.add(new Operation(OpType.END, e.range));
-								code.add(new Operation(OpType.ENDB, e.range));
-							}
-						}
+						code.addAll(iterExpr);
+						code.add(new Operation(OpType.FOR, (TypeDef) null, e.range, forVars.toArray(new String[0])));
+						code.add(new Operation(OpType.BEGIN, e.range));
+						code.addAll(compileCode(cd, (ArrayList<Element>) e.args[2]));
+						code.add(new Operation(OpType.END, e.range));
+						code.add(new Operation(OpType.ENDB, e.range));
+						
+						break;
+					case BREAK:
+						code.add(new Operation(OpType.BRK, e.range));
+						break;
+					case CONTINUE:
+						code.add(new Operation(OpType.CONT, e.range));
 						break;
 					default:
 						code.addAll(compileExpr(cd, cd.frame.newVarName(), e));
@@ -536,7 +427,7 @@ public class SourceCompiler {
 		}
 		//change types of known lvars to correct parent types
 		for (Operation op : code) {
-			if ((op.op.hasLVar() && op.op!=OpType.MOVL) || op.op==OpType.DEF) {
+			if ((op.op.hasLVar() && op.op!=OpType.MOVL && op.op!=OpType.MOVA) || op.op==OpType.DEF) {
 				DataType type = cd.frame.getVarType(op.args[0]);
 				if (type!=null) {
 					op.type = type.type;
@@ -571,121 +462,43 @@ public class SourceCompiler {
 					return CompileLookup.rvalLookup(cd, retVar, e);
 			}
 		} else {
-			if (OpType.MathToOpType((Rule) e.type)!=null && OpType.MathToOpType((Rule) e.type).isMathOp()) {
+			String callName = StringUtils.mathElementToString(e);
+			if (callName!=null) {
 				Expression lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 				Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+				
 				expr.addAll(lexpr);
 				expr.addAll(rexpr);
-				OpType opt = OpType.MathToOpType((Rule) e.type);
-					
-				DataType rtype = lexpr.type;
-				DataType ltype = rexpr.type;
-				if (rtype==null) {
-					rtype = new DataType(true);
-				}
-				if (ltype==null) {
-					ltype = new DataType(true);
-				}
-				if (TypeDef.getCommonParent(rtype.type, ltype.type)!=ltype.type && TypeDef.getCommonParent(ltype.type, rtype.type)!=rtype.type) {
-					if (opt!=OpType.CONCAT) {
-						cd.errs.add(new SourceDataTypeException(e.range,"Types "+ltype+" and "+rtype+" are not equatable"));
-					}
+				
+				ArrayList<DataType> a = new ArrayList<>();
+				a.add(lexpr.type);
+				a.add(rexpr.type);
+				
+				DataType retType = DataType.commonType(lexpr.type, rexpr.type);
+				
+				Function fn;
+				TypeDef td = lexpr.type.type;
+				do {
+					fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+					td = td.parent;
+				} while (fn == null && td != null);
+				
+				if (fn==null) {
+					cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type+" and "+rexpr.type));
 				} else {
-					if (opt.isBooleanMathOp()) {
-						expr.type = new DataType(TypeDef.BOOLEAN);
-					} else {
-						expr.type = DataType.commonType(ltype, rtype);
-					}
+					expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar, rexpr.retVar));
+					expr.type = fn.getReturnType();
 				}
-				
-				if (opt==OpType.CONCAT) {
-					expr.type = new DataType(TypeDef.STRING);
-				}
-				
-				expr.add(new Operation(opt, expr.type.type, e.range, retVar, lexpr.retVar, rexpr.retVar));
 			} else {
 				ArrayList<Element> es;
 				switch ((Rule)e.type) {
 					case FCALL:
-					case CHAIN:
-						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
 					case ICALL:
-						ArrayList<String> names = new ArrayList<>();
-						ArrayList<Expression> exprs = new ArrayList<>();
-						es = (ArrayList<Element>) e.args[1];
-						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
-							es = (ArrayList<Element>) es.get(0).args[0];
-						}
-						for (Element e2 : es) {
-							String name = cd.frame.newVarName();
-							Expression expr2 = compileExpr(cd, name, e2);
-							exprs.add(expr2);
-							names.add(name);
-						}
-						Element listE = new Element(e.range, TokenRule.WORD);
-						listE.args[0] = e.args[0];
-						Expression listExpr = resolveLValue(cd, expr, listE);
-						ArrayList<DataType> arga = new ArrayList<>();
-						arga.add(listExpr.type);
-						for (Expression expr3 : exprs) {
-							arga.add(expr3.type);
-						}
-						RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._getindex", arga, new DataType(true), e.directives));
-						if (rfn.fn!=null) {
-							int i = 0;
-							if (rfn.fn.getArguments().size()-1!=exprs.size()) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-1)+" indices, got "+exprs.size()));
-							} else {
-								for (Expression expr3 : exprs) {
-									if (!DataType.canCastTo(expr3.type, rfn.fn.getArguments().get(i+1).getType())) {
-										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-									}
-									expr.addAll(expr3);
-									i++;
-								}
-							}
-							names.add(0,listExpr.retVar);
-							names.add(0,rfn.fn.getFullName());
-							names.add(0,retVar);
-							expr.type = rfn.fn.getReturnType();
-							expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
-							expr.addAll(listExpr);
-						} else if (listExpr.type!=null && listExpr.type.type.indexable) {
-							int i = 0;
-							if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
-							} else {
-								for (Expression expr3 : exprs) {
-									TypeDef argtd = listExpr.type.type.indexableBy[i];
-									if (argtd instanceof ParamTypeDef) {
-										argtd = listExpr.type.type.params[((ParamTypeDef)argtd).paramNo];
-									}
-									if (!DataType.canCastTo(expr3.type, new DataType(argtd))) {
-										cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-									}
-									expr.addAll(expr3);
-									i++;
-								}
-							}
-							names.add(0,listExpr.retVar);
-							names.add(0,retVar);
-							DataType rtd = new DataType(listExpr.type.type.indexReturns);
-							if (rtd.type instanceof ParamTypeDef) {
-								rtd = ((ParamTypeDef)rtd.type).paramNo>=listExpr.type.params.length?null:listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-							}
-							expr.type = rtd;
-							expr.add(new Operation(OpType.INDEX, expr.type, e.range, names.toArray(new String[0])));
-							expr.addAll(listExpr);
-						} else {
-							if (rfn.nameFound) {
-								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+"; no overload _getindex found"));
-							} else {
-								cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
-							}
-						}
-						break;
+					case CHAIN:
+					case ICALL_REF:
+						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
 					case INDEX:
-						names = new ArrayList<>();
+						ArrayList<String> names = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[0];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
@@ -710,8 +523,8 @@ public class SourceCompiler {
 						}
 						
 						names.add(0,retVar);
-						expr.add(new Operation(OpType.MOVL, common, e.range, names.toArray(new String[0])));
-						expr.type = new DataType(TypeDef.LIST,true);
+						expr.add(new Operation(OpType.MOVA, common, e.range, names.toArray(new String[0])));
+						expr.type = new DataType(TypeDef.ARRAY,true);
 						expr.type.params = new DataType[] {common};
 						break;
 					case PAREN:
@@ -734,26 +547,89 @@ public class SourceCompiler {
 						expr.type = new DataType(TypeDef.BOOLEAN,true);
 						break;
 					case NOT:
-						Expression nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
-						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.NOT, TypeDef.BOOLEAN, e.range, retVar, nexpr.retVar));
-						expr.type = new DataType(TypeDef.BOOLEAN);
+						callName = "_not";
+						Expression lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+
+						expr.addAll(lexpr);
+
+						ArrayList<DataType> a = new ArrayList<>();
+						a.add(lexpr.type);
+
+						DataType retType = lexpr.type;
+
+						Function fn;
+						TypeDef td = lexpr.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
+
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type));
+						} else {
+							expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar));
+							expr.type = fn.getReturnType();
+						}
 						break;
 					case NEG:
-						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
-						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.NEG, nexpr.type.type, e.range, retVar, nexpr.retVar));
-						expr.type = nexpr.type;
+						callName = "_neg";
+						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+
+						expr.addAll(lexpr);
+
+						a = new ArrayList<>();
+						a.add(lexpr.type);
+
+						retType = lexpr.type;
+
+						fn = null;
+						td = lexpr.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
+
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type));
+						} else {
+							expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar));
+							expr.type = fn.getReturnType();
+						}
+						break;
+					case BIT_NOT:
+						callName = "_bit_not";
+						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+
+						expr.addAll(lexpr);
+
+						a = new ArrayList<>();
+						a.add(lexpr.type);
+
+						retType = lexpr.type;
+
+						fn = null;
+						td = lexpr.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
+
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type));
+						} else {
+							expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar));
+							expr.type = fn.getReturnType();
+						}
 						break;
 					case TO:
 						String name = cd.frame.newVarName();
-						Expression lexpr = compileExpr(cd, name, (Element) e.args[0]);
+						lexpr = compileExpr(cd, name, (Element) e.args[0]);
 						expr.addAll(lexpr);
 						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
 						ArrayList<DataType> argl = new ArrayList<>();
 						argl.add(lexpr.type);
-						rfn = getRealFunction(cd, new FunctionCall(fnName, argl, rtype, e.directives));
+						RealFunction rfn = getRealFunction(cd, new FunctionCall(fnName, argl, rtype, e.directives));
 						if (rfn.fn==null) {
 							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
 						} else {
@@ -815,17 +691,10 @@ public class SourceCompiler {
 						}
 					}
 					dt.type = def;
-					if (!def.hasParams) {
-						cd.errs.add(new SourceSyntaxException(e.range, "Cannot parameterize type "+def));
-						break;
-					}
 					ArrayList<DataType> pList = new ArrayList<>();
 					ArrayList<Element> es = (ArrayList<Element>) e.args[1];
 					if (es.size()>0 && es.get(0).type==Rule.TUPLE) {
 						es = (ArrayList<Element>) es.get(0).args[0];
-					}
-					if (!def.varargParams && def.params.length!=es.size()) {
-						cd.errs.add(new SourceSyntaxException(e.range, "Type "+def+" expects "+def.params.length+" parameters, got "+es.size()));
 					}
 					for (Element e2 : es) {
 						DataType param = compileDataType(cd, e2);
@@ -876,6 +745,7 @@ public class SourceCompiler {
 			}
 		} else {
 			switch ((Rule)e.type) {
+				case ICALL_REF:
 				case ICALL:
 					ArrayList<String> names = new ArrayList<>();
 					ArrayList<Expression> exprs = new ArrayList<>();
@@ -889,16 +759,31 @@ public class SourceCompiler {
 						exprs.add(expr2);
 						names.add(name2);
 					}
-					Element listE = new Element(e.range, TokenRule.WORD);
-					listE.args[0] = e.args[0];
-					Expression listExpr = resolveLValue(cd, expr, listE);
+					
+					Expression listExpr;
+					if (e.type==Rule.ICALL) {
+						Element listE = new Element(e.range, TokenRule.WORD);
+						listE.args[0] = e.args[0];
+						listExpr = resolveLValue(cd, expr, listE);
+					} else {
+						Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						code.addAll(expr2);
+						listExpr = new Expression();
+						listExpr.retVar = expr2.retVar;
+						listExpr.type = expr2.type;
+					}
+
+					if (listExpr.type==null) {
+						listExpr.type = new DataType(true);
+					}
+					
 					ArrayList<DataType> arga = new ArrayList<>();
 					arga.add(listExpr.type);
 					arga.add(new DataType(true)); //TODO: make it so we KNOW this
 					for (Expression expr3 : exprs) {
 						arga.add(expr3.type);
 					}
-					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, listExpr.type, e.directives));
+					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, (DataType) null, e.directives));
 					if (rfn.fn!=null) {
 						int i = 0;
 						if (rfn.fn.getArguments().size()-2!=exprs.size()) {
@@ -916,36 +801,8 @@ public class SourceCompiler {
 						names.add(0,expr.retVar);
 						names.add(0,listExpr.retVar);
 						names.add(0,rfn.fn.getFullName());
-						names.add(0,listExpr.retVar);
+						names.add(0,cd.frame.newVarName());
 						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
-						expr.addAll(listExpr);
-					} else if (listExpr.type!=null && listExpr.type.type.indexable) {
-						if (!listExpr.type.type.varargIndex && listExpr.type.type.indexableBy.length!=exprs.size()) {
-							cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+listExpr.type.type.indexableBy.length+" indices, got "+exprs.size()));
-						} else {
-							int i = 0;
-							for (Expression expr3 : exprs) {
-								DataType rtd = new DataType(listExpr.type.type.indexableBy[i]);
-								if (rtd.type instanceof ParamTypeDef) {
-									rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-								}
-								expr.type = rtd;
-								if (!DataType.canCastTo(expr3.type, rtd)) {
-									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-								}
-								code.addAll(expr3);
-								i++;
-							}
-						}
-						expr.retVar = cd.pkg.nameProvider.getTempName();
-						DataType rtd = new DataType(listExpr.type.type.indexReturns);
-						if (rtd.type instanceof ParamTypeDef) {
-							rtd = listExpr.type.params[((ParamTypeDef)rtd.type).paramNo];
-						}
-						expr.type = rtd;
-						names.add(0,expr.retVar);
-						names.add(0,listExpr.retVar);
-						expr.add(new Operation(OpType.MOVI, expr.type.type, e.range, names.toArray(new String[0])));
 						expr.addAll(listExpr);
 					} else {
 						if (rfn.nameFound) {

@@ -58,4 +58,46 @@ public class StringUtils {
 		}
 		return out;
 	}
+	
+	public static String mathElementToString(Element e) {
+		if (e.type instanceof Rule) {
+			switch ((Rule)e.type) {
+				case ADD:
+					return "_add";
+				case SUB:
+					return "_sub";
+				case MUL:
+					return "_mul";
+				case DIV:
+					return "_div";
+				case POW:
+					return "_pow";
+				case MOD:
+					return "_mod";
+				case CONCAT:
+					return "_concat";
+				case EQ:
+					return "_eq";
+				case NEQ:
+					return "_neq";
+				case LT:
+					return "_lt";
+				case GT:
+					return "_gt";
+				case LTE:
+					return "_lte";
+				case GTE:
+					return "_gte";
+				case AND:
+					return "_and";
+				case OR:
+					return "_or";
+				case BIT_AND:
+					return "_bitand";
+				case BIT_OR:
+					return "_bitor";
+			}
+		}
+		return null;
+	}
 }
