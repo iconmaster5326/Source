@@ -87,6 +87,9 @@ public class LibraryCore extends SourcePackage {
 				fn.getDirectives().add("pure");
 				this.addFunction(fn);
 			}
+			fn = Function.libraryFunction(type.name+"._neg", new String[] {"a1"}, new Object[] {type}, type);
+			fn.getDirectives().add("pure");
+			this.addFunction(fn);
 		}
 		
 		for (TypeDef type : MATH_TYPES) {
@@ -103,13 +106,14 @@ public class LibraryCore extends SourcePackage {
 				fn.getDirectives().add("pure");
 				this.addFunction(fn);
 			}
-		}
-		
-		for (TypeDef type : MATH_TYPES) {
-			fn = Function.libraryFunction(type.name+"._neg", new String[] {"a1"}, new Object[] {type}, type);
+			fn = Function.libraryFunction(type.name+"._bit_not", new String[] {"a1"}, new Object[] {type}, type);
 			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 		}
+		
+		fn = Function.libraryFunction("bool._not", new String[] {"a1"}, new Object[] {TypeDef.BOOLEAN}, TypeDef.BOOLEAN);
+		fn.getDirectives().add("pure");
+		this.addFunction(fn);
 		
 		fn = Function.libraryFunction("?._concat", new String[] {"a1","a2"}, new Object[] {TypeDef.UNKNOWN,TypeDef.UNKNOWN}, TypeDef.STRING);
 		fn.getDirectives().add("pure");
