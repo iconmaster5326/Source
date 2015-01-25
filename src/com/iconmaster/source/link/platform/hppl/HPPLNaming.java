@@ -15,7 +15,7 @@ public class HPPLNaming {
 	}
 	
 	public static String formatVarName(String name) {
-		name = name.replace(".", "_").replace("?", "_");
+		name = name.replace(".", "_").replace("?", "_").replace("%", "_");
 		if (name.startsWith("_")) {
 			name = "a"+name;
 		}

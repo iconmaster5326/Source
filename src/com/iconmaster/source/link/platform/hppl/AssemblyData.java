@@ -4,6 +4,7 @@ import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFuncti
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -11,12 +12,14 @@ import java.util.HashMap;
  *
  * @author iconmaster
  */
-public class AssemblyData {
+public class AssemblyData implements IDirectable {
 	public static class Frame {
 		public Frame parent;
 		public HashMap<String,String> inlines = new HashMap<>();
 		public ArrayList<HPPLVariable> localVars = new ArrayList<>();
 		public String blockEnd;
+		
+		public ArrayList<String> dirs = new ArrayList<>();
 
 		public Frame(Frame parent) {
 			this.parent = parent;
@@ -123,5 +126,17 @@ public class AssemblyData {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public ArrayList<String> getDirectives() {
+		ArrayList<String> a = new ArrayList<>();
+		a.addAll(pkg.getDirectives());
+		Frame f = frame();
+		do {
+			a.addAll(f.dirs);
+			f = f.parent;
+		} while (f!=null);
+		return a;
 	}
 }

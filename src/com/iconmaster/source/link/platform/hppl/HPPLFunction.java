@@ -49,6 +49,7 @@ public class HPPLFunction {
 		}
 		
 		ad.pushFrame();
+		ad.frame().dirs.addAll(fn.getDirectives());
 		for (HPPLVariable var : args) {
 			ad.frame().localVars.add(var);
 		}

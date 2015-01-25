@@ -8,6 +8,7 @@ import com.iconmaster.source.link.platform.hppl.InlinedExpression.SpecialOp;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
+import com.iconmaster.source.util.IDirectable;
 import java.util.ArrayList;
 
 /**
@@ -90,14 +91,18 @@ public class HPPLAssembler {
 	public static HPPLFunction assembleFunction(AssemblyData ad, Function fn) {
 		ArrayList<HPPLVariable> args = new ArrayList<>();
 		for (Field arg : fn.getArguments()) {
-			HPPLVariable var = new HPPLVariable(arg.getName(), HPPLNaming.getNewName());
+			HPPLVariable var = new HPPLVariable(arg.getName(), getRenamed(arg,arg.getName()));
 			args.add(var);
 		}
 		return new HPPLFunction(PlatformHPPL.shouldKeepName(fn) ? HPPLNaming.formatFuncName(fn) : HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
 	}
 	
 	public static HPPLField assembleField(AssemblyData ad, Field f) {
-		return new HPPLField(PlatformHPPL.shouldKeepName(f) ? HPPLNaming.formatVarName(f.getName()) : HPPLNaming.getNewName(), assembleCode(ad, f.getValue()), f);
+		return new HPPLField(getRenamed(f,f.getName()), assembleCode(ad, f.getValue()), f);
+	}
+	
+	public static String getRenamed(IDirectable f,String name) {
+		return PlatformHPPL.shouldKeepName(f) ? HPPLNaming.formatVarName(name) : HPPLNaming.getNewName();
 	}
 	
 	public static InlinedExpression encapsulate(AssemblyData ad, InlinedExpression code) {
@@ -191,7 +196,7 @@ public class HPPLAssembler {
 			} else {
 				if (op.op.op.hasLVar()) {
 					if (op.status == InlinedExpression.Status.KEEP && !ad.exists(op.op.args[0])) {
-						ad.vars.add(new HPPLVariable(op.op.args[0], HPPLNaming.getNewName()));
+						ad.vars.add(new HPPLVariable(op.op.args[0], getRenamed(ad,op.op.args[0])));
 					}
 					sb.append(getString(ad, op));
 					switch (op.status) {

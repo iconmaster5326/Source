@@ -24,6 +24,7 @@ public class HPPLField {
 		StringBuilder sb = new StringBuilder();
 		
 		ad.pushFrame();
+		ad.frame().dirs.addAll(f.getDirectives());
 		if (PlatformHPPL.shouldExport(f)) {
 			sb.append("EXPORT ");
 		}
