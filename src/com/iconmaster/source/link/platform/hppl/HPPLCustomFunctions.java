@@ -47,7 +47,7 @@ public class HPPLCustomFunctions {
 			mathFunc(pkg, "core."+type+"._sub", "-");
 			mathFunc(pkg, "core."+type+"._mul", "*");
 			mathFunc(pkg, "core."+type+"._div", "/");
-			mathFunc(pkg, "core."+type+"._mod", " MOD");
+			mathFunc(pkg, "core."+type+"._mod", " MOD ");
 			mathFunc(pkg, "core."+type+"._pow", "^");
 			
 			mathFunc(pkg, "core."+type+"._eq", "==");
