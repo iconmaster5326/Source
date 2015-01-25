@@ -547,20 +547,58 @@ public class SourceCompiler {
 						expr.type = new DataType(TypeDef.BOOLEAN,true);
 						break;
 					case NOT:
-						Expression nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
-						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.CALL, TypeDef.BOOLEAN, e.range, retVar, nexpr.type.type.name+"._not",nexpr.retVar)); //TODO: Make this not use direct name
-						expr.type = new DataType(TypeDef.BOOLEAN);
+						callName = "_not";
+						Expression lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+
+						expr.addAll(lexpr);
+
+						ArrayList<DataType> a = new ArrayList<>();
+						a.add(lexpr.type);
+
+						DataType retType = lexpr.type;
+
+						Function fn;
+						TypeDef td = lexpr.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
+
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type));
+						} else {
+							expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar));
+							expr.type = fn.getReturnType();
+						}
 						break;
 					case NEG:
-						nexpr = compileExpr(cd, cd.pkg.nameProvider.getTempName(), (Element) e.args[0]);
-						expr.addAll(nexpr);
-						expr.add(new Operation(OpType.CALL, nexpr.type.type, e.range, retVar, nexpr.type.type.name+"._neg", nexpr.retVar)); //TODO: Make this not use direct name
-						expr.type = nexpr.type;
+						callName = "_neg";
+						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+
+						expr.addAll(lexpr);
+
+						a = new ArrayList<>();
+						a.add(lexpr.type);
+
+						retType = lexpr.type;
+
+						fn = null;
+						td = lexpr.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
+
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type));
+						} else {
+							expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar));
+							expr.type = fn.getReturnType();
+						}
 						break;
 					case TO:
 						String name = cd.frame.newVarName();
-						Expression lexpr = compileExpr(cd, name, (Element) e.args[0]);
+						lexpr = compileExpr(cd, name, (Element) e.args[0]);
 						expr.addAll(lexpr);
 						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
