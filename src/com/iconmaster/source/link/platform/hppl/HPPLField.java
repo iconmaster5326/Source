@@ -1,5 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
+import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
 import com.iconmaster.source.prototype.Field;
 
 /**
@@ -28,11 +29,11 @@ public class HPPLField {
 		}
 		sb.append(PlatformHPPL.shouldExport(f) ? HPPLNaming.formatVarName(f.getName()) : compileName);
 		if (f.getValue()!=null) {
+			InlineOp op = expr.get(expr.size()-1);
 			sb.append("=");
-			sb.append(HPPLAssembler.getString(ad, expr));
-		} else {
-			sb.append(";");
+			sb.append(HPPLAssembler.getString(ad, op));
 		}
+		sb.append(";");
 		ad.popFrame();
 		
 		output = sb.toString();

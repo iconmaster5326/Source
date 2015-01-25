@@ -122,16 +122,57 @@ public class HPPLAssembler {
 		return expr;
 	}
 	
-	public static void addSto(AssemblyData ad, InlineOp op, StringBuilder sb) {
-		switch (op.status) {
-			case KEEP:
-				sb.append(HPPLCharacters.STO);
-				sb.append(ad.getVarMap(op.op.args[0]));
+	public static String getString(AssemblyData ad, InlineOp op) {
+		StringBuilder sb = new StringBuilder();
+		switch (op.op.op) {
+			case MOVN:
+				sb.append(op.op.args[1]);
 				break;
-			case INLINE:
-			case KEEP_NO_LVAL:
+			case MOVS:
+				sb.append("\"");
+				sb.append(op.op.args[1]);
+				sb.append("\"");
 				break;
-		}
+			case MOV:
+				sb.append(ad.getInline(op.op.args[1]));
+				break;
+			case MOVA:
+			case MOVL:
+				sb.append("{");
+				if (op.op.args.length!=1) {
+					for (int i=1;i<op.op.args.length;i++) {
+						sb.append(ad.getInline(op.op.args[i]));
+						sb.append(",");
+					}
+					sb.deleteCharAt(sb.length()-1);
+				}
+				sb.append("}");
+				break;
+			case TRUE:
+				sb.append("1");
+				break;
+			case FALSE:
+				sb.append("0");
+				break;
+			case CALL:
+				CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
+				if (cf!=null) {
+					cf.assemble(ad, op, sb);
+				} else {
+					sb.append(ad.getFuncMap(op.op.args[1]));
+					if (op.op.args.length>2) {
+						sb.append("(");
+						for (int i=2;i<op.op.args.length;i++) {
+							sb.append(ad.getInline(op.op.args[i]));
+							sb.append(",");
+						}
+						sb.deleteCharAt(sb.length()-1);
+						sb.append(")");
+					}
+				}
+				break;
+			}
+		return sb.toString();
 	}
 	
 	public static String getString(AssemblyData ad, InlinedExpression expr) {
@@ -148,130 +189,86 @@ public class HPPLAssembler {
 						break;
 				}
 			} else {
-				switch (op.op.op) {
-					case MOVN:
-						ad.addLVar(ad, op);
-						sb.append(op.op.args[1]);
-						addSto(ad, op, sb);
-						break;
-					case MOVS:
-						ad.addLVar(ad, op);
-						sb.append("\"");
-						sb.append(op.op.args[1]);
-						sb.append("\"");
-						addSto(ad, op, sb);
-						break;
-					case MOV:
-						ad.addLVar(ad, op);
-						sb.append(ad.getInline(op.op.args[1]));
-						addSto(ad, op, sb);
-						break;
-					case MOVA:
-					case MOVL:
-						ad.addLVar(ad, op);
-						sb.append("{");
-						if (op.op.args.length!=1) {
-							for (int i=1;i<op.op.args.length;i++) {
-								sb.append(ad.getInline(op.op.args[i]));
-								sb.append(",");
+				if (op.op.op.hasLVar()) {
+					if (op.status == InlinedExpression.Status.KEEP && !ad.exists(op.op.args[0])) {
+						ad.vars.add(new HPPLVariable(op.op.args[0], HPPLNaming.getNewName()));
+					}
+					sb.append(getString(ad, op));
+					switch (op.status) {
+						case KEEP:
+							sb.append(HPPLCharacters.STO);
+							sb.append(ad.getVarMap(op.op.args[0]));
+							break;
+						case INLINE:
+						case KEEP_NO_LVAL:
+							break;
+					}
+				} else {
+					switch (op.op.op) {
+						case RET:
+							sb.append("RETURN ");
+							sb.append(ad.getInline(op.op.args[0]));
+							break;
+						case IF:
+							sb.append("IF ");
+							sb.append(ad.getInline(op.op.args[0]));
+							sb.append(" THEN\n");
+							endLine = false;
+							ad.pushFrame();
+							break;
+						case ELSE:
+							ad.popFrame();
+							ad.pushFrame();
+							sb.append("ELSE\n");
+							endLine = false;
+							break;
+						case WHILE:
+							sb.append("WHILE ");
+							sb.append(ad.getInline(op.op.args[0]));
+							sb.append(" DO\n");
+							endLine = false;
+							ad.pushFrame();
+							break;
+						case REP:
+							sb.append("REPEAT\n");
+							endLine = false;
+							ad.pushFrame();
+							ad.frame().blockEnd = "UNTIL "+ad.getInline(op.op.args[0]);
+							break;
+						case BRK:
+							sb.append("BREAK");
+							break;
+						case CONT:
+							sb.append("CONTINUE");
+							break;
+						case ENDB:
+							if (ad.frame().blockEnd==null) {
+								sb.append("END");
+							} else {
+								sb.append(ad.frame().blockEnd);
 							}
-							sb.deleteCharAt(sb.length()-1);
-						}
-						sb.append("}");
-						addSto(ad, op, sb);
-						break;
-					case TRUE:
-						ad.addLVar(ad, op);
-						sb.append("1");
-						addSto(ad, op, sb);
-						break;
-					case FALSE:
-						ad.addLVar(ad, op);
-						sb.append("0");
-						addSto(ad, op, sb);
-						break;
-					case RET:
-						sb.append("RETURN ");
-						sb.append(ad.getInline(op.op.args[0]));
-						break;
-					case CALL:
-						ad.addLVar(ad, op);
-						CustomFunction cf = ad.getFuncAssembler(op.op.args[1]);
-						if (cf!=null) {
-							cf.assemble(ad, op, sb);
-						} else {
-							sb.append(ad.getFuncMap(op.op.args[1]));
-							if (op.op.args.length>2) {
-								sb.append("(");
-								for (int i=2;i<op.op.args.length;i++) {
-									sb.append(ad.getInline(op.op.args[i]));
-									sb.append(",");
-								}
-								sb.deleteCharAt(sb.length()-1);
-								sb.append(")");
+							ad.popFrame();
+							break;
+						case NATIVE:
+							if (op.op.args[0].equals("hppl")) {
+								sb.append(op.op.args[1]);
+								endLine = false;
+							} else if (op.op.args[0].equals("comment")) {
+								sb.append(" //");
+								sb.append(op.op.args[1]);
+								sb.append("\n");
+								endLine = false;
+							} else {
+								sb.append(" //ERROR: statement in unknown language ");
+								sb.append(op.op.args[0]);
+								sb.append(" located here\n");
+								endLine = false;
 							}
-						}
-						addSto(ad, op, sb);
-						break;
-					case IF:
-						sb.append("IF ");
-						sb.append(ad.getInline(op.op.args[0]));
-						sb.append(" THEN\n");
-						endLine = false;
-						ad.pushFrame();
-						break;
-					case ELSE:
-						ad.popFrame();
-						ad.pushFrame();
-						sb.append("ELSE\n");
-						endLine = false;
-						break;
-					case WHILE:
-						sb.append("WHILE ");
-						sb.append(ad.getInline(op.op.args[0]));
-						sb.append(" DO\n");
-						endLine = false;
-						ad.pushFrame();
-						break;
-					case REP:
-						sb.append("REPEAT\n");
-						endLine = false;
-						ad.pushFrame();
-						ad.frame().blockEnd = "UNTIL "+ad.getInline(op.op.args[0]);
-						break;
-					case BRK:
-						sb.append("BREAK");
-						break;
-					case CONT:
-						sb.append("CONTINUE");
-						break;
-					case ENDB:
-						if (ad.frame().blockEnd==null) {
-							sb.append("END");
-						} else {
-							sb.append(ad.frame().blockEnd);
-						}
-						ad.popFrame();
-						break;
-					case NATIVE:
-						if (op.op.args[0].equals("hppl")) {
-							sb.append(op.op.args[1]);
+							break;
+						default:
 							endLine = false;
-						} else if (op.op.args[0].equals("comment")) {
-							sb.append(" //");
-							sb.append(op.op.args[1]);
-							sb.append("\n");
-							endLine = false;
-						} else {
-							sb.append(" //ERROR: statement in unknown language ");
-							sb.append(op.op.args[0]);
-							sb.append(" located here\n");
-							endLine = false;
-						}
-						break;
-					default:
-						endLine = false;
-						break;
+							break;
+					}
 				}
 			}
 			

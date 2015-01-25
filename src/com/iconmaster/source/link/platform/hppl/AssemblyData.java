@@ -1,8 +1,6 @@
 package com.iconmaster.source.link.platform.hppl;
 
 import com.iconmaster.source.link.platform.hppl.HPPLCustomFunctions.CustomFunction;
-import com.iconmaster.source.link.platform.hppl.InlinedExpression.InlineOp;
-import com.iconmaster.source.link.platform.hppl.InlinedExpression.Status;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
@@ -84,14 +82,14 @@ public class AssemblyData {
 		if (!local.equals(name)) {
 			return local;
 		}
-		for (HPPLVariable v : vars) {
-			if (v.name.equals(name)) {
-				return v.compileName;
-			}
-		}
 		for (HPPLField f : fields) {
 			if (f.f.getName().equals(name)) {
 				return f.compileName;
+			}
+		}
+		for (HPPLVariable v : vars) {
+			if (v.name.equals(name)) {
+				return v.compileName;
 			}
 		}
 		return name;
@@ -113,9 +111,17 @@ public class AssemblyData {
 		return (CustomFunction) rfn.data.get("onAssemble");
 	}
 	
-	public void addLVar(AssemblyData ad, InlineOp op) {
-		if (op.status==Status.KEEP) {
-			ad.vars.add(new HPPLVariable(op.op.args[0], HPPLNaming.getNewName()));
+	public boolean exists(String name) {
+		for (HPPLField f : fields) {
+			if (f.f.getName().equals(name)) {
+				return true;
+			}
 		}
+		for (HPPLVariable v : vars) {
+			if (v.name.equals(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
