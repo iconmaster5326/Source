@@ -596,6 +596,31 @@ public class SourceCompiler {
 							expr.type = fn.getReturnType();
 						}
 						break;
+					case BIT_NOT:
+						callName = "_bit_not";
+						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+
+						expr.addAll(lexpr);
+
+						a = new ArrayList<>();
+						a.add(lexpr.type);
+
+						retType = lexpr.type;
+
+						fn = null;
+						td = lexpr.type.type;
+						do {
+							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
+							td = td.parent;
+						} while (fn == null && td != null);
+
+						if (fn==null) {
+							cd.errs.add(new SourceDataTypeException(e.range,"Cannot perform operation "+e.type+" on types "+lexpr.type));
+						} else {
+							expr.add(new Operation(OpType.CALL, retVar, fn.getFullName(), lexpr.retVar));
+							expr.type = fn.getReturnType();
+						}
+						break;
 					case TO:
 						String name = cd.frame.newVarName();
 						lexpr = compileExpr(cd, name, (Element) e.args[0]);
