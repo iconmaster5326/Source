@@ -7,6 +7,10 @@ import com.iconmaster.source.prototype.Function;
  * @author iconmaster
  */
 public class HPPLNaming {
+	public static String[] ILLEGAL_IDENTIFIERS = new String[] { //Someday, I need to put ALL HPPL function names here.
+		"i","e"
+	};
+	
 	public static int varsMade = -1;
 	
 	public static String getNewName() {
@@ -19,6 +23,12 @@ public class HPPLNaming {
 		if (name.startsWith("_")) {
 			name = HPPLCharacters.VAR_BEGIN+name;
 		}
+		for (String id : ILLEGAL_IDENTIFIERS) {
+			if (id.equals(name)) {
+				name = getNewName();
+				break;
+			}
+		}
 		return name;
 	}
 	
@@ -29,7 +39,13 @@ public class HPPLNaming {
 			name = HPPLCharacters.VAR_BEGIN+name;
 		}
 		if (fn.order!=0) {
-			name += "%" + fn.order;
+			name += "_" + fn.order;
+		}
+		for (String id : ILLEGAL_IDENTIFIERS) {
+			if (id.equals(name)) {
+				name = getNewName();
+				break;
+			}
 		}
 		return name;
 	}
