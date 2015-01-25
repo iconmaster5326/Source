@@ -53,6 +53,6 @@ public class PlatformHPPL extends Platform {
 	}
 	
 	public static boolean shouldKeepName(IDirectable fn) {
-		return shouldExport(fn) || Directives.has(fn, "!rename");
+		return shouldExport(fn) || Directives.has(fn, "!rename") || Directives.has(fn, "native");
 	}
 }
