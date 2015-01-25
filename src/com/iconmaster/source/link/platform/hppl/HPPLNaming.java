@@ -11,7 +11,7 @@ public class HPPLNaming {
 	
 	public static String getNewName() {
 		varsMade++;
-		return HPPLCharacters.VAR_BEGIN+varsMade;
+		return HPPLCharacters.VAR_BEGIN+new String(new char[] {(char) (0xF000 + varsMade)});
 	}
 	
 	public static String formatVarName(String name) {
