@@ -20,6 +20,21 @@ public class HPPLField {
 	public String output;
 	
 	public void toString(AssemblyData ad) {
+		StringBuilder sb = new StringBuilder();
 		
+		ad.pushFrame();
+		if (PlatformHPPL.shouldExport(f)) {
+			sb.append("EXPORT ");
+		}
+		sb.append(PlatformHPPL.shouldExport(f) ? HPPLNaming.formatVarName(f.getName()) : compileName);
+		if (f.getValue()!=null) {
+			sb.append("=");
+			sb.append(HPPLAssembler.getString(ad, expr));
+		} else {
+			sb.append(";");
+		}
+		ad.popFrame();
+		
+		output = sb.toString();
 	}
 }

@@ -26,6 +26,12 @@ public class HPPLAssembler {
 				ad.funcs.add(hfn);
 			}
 		}
+		for (Field f : pkg.getFields()) {
+			if (shouldAssemble(ad, f)) {
+				HPPLField hf = assembleField(ad, f);
+				ad.fields.add(hf);
+			}
+		}
 		
 		//convert assembled data into a string
 		for (HPPLFunction fn : ad.funcs) {
@@ -54,8 +60,7 @@ public class HPPLAssembler {
 		}
 		
 		for (HPPLField f : ad.fields) {
-			sb.append(f.compileName);
-			sb.append(";");
+			sb.append(f.output);
 		}
 		if (!ad.minify) {
 			sb.append("\n");
@@ -91,6 +96,10 @@ public class HPPLAssembler {
 		return new HPPLFunction(PlatformHPPL.shouldKeepName(fn) ? HPPLNaming.formatFuncName(fn) : HPPLNaming.getNewName(), args, assembleCode(ad, fn.getCode()), fn);
 	}
 	
+	public static HPPLField assembleField(AssemblyData ad, Field f) {
+		return new HPPLField(PlatformHPPL.shouldKeepName(f) ? HPPLNaming.formatVarName(f.getName()) : HPPLNaming.getNewName(), assembleCode(ad, f.getValue()), f);
+	}
+	
 	public static InlinedExpression encapsulate(AssemblyData ad, InlinedExpression code) {
 		ArrayList<InlinedExpression> expr = HPPLInliner.getStatements(code);
 		
@@ -106,6 +115,9 @@ public class HPPLAssembler {
 	}
 	
 	public static InlinedExpression assembleCode(AssemblyData ad, ArrayList<Operation> code) {
+		if (code==null) {
+			return null;
+		}
 		InlinedExpression expr = HPPLInliner.inlineCode(ad, code);
 		return expr;
 	}
@@ -290,5 +302,9 @@ public class HPPLAssembler {
 	
 	public static boolean shouldAssemble(AssemblyData ad, Function fn) {
 		return !fn.isLibrary() && fn.isCompiled();
+	}
+	
+	public static boolean shouldAssemble(AssemblyData ad, Field f) {
+		return !f.isLibrary();
 	}
 }

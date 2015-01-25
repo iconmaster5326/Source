@@ -135,7 +135,7 @@ public class Optimizer {
 				arg++;
 			}
 		}
-		return false;
+		return pkg.getField(var)!=null;
 	}
 	
 	public static void countUsages(SourcePackage pkg) {

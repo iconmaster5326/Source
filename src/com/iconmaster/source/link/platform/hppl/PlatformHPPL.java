@@ -3,9 +3,9 @@ package com.iconmaster.source.link.platform.hppl;
 import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.link.Platform;
 import com.iconmaster.source.link.platform.PlatformLoader.LoadedPlatform;
-import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Directives;
+import com.iconmaster.source.util.IDirectable;
 
 /**
  *
@@ -48,11 +48,11 @@ public class PlatformHPPL extends Platform {
 		return null; //interpret SIL here.
 	}
 	
-	public static boolean shouldExport(Function fn) {
+	public static boolean shouldExport(IDirectable fn) {
 		return Directives.has(fn, "export") || Directives.has(fn, "main");
 	}
 	
-	public static boolean shouldKeepName(Function fn) {
+	public static boolean shouldKeepName(IDirectable fn) {
 		return shouldExport(fn) || Directives.has(fn, "!rename");
 	}
 }
