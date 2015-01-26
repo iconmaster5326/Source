@@ -19,7 +19,7 @@ public abstract class Platform {
 	public ArrayList<CodeTransformer> transforms = new ArrayList<>();
 	public HashMap<String,ImportHandler> importHandlers = new HashMap<>();
 	
-	protected void registerLibrary(SourcePackage pkg) {
+	public void registerLibrary(SourcePackage pkg) {
 		pkgs.put(pkg.getName(),pkg);
 	}
 	
