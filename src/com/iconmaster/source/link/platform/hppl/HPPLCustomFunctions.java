@@ -57,12 +57,12 @@ public class HPPLCustomFunctions {
 			mathFunc(pkg, "core."+type+"._le", "<=");
 			mathFunc(pkg, "core."+type+"._ge", ">=");
 			
-			mathFunc(pkg, "core.bool._and", " AND ");
-			mathFunc(pkg, "core.bool._or", " OR ");
 		}
 		
 		mathFunc(pkg, "core.?._concat", "+");
 		
+		mathFunc(pkg, "core.bool._and", " AND ");
+		mathFunc(pkg, "core.bool._or", " OR ");
 		pkg.getFunction("core.bool._not").data.put("onAssemble", (CustomFunction) (ad,op,sb) -> {
 			sb.append("(NOT ");
 			sb.append(ad.getInline(op.op.args[2]));
