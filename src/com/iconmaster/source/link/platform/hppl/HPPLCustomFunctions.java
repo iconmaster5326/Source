@@ -56,6 +56,9 @@ public class HPPLCustomFunctions {
 			mathFunc(pkg, "core."+type+"._gt", ">");
 			mathFunc(pkg, "core."+type+"._le", "<=");
 			mathFunc(pkg, "core."+type+"._ge", ">=");
+			
+			mathFunc(pkg, "core.bool._and", " AND ");
+			mathFunc(pkg, "core.bool._or", " OR ");
 		}
 		
 		mathFunc(pkg, "core.?._concat", "+");
