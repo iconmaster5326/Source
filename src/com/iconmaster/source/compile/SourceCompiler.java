@@ -455,7 +455,7 @@ public class SourceCompiler {
 					expr.type = new DataType(TypeDef.STRING,true);
 					break;
 				case CHAR:
-					expr.type = new DataType(TypeDef.INT,true);
+					expr.type = new DataType(TypeDef.CHAR,true);
 					expr.add(new Operation(OpType.MOVN, expr.type.type, e.range, retVar, String.valueOf((int) ((String)e.args[0]).charAt(0))));
 					break;
 				case WORD:
