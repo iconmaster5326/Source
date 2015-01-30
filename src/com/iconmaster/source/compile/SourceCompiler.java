@@ -597,7 +597,7 @@ public class SourceCompiler {
 						}
 						break;
 					case BIT_NOT:
-						callName = "_bit_not";
+						callName = "_bnot";
 						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 
 						expr.addAll(lexpr);

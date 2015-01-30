@@ -71,9 +71,9 @@ public class HPPLCustomFunctions {
 		});
 		
 		for (TypeDef type : LibraryCore.INT_TYPES) {
-			pkg.getFunction("core."+type.name+"._bit_not").data.put("compName", "BITNOT");
-			pkg.getFunction("core."+type.name+"._bit_and").data.put("compName", "BITAND");
-			pkg.getFunction("core."+type.name+"._bit_or").data.put("compName", "BITOR");
+			pkg.getFunction("core."+type.name+"._bnot").data.put("compName", "BITNOT");
+			pkg.getFunction("core."+type.name+"._band").data.put("compName", "BITAND");
+			pkg.getFunction("core."+type.name+"._bor").data.put("compName", "BITOR");
 		}
 		
 		for (Function fn : pkg.getFunctions("core.range")) {

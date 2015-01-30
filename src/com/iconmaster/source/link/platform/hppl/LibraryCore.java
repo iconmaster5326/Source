@@ -20,7 +20,7 @@ public class LibraryCore extends SourcePackage {
 	public static TypeDef[] MATH_TYPES = new TypeDef[] {TypeDef.INT, TypeDef.REAL, TypeDef.INT8, TypeDef.INT16, TypeDef.INT32, TypeDef.INT64, TypeDef.REAL32, TypeDef.REAL64};
 	
 	public static String[] MATH_OPS = new String[] {"_add","_sub","_mul","_div","_mod","_pow"};
-	public static String[] BIT_OPS = new String[] {"_bit_and","_bit_or"};
+	public static String[] BIT_OPS = new String[] {"_band","_bor"};
 	public static String[] BOOL_OPS = new String[] {"_eq","_neq","_lt","_gt","_le","_ge"};
 	
 	public LibraryCore() {
@@ -99,7 +99,7 @@ public class LibraryCore extends SourcePackage {
 				fn.getDirectives().add("pure");
 				this.addFunction(fn);
 			}
-			fn = Function.libraryFunction(type.name+"._bit_not", new String[] {"a1"}, new Object[] {type}, type);
+			fn = Function.libraryFunction(type.name+"._bnot", new String[] {"a1"}, new Object[] {type}, type);
 			fn.getDirectives().add("pure");
 			this.addFunction(fn);
 		}

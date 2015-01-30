@@ -93,9 +93,9 @@ public class StringUtils {
 				case OR:
 					return "_or";
 				case BIT_AND:
-					return "_bitand";
+					return "_band";
 				case BIT_OR:
-					return "_bitor";
+					return "_bor";
 			}
 		}
 		return null;
