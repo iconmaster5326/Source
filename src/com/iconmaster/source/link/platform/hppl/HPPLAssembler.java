@@ -178,6 +178,13 @@ public class HPPLAssembler {
 					}
 				}
 				break;
+			case RAWEQ:
+				sb.append("STRING(");
+				sb.append(ad.getInline(op.op.args[1]));
+				sb.append(")==STRING(");
+				sb.append(ad.getInline(op.op.args[2]));
+				sb.append(")");
+				break;
 			}
 		return sb.toString();
 	}
