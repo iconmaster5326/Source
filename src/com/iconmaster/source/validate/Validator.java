@@ -90,6 +90,9 @@ public class Validator {
 				case MOD:
 				case ADD:
 				case SUB:
+				case SLL:
+				case SRL:
+				case SRA:
 				case BIT_AND:
 				case BIT_OR:
 				case EQ:
