@@ -637,6 +637,16 @@ public class SourceCompiler {
 							expr.type = rtype;
 						}
 						break;
+					case RAW_EQ:
+						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
+						Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+						
+						expr.addAll(lexpr);
+						expr.addAll(rexpr);
+						
+						expr.add(new Operation(OpType.RAWEQ, TypeDef.BOOLEAN, e.range, retVar, lexpr.retVar, rexpr.retVar));
+						expr.type = new DataType(TypeDef.BOOLEAN);
+						break;
 				}
 			}
 		}

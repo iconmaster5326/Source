@@ -178,6 +178,7 @@ public enum Rule implements IElementType {
 	SRA(null,"a@0'>>>'a@1"),
 	BIT_AND(null,"a@0'&'a@1"),
 	BIT_OR(null,"a@0'|'a@1"),
+	RAW_EQ(null,"a@0'==='a@1"),
 	EQ(null,"a@0'=='a@1"),
 	NEQ(null,"a@0'!='a@1"),
 	LT(null,"a@0'<'a@1"),

@@ -93,6 +93,7 @@ public class Validator {
 				case SLL:
 				case SRL:
 				case SRA:
+				case RAW_EQ:
 				case BIT_AND:
 				case BIT_OR:
 				case EQ:
