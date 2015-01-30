@@ -96,6 +96,12 @@ public class StringUtils {
 					return "_band";
 				case BIT_OR:
 					return "_bor";
+				case SLL:
+					return "_sll";
+				case SRL:
+					return "_srl";
+				case SRA:
+					return "_sra";
 			}
 		}
 		return null;
