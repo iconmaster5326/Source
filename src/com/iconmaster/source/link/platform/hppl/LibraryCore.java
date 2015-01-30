@@ -20,7 +20,7 @@ public class LibraryCore extends SourcePackage {
 	public static TypeDef[] MATH_TYPES = new TypeDef[] {TypeDef.INT, TypeDef.REAL, TypeDef.INT8, TypeDef.INT16, TypeDef.INT32, TypeDef.INT64, TypeDef.REAL32, TypeDef.REAL64};
 	
 	public static String[] MATH_OPS = new String[] {"_add","_sub","_mul","_div","_mod","_pow"};
-	public static String[] BIT_OPS = new String[] {"_band","_bor"};
+	public static String[] BIT_OPS = new String[] {"_band","_bor","_sll","_srl","_sra"};
 	public static String[] BOOL_OPS = new String[] {"_eq","_neq","_lt","_gt","_le","_ge"};
 	
 	public LibraryCore() {
