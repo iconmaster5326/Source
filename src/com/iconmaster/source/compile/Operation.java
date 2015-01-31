@@ -12,7 +12,7 @@ import java.util.Objects;
  */
 public class Operation {
 	public enum OpType {
-		MOV,MOVN,MOVS,MOVL,MOVA,CALL,RAWEQ,
+		MOV,MOVN,MOVS,MOVL,MOVA,CALL,RAWEQ,NEW,
 		BEGIN,END,PROP,NOP,DEF,
 		IF,ELSE,FOR,ITER,DO,WHILE,REP,
 		RET,BRK,CONT,

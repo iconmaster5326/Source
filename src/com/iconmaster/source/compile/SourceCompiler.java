@@ -517,8 +517,43 @@ public class SourceCompiler {
 					case CHAIN:
 					case ICALL_REF:
 						return CompileLookup.rvalLookup(cd, retVar, e.range, e);
-					case INDEX:
+					case NEW:
+						String instName = (String) e.args[0];
+						es = (ArrayList<Element>) e.args[1];
+						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
+							es = (ArrayList<Element>) es.get(0).args[0];
+						}
+						TypeDef instType = cd.pkg.getType(instName);
+						expr.add(new Operation(OpType.NEW, instType, e.range, retVar, instType.name));
+						expr.type = new DataType(instType);
+						
+						ArrayList<DataType> args = new ArrayList<>();
+						args.add(new DataType(instType));
 						ArrayList<String> names = new ArrayList<>();
+						for (Element e2 : es) {
+							Expression aexpr = compileExpr(cd, cd.frame.newVarName(), e2);
+							expr.addAll(aexpr);
+							names.add(aexpr.retVar);
+							args.add(aexpr.type);
+						}
+						
+						FunctionCall fcall = new FunctionCall(instType.name+"._new", args, new DataType(true), e.directives);
+						Function fn = cd.pkg.getFunction(fcall.name, fcall);
+						
+						if (fn==null) {
+							ArrayList<Function> fns = cd.pkg.getFunctions(fcall.name);
+							if (names.size()>1 && !fns.isEmpty()) {
+								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Could not find constructor for type "+instType, fcall.name));
+							}
+						} else {
+							names.add(0,retVar);
+							names.add(0,fn.getFullName());
+							names.add(0,cd.frame.newVarName());
+							expr.add(new Operation(OpType.CALL, instType, e.range, names.toArray(new String[0])));
+						}
+						break;
+					case INDEX:
+						names = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[0];
 						if (es.size()==1 && es.get(0).type==Rule.TUPLE) {
 							es = (ArrayList<Element>) es.get(0).args[0];
@@ -577,7 +612,7 @@ public class SourceCompiler {
 
 						DataType retType = lexpr.type;
 
-						Function fn;
+						fn = null;
 						TypeDef td = lexpr.type.type;
 						do {
 							fn = cd.pkg.getFunction(td.name+"."+callName, new FunctionCall(callName, a, retType, e.directives));
