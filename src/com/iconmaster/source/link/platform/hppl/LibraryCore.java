@@ -73,6 +73,25 @@ public class LibraryCore extends SourcePackage {
 			this.addIterator(iter);
 		}
 		
+		//constructors
+		fn = Function.libraryFunction("list._new", new String[] {"a"}, new Object[] {TypeDef.LIST}, null);
+		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("list._new", new String[] {"a","size"}, new Object[] {TypeDef.LIST,TypeDef.INT}, null);
+		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("array._new", new String[] {"a"}, new Object[] {TypeDef.ARRAY}, null);
+		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("array._new", new String[] {"a","size"}, new Object[] {TypeDef.ARRAY,TypeDef.INT}, null);
+		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("string._new", new String[] {"s"}, new Object[] {TypeDef.STRING}, null);
+		this.addFunction(fn);
+		
+		fn = Function.libraryFunction("string._new", new String[] {"s","size"}, new Object[] {TypeDef.STRING,TypeDef.INT}, null);
+		this.addFunction(fn);
+		
 		//overloads
 		for (TypeDef type : MATH_TYPES) {
 			for (String op : MATH_OPS) {
