@@ -452,7 +452,7 @@ public class CompileLookup {
 							}
 						} else if (!cd.frame.isDefined((String)node.data)) {
 							cd.errs.add(new SourceUndefinedVariableException(node.range, "Undefined variable "+node.data, (String) node.data));
-						} else if (cd.frame.getVariable((String)node.data)==null) {
+						} else if (!cd.frame.getVariable((String)node.data)) {
 							cd.errs.add(new SourceUninitializedVariableException(node.range, "Uninitialized variable "+node.data, (String) node.data));
 						} else {
 							expr.type = cd.frame.getVarType((String)node.data);

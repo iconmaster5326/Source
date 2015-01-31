@@ -2,7 +2,6 @@ package com.iconmaster.source.compile;
 
 import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.compile.Operation.OpType;
-import com.iconmaster.source.compile.ScopeFrame.Variable;
 import static com.iconmaster.source.compile.SourceCompiler.compileExpr;
 import static com.iconmaster.source.compile.SourceCompiler.compileFunction;
 import com.iconmaster.source.element.Element;
@@ -111,7 +110,7 @@ public class SourceCompiler {
 	public static Expression compileFunction(CompileData cd, Function fn) {
 		cd.dirs = fn.getDirectives();
 		for (Field v : fn.getArguments()) {
-			cd.frame.putVariable(v.getName(), false/*!Directives.has(fn, "export")*/);
+			cd.frame.putVariable(v.getName());
 			if (v.getRawType()!=null) {
 				cd.frame.setVarType(v.getName(), v.getType());
 			}
@@ -131,9 +130,9 @@ public class SourceCompiler {
 	
 	public static Expression compileField(CompileData cd, Field field) {
 		cd.dirs = field.getDirectives();
-		Variable v = cd.frame.putVariable(field.getName(), false);
+		cd.frame.putVariable(field.getName());
 		if (field.rawData()!=null) {
-			Expression expr = compileExpr(cd, v.name, field.rawData());
+			Expression expr = compileExpr(cd, field.getName(), field.rawData());
 			field.setCompiled(expr);
 			if (field.getType()==null) {
 				field.setType(expr.type);
@@ -397,7 +396,7 @@ public class SourceCompiler {
 						for (Element e2 : es) {
 							String var = resolveLValueRaw(cd, e2);
 							forVars.add(var);
-							cd.frame.putVariable(var, false);
+							cd.frame.putVariable(var);
 							if (e2.dataType!=null) {
 								cd.frame.setVarType(var, compileDataType(cd, e2.dataType));
 							} else {
@@ -742,10 +741,8 @@ public class SourceCompiler {
 						
 					} else if (!cd.frame.isDefined(name)) {
 						cd.errs.add(new SourceUndefinedVariableException(e.range,"Variable "+name+" not declared local", (String) e.args[0]));
-					} else if (cd.frame.getVariable(name)==null) {
-						name = cd.frame.putVariable(name, false).name;
-					} else {
-						name = cd.frame.getVariableName(name);
+					} else if (!cd.frame.getVariable(name)) {
+						cd.frame.putVariable(name);
 					}
 					expr.retVar = name;
 					expr.type = cd.frame.getVarType(name);

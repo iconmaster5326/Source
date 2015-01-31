@@ -12,16 +12,9 @@ import java.util.HashSet;
  * @author iconmaster
  */
 public class ScopeFrame {
-	
-	public static class Variable {
-		public String name;
-		public String realName;
-	}
-	
 	public SourcePackage pkg;
 	public ScopeFrame parent;
-	public HashMap<String,String> names = new HashMap<>();
-	public HashMap<String,Variable> vars = new HashMap<>();
+	public HashSet<String> vars = new HashSet<>();
 	public HashSet<String> defined = new HashSet<>();
 	public HashMap<String,DataType> types = new HashMap<>();
 	public HashMap<String,DataType> params = new HashMap<>();
@@ -43,38 +36,30 @@ public class ScopeFrame {
 		this.parent = cd.frame;
 	}
 	
-	public Variable putVariable(String name, boolean map) {
-		Variable v = new Variable();
-		v.realName = name;
-		if (map) {
-			v.name = pkg.nameProvider.getTempName();
-			names.put(v.realName, v.name);
-		} else {
-			v.name = v.realName;
-		}
+	public void putVariable(String name) {
 		putDefined(name);
-		vars.put(name, v);
-		return v;
+		vars.add(name);
 	}
 	
-	public Variable getVariable(String realName) {
-		Variable v = vars.getOrDefault(realName, vars.get(names.get(realName)));
-		if (v==null && parent!=null) {
-			return parent.getVariable(realName);
+	public boolean getVariable(String name) {
+		boolean b = vars.contains(name);
+		if (b) {
+			return true;
+		} else if (parent==null) {
+			return false;
+		} else {
+			return parent.getVariable(name);
 		}
-		return v;
 	}
 	
-	public String getVariableName(String name) {
-		return getVariable(name).name;
-	}
-	
-	public Variable newVariable() {
-		return putVariable(pkg.nameProvider.getTempName(), false);
+	public String newVariable() {
+		String name = pkg.nameProvider.getTempName();
+		putVariable(name);
+		return name;
 	}
 	
 	public String newVarName() {
-		return newVariable().name;
+		return newVariable();
 	}
 	
 	public String[] getAllVars() {
