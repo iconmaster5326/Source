@@ -10,7 +10,7 @@ import com.iconmaster.source.util.StringUtils;
 public enum TokenRule implements IElementType {
 	COMMENT(null,"\\/\\/[^\n]*\n"),
 	SPACE(" ","[\\s]+"),
-	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|new|extends|to|continue)\\b"),
+	RESWORD(null,"(local|function|and|or|not|for|in|as|return|break|struct|if|else|elseif|while|repeat|until|field|import|package|enum|true|false|iterator|new|extends|to|continue|type|class)\\b"),
 	WORD("w","[\\w\\?&&[^\\d]][\\w\\?\\.]*"),
 	NUMBER("n","[\\d\\.]+"),
 	STRING("s","\"(\\\\.|[^\"])*\""),

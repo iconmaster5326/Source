@@ -12,6 +12,7 @@ import com.iconmaster.source.exception.SourceSafeModeException;
 import com.iconmaster.source.exception.SourceSyntaxException;
 import com.iconmaster.source.exception.SourceUndefinedFunctionException;
 import com.iconmaster.source.exception.SourceUndefinedVariableException;
+import com.iconmaster.source.prototype.CustomType;
 import com.iconmaster.source.prototype.Field;
 import com.iconmaster.source.prototype.Function;
 import com.iconmaster.source.prototype.FunctionCall;
@@ -35,6 +36,14 @@ import java.util.HashSet;
 public class SourceCompiler {
 	public static ArrayList<SourceException> compile(SourcePackage pkg) {
 		CompileData cd = new CompileData(pkg);
+		
+		//compile custom types
+		for (CustomType ct : cd.pkg.getCustomTypes()) {
+			if (ct.rawType!=null) {
+				DataType dt = compileDataType(cd, ct.rawType);
+				ct.parent = dt.type;
+			}
+		}
 		
 		ArrayList<Function> fns = new ArrayList<>();
 		fns.addAll(cd.pkg.getFunctions());

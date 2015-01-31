@@ -140,7 +140,7 @@ public enum Rule implements IElementType {
 		e1.dataType = e2;
 		return new RuleResult(e1,3);
 	}),
-	EXTEND("E","a@0'extends'a@1"),
+	EXTEND("E","w0'extends'a@1"),
 	CHAIN("C", new com.iconmaster.source.element.ISpecialRule() {
 		@Override
 		public RuleResult match(ArrayList<Element> a, int i) {
@@ -257,6 +257,8 @@ public enum Rule implements IElementType {
 	IMPORT(null,"'import'!a@0?"),
 	FUNC(null,"'function'!F013?c2"),
 	ITERATOR(null,"'iterator'!F01?c2"),
+	TYPE(null,"'type'!w0c2"),
+	TYPE_EXT(null,"'type'!E01c2"),
 	STRUCT(null,"'struct'!w@0c2"),
 	STRUCT_EXT(null,"'struct'!E01c2"),
 	ENUM(null,"'enum'!w0c1"),

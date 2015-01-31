@@ -22,6 +22,7 @@ public class SourcePackage implements IDirectable {
 	protected ArrayList<Import> imports = new ArrayList<>();
 	protected ArrayList<TypeDef> types = new ArrayList<>();
 	protected ArrayList<Iterator> iters = new ArrayList<>();
+	protected ArrayList<CustomType> customTypes = new ArrayList<>();
 	private ArrayList<ImportAlias> aliases = new ArrayList<>();
 	
 	public NameProvider nameProvider = NameProvider.instance;
@@ -159,9 +160,88 @@ public class SourcePackage implements IDirectable {
 					String s = (String) e.args[0];
 					directives.add(s.substring(1));
 					break;
+				case TYPE_EXT:
+					Element typeExtend = (Element) e.args[1];
+					String typeName = (String) e.args[0];
+					ArrayList<Element> code = (ArrayList<Element>) e.args[2];
+					errors.addAll(parseType(code, typeName, typeExtend));
+					break;
+				case TYPE:
+					typeName = (String) e.args[0];
+					code = (ArrayList<Element>) e.args[2];
+					errors.addAll(parseType(code, typeName, null));
+					break;
 			}
 		}
 		return errors;
+	}
+	
+	public ArrayList<SourceException> parseType(ArrayList<Element> code, String name, Element extend) {
+		ArrayList<SourceException> errs = new ArrayList<>();
+		
+		CustomType td = new CustomType(name, extend);
+		this.addCustomType(td);
+		
+		for (Element e : code) {
+			if (e.type instanceof Rule) {
+				switch ((Rule)e.type) {
+					case ITERATOR:
+					case FUNC:
+						String fname = name+"."+(String) e.args[0];
+						ArrayList<Field> args = new ArrayList<>();
+						Element rets = e.dataType;
+						for (Element e2 : (ArrayList<Element>) e.args[1]) {
+							if (e2.args[0] instanceof ArrayList) {
+								for (Element e3 : (ArrayList<Element>) e2.args[0]) {
+									args.add(new Field((String)e3.args[0], e3.dataType));
+								}
+							} else {
+								args.add(new Field((String)e2.args[0], e2.dataType));
+							}
+						}
+
+						Function fn;
+						if (e.type==Rule.ITERATOR) {
+							fn = new Iterator(fname, args,rets);
+						} else {
+							fn = new Function(fname,args,rets);
+						}
+
+						fn.getDirectives().addAll(e.directives);
+						fn.getDirectives().addAll(directives);
+						fn.rawCode = (ArrayList<Element>) e.args[2];
+
+						if (e.args[3]!=null) {
+							ArrayList<Element> es = (ArrayList<Element>) e.args[3];
+							if (es.size()>0 && es.get(0).type==Rule.TUPLE) {
+								es = (ArrayList<Element>) es.get(0).args[0];
+							}
+							fn.rawParams = new ArrayList<>();
+							for (Element e2 : es) {
+								Field param = new Field((String) e2.args[0], e2.dataType);
+								fn.rawParams.add(param);
+							}
+						}
+
+						if (e.type==Rule.ITERATOR) {
+							addIterator((Iterator)fn);
+						} else {
+							addFunction(fn);
+						}
+
+						if (Directives.has(fn, "get") || Directives.has(fn, "set")) {
+							if (this.getField(fn.getName())==null) {
+								Field f = new Field(fn.getName(), fn.getReturn());
+								f.pkgName = fn.pkgName;
+								this.addField(f);
+							}
+						}
+						break;
+				}
+			}
+		}
+		
+		return errs;
 	}
 	
 	public void addContents(SourcePackage other) {
@@ -173,6 +253,7 @@ public class SourcePackage implements IDirectable {
 		functions.addAll(other.functions);
 		imports.addAll(other.imports);
 		types.addAll(other.types);
+		customTypes.addAll(other.customTypes);
 		iters.addAll(other.iters);
 		directives.addAll(other.directives);
 		aliases.addAll(other.aliases);
@@ -306,6 +387,25 @@ public class SourcePackage implements IDirectable {
 	
 	public TypeDef getType(String name) {
 		for (TypeDef v : types) {
+			if (v.name.equals(name) || (v.pkgName+"."+v.name).equals(name)) {
+				return v;
+			}
+		}
+		return null;
+	}
+	
+	public ArrayList<CustomType> getCustomTypes() {
+		return customTypes;
+	}
+	
+	public void addCustomType(CustomType def) {
+		def.pkgName = this.getName();
+		customTypes.add(def);
+		types.add(def);
+	}
+	
+	public TypeDef getCustomType(String name) {
+		for (CustomType v : customTypes) {
 			if (v.name.equals(name) || (v.pkgName+"."+v.name).equals(name)) {
 				return v;
 			}

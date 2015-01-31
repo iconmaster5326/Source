@@ -14,7 +14,7 @@ import java.util.ArrayList;
  */
 public class Validator {
 	public static enum Scope {
-		GLOBAL,STRUCT,CODE,LVALUE,RVALUE
+		GLOBAL,CODE,LVALUE,RVALUE
 	}
 	
 	public static ArrayList<SourceException> validate(ArrayList<Element> input) {
@@ -168,12 +168,13 @@ public class Validator {
 					break;
 					
 				//global level
+				case TYPE_EXT:
 				case STRUCT_EXT:
 					a.addAll(validateElement((Element) e.args[1],Scope.LVALUE));
+				case TYPE:
 				case STRUCT:
 					ensureScope(a,e,scope,Scope.GLOBAL);
-					a.addAll(validateElement((Element) e.args[0],Scope.LVALUE));
-					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.STRUCT));
+					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.GLOBAL));
 					break;
 				case ENUM:
 					ensureScope(a,e,scope,Scope.GLOBAL);
@@ -191,13 +192,13 @@ public class Validator {
 					if (e.args[3]!=null) {
 						a.addAll(validate((ArrayList<Element>) e.args[3],Scope.LVALUE));
 					}
-					ensureScope(a,e,scope,Scope.GLOBAL,Scope.STRUCT);
+					ensureScope(a,e,scope,Scope.GLOBAL,Scope.GLOBAL);
 					a.addAll(validate((ArrayList<Element>) e.args[2],Scope.CODE));
 					break;
 				case FIELD_ASN:
 					a.addAll(validate((ArrayList<Element>) e.args[1],Scope.RVALUE));
 				case FIELD:
-					ensureScope(a,e,scope,Scope.GLOBAL,Scope.STRUCT);
+					ensureScope(a,e,scope,Scope.GLOBAL,Scope.GLOBAL);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.LVALUE));
 					break;
 					
