@@ -52,14 +52,10 @@ public class ScopeFrame {
 		}
 	}
 	
-	public String newVariable() {
+	public String newVarName() {
 		String name = pkg.nameProvider.getTempName();
 		putVariable(name);
 		return name;
-	}
-	
-	public String newVarName() {
-		return newVariable();
 	}
 	
 	public String[] getAllVars() {
