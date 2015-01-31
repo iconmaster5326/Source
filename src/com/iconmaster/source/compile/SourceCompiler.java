@@ -182,9 +182,20 @@ public class SourceCompiler {
 							}
 							break;
 						}
+						if (Directives.has(e, "const")) {
+							ArrayList<Element> les = (ArrayList<Element>) e.args[0];
+							
+							for (Element e2 : les) {
+								String expr2 = resolveLValueRaw(cd, e2);
+								cd.frame.putConst(expr2);
+							}
+						}
 						for (Element e2 : (ArrayList<Element>) e.args[0]) {
 							String expr2 = resolveLValueRaw(cd, e2);
 							cd.frame.putDefined(expr2);
+							if (Directives.has(e2, "const")) {
+								cd.frame.putConst(expr2);
+							}
 							if (e2.dataType!=null) {
 								cd.frame.setVarType(expr2, compileDataType(cd, e2.dataType));
 							} else {
@@ -740,7 +751,9 @@ public class SourceCompiler {
 					if (cd.pkg.getField(name)!=null) {
 						
 					} else if (!cd.frame.isDefined(name)) {
-						cd.errs.add(new SourceUndefinedVariableException(e.range,"Variable "+name+" not declared local", (String) e.args[0]));
+						cd.errs.add(new SourceUndefinedVariableException(e.range,"Variable "+name+" not declared local", name));
+					} else if (cd.frame.isConst(name) && cd.frame.getVariable(name)) {
+						cd.errs.add(new SourceSafeModeException(e.range,"Cannot assign a new value to constant "+name, name));
 					} else if (!cd.frame.getVariable(name)) {
 						cd.frame.putVariable(name);
 					}
