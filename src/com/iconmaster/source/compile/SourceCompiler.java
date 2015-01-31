@@ -542,7 +542,7 @@ public class SourceCompiler {
 						
 						if (fn==null) {
 							ArrayList<Function> fns = cd.pkg.getFunctions(fcall.name);
-							if (names.size()>1 && !fns.isEmpty()) {
+							if (!names.isEmpty() || !fns.isEmpty()) {
 								cd.errs.add(new SourceUndefinedFunctionException(e.range, "Could not find constructor for type "+instType, fcall.name));
 							}
 						} else {
