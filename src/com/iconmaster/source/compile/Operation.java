@@ -105,26 +105,6 @@ public class Operation {
 		return sb.toString();
 	}
 	
-	public String[] getVarNames() {
-		switch (this.op) {
-			case PROP:
-			case DEF:
-				return new String[] {};
-			case MOVN:
-			case MOVS:
-				return new String[] {this.args[0]};
-			case CALL:
-				ArrayList<String> a = new ArrayList<>();
-				a.add(args[0]);
-				for (int i=2;i<args.length;i++) {
-					a.add(args[i]);
-				}
-				return a.toArray(new String[] {});
-			default:
-				return this.args;
-		}
-	}
-	
 	public Boolean[] getVarSlots() {
 		switch (this.op) {
 			case PROP:
@@ -133,6 +113,7 @@ public class Operation {
 				return new Boolean[] {};
 			case MOVN:
 			case MOVS:
+			case NEW:
 				return new Boolean[] {true,false};
 			case CALL:
 				ArrayList<Boolean> a = new ArrayList<>();
