@@ -161,6 +161,7 @@ public enum Rule implements IElementType {
 			}
 		}
 	}),
+	NEW(null,"'new'!F01?"),
 	TRUE(null,"'true'?!"),
 	FALSE(null,"'false'?!"),
 	NOT(null,"'not'a@0"),

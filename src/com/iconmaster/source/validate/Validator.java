@@ -217,6 +217,7 @@ public class Validator {
 				//other cases
 
 				case FCALL:
+				case NEW:
 					if (e.args[2]!=null) {
 						a.addAll(validate((ArrayList<Element>) e.args[2],Scope.LVALUE));
 					}
