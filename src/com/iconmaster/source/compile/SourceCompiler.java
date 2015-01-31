@@ -103,6 +103,7 @@ public class SourceCompiler {
 		CompileUtils.transform(cd.pkg, nameConflictResolver);
 		CompileUtils.transform(cd.pkg, optimizer);
 		Optimizer.countUsages(pkg);
+		checkPrivacy(cd);
 		
 		return cd.errs;
 	}
@@ -1067,4 +1068,42 @@ public class SourceCompiler {
 		}
 		return a;
 	};
+	
+	public static void checkPrivacy(CompileData cd) {
+		CompileUtils.transform(cd.pkg, (pkg, work, code) -> {
+			String pkgOf;
+			if (work instanceof Function) {
+				pkgOf = ((Function)work).pkgName;
+			} else if (work instanceof Field) {
+				pkgOf = ((Field)work).pkgName;
+			} else {
+				pkgOf = cd.pkg.getName();
+			}
+			
+			for (Operation op : code) {
+				if (op.op == OpType.CALL) {
+					String fnName = op.args[1];
+					Function fn = pkg.getFunction(fnName);
+					
+					if (!fn.pkgName.equals(pkgOf) && Directives.has(fn, "private")) {
+						cd.errs.add(new SourceSafeModeException(op.range, "Function "+fnName+" is @private to package "+fn.pkgName+", call was from package "+pkgOf, fnName));
+					}
+				}
+				
+				int i = 0;
+				for (boolean b : op.getVarSlots()) {
+					if (b) {
+						String var = op.args[i];
+						Field f = pkg.getField(var);
+						if (f!=null && !f.pkgName.equals(pkgOf) && Directives.has(f, "private")) {
+							cd.errs.add(new SourceSafeModeException(op.range, "Field "+var+" is @private to package "+f.pkgName+", use was from package "+pkgOf, var));
+						}
+					}
+					i++;
+				}
+			}
+			
+			return code;
+		});
+	}
 }
