@@ -117,15 +117,18 @@ public class SourcePackage implements IDirectable {
 							args.add(new Field((String)e2.args[0], e2.dataType));
 						}
 					}
+					
 					Function fn;
 					if (e.type==Rule.ITERATOR) {
 						fn = new Iterator(fname, args,rets);
 					} else {
 						fn = new Function(fname,args,rets);
 					}
+					
 					fn.getDirectives().addAll(e.directives);
 					fn.getDirectives().addAll(directives);
 					fn.rawCode = (ArrayList<Element>) e.args[2];
+					
 					if (e.args[3]!=null) {
 						ArrayList<Element> es = (ArrayList<Element>) e.args[3];
 						if (es.size()>0 && es.get(0).type==Rule.TUPLE) {
@@ -137,10 +140,19 @@ public class SourcePackage implements IDirectable {
 							fn.rawParams.add(param);
 						}
 					}
+					
 					if (e.type==Rule.ITERATOR) {
 						addIterator((Iterator)fn);
 					} else {
 						addFunction(fn);
+					}
+					
+					if (Directives.has(fn, "get") || Directives.has(fn, "set")) {
+						if (this.getField(fn.getName())==null) {
+							Field f = new Field(fn.getName(), fn.getReturn());
+							f.pkgName = fn.pkgName;
+							this.addField(f);
+						}
 					}
 					break;
 				case GLOBAL_DIR:
