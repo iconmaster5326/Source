@@ -552,6 +552,7 @@ public class SourceCompiler {
 							expr.add(new Operation(OpType.CALL, instType, e.range, names.toArray(new String[0])));
 						}
 						break;
+					case DYN_INDEX:
 					case INDEX:
 						names = new ArrayList<>();
 						es = (ArrayList<Element>) e.args[0];
@@ -577,25 +578,17 @@ public class SourceCompiler {
 							common = new DataType();
 						}
 						
-						OpType ot = OpType.MOVA;
-						if (e.dataType!=null) {
-							DataType ldt = SourceCompiler.compileDataType(cd, e.dataType);
-							if (ldt.params.length==0) {
-								ldt.params = new DataType[] {common};
-							} else {
-								common = ldt.params[0];
-							}
-							expr.type = ldt;
-							
-							if (DataType.canCastTo(ldt, new DataType(TypeDef.LIST))) {
-								ot = OpType.MOVL;
-							}
+						OpType ot;
+						if (e.type==Rule.DYN_INDEX) {
+							ot = OpType.MOVL;
+							expr.type = new DataType(TypeDef.LIST,true);
 						} else {
+							ot = OpType.MOVA;
 							expr.type = new DataType(TypeDef.ARRAY,true);
-							expr.type.params = new DataType[] {common};
 						}
-						names.add(0,retVar);
+						expr.type.params = new DataType[] {common};
 						
+						names.add(0,retVar);
 						expr.add(new Operation(ot, common, e.range, names.toArray(new String[0])));
 						break;
 					case PAREN:

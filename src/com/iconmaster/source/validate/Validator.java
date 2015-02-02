@@ -64,6 +64,7 @@ public class Validator {
 					ensureScope(a,e,scope,Scope.CODE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.CODE));
 					break;
+				case DYN_INDEX:
 				case INDEX:
 					ensureScope(a,e,scope,Scope.RVALUE);
 					a.addAll(validate((ArrayList<Element>) e.args[0],Scope.RVALUE));

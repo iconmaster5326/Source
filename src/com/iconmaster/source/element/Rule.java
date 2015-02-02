@@ -97,6 +97,7 @@ public enum Rule implements IElementType {
 		}
 		return null;
 	}),
+	DYN_INDEX(null,"i0!':'?"),
 	CODE("c",(a,i)->{
 		if (a.get(i).type==TokenRule.SYMBOL && "{".equals(a.get(i).args[0])) {
 			int j = i;

@@ -17,7 +17,7 @@ public enum TokenRule implements IElementType {
 	CHAR(null,"\'(\\\\.|[^\'])\'"),
 	SEP(";",";+"),
 	DIRECTIVE("r","@[\\S]*"),
-	SYMBOL("y","([\\Q+-*/=<>~!&|%^\\E]+|\\(|\\)|\\[|\\]|\\{|\\}|,)");
+	SYMBOL("y","([\\Q+-*/=<>~:!&|%^\\E]+|\\(|\\)|\\[|\\]|\\{|\\}|,)");
 	
 	public final String match;
 	public String alias;
