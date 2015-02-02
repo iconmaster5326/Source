@@ -581,7 +581,9 @@ public class SourceCompiler {
 						if (e.dataType!=null) {
 							DataType ldt = SourceCompiler.compileDataType(cd, e.dataType);
 							if (ldt.params.length==0) {
-								expr.type.params = new DataType[] {common};
+								ldt.params = new DataType[] {common};
+							} else {
+								common = ldt.params[0];
 							}
 							expr.type = ldt;
 							
