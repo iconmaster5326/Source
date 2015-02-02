@@ -34,9 +34,6 @@ public enum Rule implements IElementType {
 					depth--;
 				}
 				if (depth==0) {
-					Element e = new Element(Range.from(r1, a.get(j).range),Rule.BLOCK_COMMENT);
-					ArrayList<Element> a3 = Parser.parse((ArrayList<Element>) a2.clone());
-					e.args[0] = a3;
 					return new RuleResult(null,a2.size()+2);
 				}
 				a2.add(a.get(j));
