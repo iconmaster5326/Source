@@ -577,10 +577,24 @@ public class SourceCompiler {
 							common = new DataType();
 						}
 						
+						OpType ot = OpType.MOVA;
+						if (e.dataType!=null) {
+							DataType ldt = SourceCompiler.compileDataType(cd, e.dataType);
+							if (ldt.params.length==0) {
+								expr.type.params = new DataType[] {common};
+							}
+							expr.type = ldt;
+							
+							if (DataType.canCastTo(ldt, new DataType(TypeDef.LIST))) {
+								ot = OpType.MOVL;
+							}
+						} else {
+							expr.type = new DataType(TypeDef.ARRAY,true);
+							expr.type.params = new DataType[] {common};
+						}
 						names.add(0,retVar);
-						expr.add(new Operation(OpType.MOVA, common, e.range, names.toArray(new String[0])));
-						expr.type = new DataType(TypeDef.ARRAY,true);
-						expr.type.params = new DataType[] {common};
+						
+						expr.add(new Operation(ot, common, e.range, names.toArray(new String[0])));
 						break;
 					case PAREN:
 						es = (ArrayList<Element>) e.args[0];
