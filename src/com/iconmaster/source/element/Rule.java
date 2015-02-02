@@ -16,6 +16,34 @@ import java.util.regex.Pattern;
  * @author iconmaster
  */
 public enum Rule implements IElementType {
+	BLOCK_COMMENT(null,(a,i)->{
+		if (a.get(i).type==TokenRule.SYMBOL && "/*".equals(a.get(i).args[0])) {
+			int j = i;
+			int depth = 1;
+			ArrayList<Element> a2 = new ArrayList<>();
+			Range r1 = a.get(i).range;
+			while (true) {
+				j++;
+				if (j>a.size()) {
+					return null;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "/*".equals(a.get(j).args[0])) {
+					depth++;
+				}
+				if (a.get(j).type==TokenRule.SYMBOL && "*/".equals(a.get(j).args[0])) {
+					depth--;
+				}
+				if (depth==0) {
+					Element e = new Element(Range.from(r1, a.get(j).range),Rule.BLOCK_COMMENT);
+					ArrayList<Element> a3 = Parser.parse((ArrayList<Element>) a2.clone());
+					e.args[0] = a3;
+					return new RuleResult(null,a2.size()+2);
+				}
+				a2.add(a.get(j));
+			}
+		}
+		return null;
+	}),
 	PAREN("p",(a,i)->{
 		if (a.get(i).type==TokenRule.SYMBOL && "(".equals(a.get(i).args[0])) {
 			int j = i;
