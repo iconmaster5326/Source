@@ -21,6 +21,8 @@ public class SourceOptions {
 	public InputStream sin = System.in;
 	public OutputStream serr = System.err;
 	
+	public boolean noRunAssemble = false;
+	
 	public SourceOptions(String input, String platform, boolean compile) {
 		this.input = input;
 		this.platform = platform;

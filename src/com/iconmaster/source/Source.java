@@ -227,44 +227,48 @@ public class Source {
 				onError(so, errs, dets);
 				return so;
 			}
+			
+			so.pkg = linker.outputPackage;
 
 			so.operationLog += linker + "\n";
-			if (opts.compile) {
-				so.operationLog += "Assembling...\n";
-				try {
-					so.output = Assembler.assemble(opts.platform, linker.outputPackage);
-					
-					errs.addAll(so.output.errs);
-					for (SourceException ex :  so.output.errs) {
+			if (!opts.noRunAssemble) {
+				if (opts.compile) {
+					so.operationLog += "Assembling...\n";
+					try {
+						so.output = Assembler.assemble(opts.platform, linker.outputPackage);
+
+						errs.addAll(so.output.errs);
+						for (SourceException ex :  so.output.errs) {
+							dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
+						}
+
+						if (!so.output.errs.isEmpty()) {
+							onError(so, errs, dets);
+							return so;
+						}
+
+						if (opts.outputFile!=null) {
+							so.output.saveToFile(opts);
+						}
+					} catch (Exception ex) {
+						Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
 						dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
-					}
-					
-					if (!so.output.errs.isEmpty()) {
+
 						onError(so, errs, dets);
 						return so;
 					}
-					
-					if (opts.outputFile!=null) {
-						so.output.saveToFile(opts);
+					so.operationLog += so.output.getOutputString() + "\n";
+				} else {
+					so.operationLog += "Running...\n";
+					try {
+						Assembler.run(opts.platform, linker.outputPackage);
+					} catch (Exception ex) {
+						Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in running", ex);
+						dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
+
+						onError(so, errs, dets);
+						return so;
 					}
-				} catch (Exception ex) {
-					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in assembly", ex);
-					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Assembling"));
-					
-					onError(so, errs, dets);
-					return so;
-				}
-				so.operationLog += so.output.getOutputString() + "\n";
-			} else {
-				so.operationLog += "Running...\n";
-				try {
-					Assembler.run(opts.platform, linker.outputPackage);
-				} catch (Exception ex) {
-					Logger.getLogger(Source.class.getName()).log(Level.SEVERE, "Source error in running", ex);
-					dets.add(new ErrorDetails(ex.getClass().getSimpleName(), ex.getMessage(), "Running"));
-					
-					onError(so, errs, dets);
-					return so;
 				}
 			}
 			so.operationLog += "Done!\n";

@@ -2,6 +2,7 @@ package com.iconmaster.source;
 
 import com.iconmaster.source.assemble.AssembledOutput;
 import com.iconmaster.source.exception.SourceException;
+import com.iconmaster.source.prototype.SourcePackage;
 import java.util.ArrayList;
 
 /**
@@ -14,4 +15,5 @@ public class SourceOutput {
 	public ArrayList<ErrorDetails> dets = new ArrayList<>();
 	public String errMsgs;
 	public String operationLog;
+	public SourcePackage pkg;
 }
