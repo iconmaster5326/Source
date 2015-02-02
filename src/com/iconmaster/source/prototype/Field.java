@@ -14,8 +14,8 @@ import java.util.HashMap;
  */
 public class Field implements IDirectable {
 	protected String name;
-	private Element rawType;
-	protected Element rawValue;
+	public Element rawType;
+	public Element rawValue;
 	protected ArrayList<String> directives = new ArrayList<>();;
 	
 	protected boolean compiled;
