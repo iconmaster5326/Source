@@ -60,9 +60,37 @@ public class SourcePackage implements IDirectable {
 		return sb.toString();
 	}
 	
+	public boolean shouldAdd(ArrayList<String> item) {
+		ArrayList<String> defs = Directives.getValues(this, "def");
+		ArrayList<String> undefs = Directives.getValues(this, "undef");
+		ArrayList<String> ifdefs = Directives.getValues(item, "ifdef");
+		ArrayList<String> ifndefs = Directives.getValues(item, "ifndef");
+		
+		for (String s : undefs) { //hooray for the lazy remove!
+			defs.remove(s);
+		}
+		
+		for (String s : ifdefs) {
+			if (!defs.contains(s)) {
+				return false;
+			}
+		}
+		
+		for (String s : ifndefs) {
+			if (defs.contains(s)) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	public ArrayList<SourceException> parse(ArrayList<Element> a) {
 		ArrayList<SourceException> errors = new ArrayList<>();
 		for (Element e : a) {
+			if (!shouldAdd(e.directives)) {
+				continue;
+			}
 			switch ((Rule)e.type) {
 				case PACKAGE:
 					if (name!=null) {
