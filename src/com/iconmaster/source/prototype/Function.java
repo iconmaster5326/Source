@@ -14,9 +14,9 @@ import java.util.HashMap;
 public class Function implements IDirectable {
 	protected String name;
 	protected ArrayList<Field> args;
-	private Element rawReturns;
+	public Element rawReturns;
 	protected ArrayList<String> directives = new ArrayList<>();
-	protected ArrayList<Element> rawCode;
+	public ArrayList<Element> rawCode;
 	protected boolean library = false;
 	
 	protected boolean compiled = false;
