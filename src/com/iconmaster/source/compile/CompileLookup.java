@@ -729,7 +729,7 @@ public class CompileLookup {
 						}
 
 						varType = Parameterizer.replaceWithParams(varType, map);
-						
+
 						fcall2.retType = varType;
 						break;
 				}
