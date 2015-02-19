@@ -2,8 +2,6 @@ package com.iconmaster.source.compile;
 
 import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.compile.Operation.OpType;
-import static com.iconmaster.source.compile.SourceCompiler.compileExpr;
-import static com.iconmaster.source.compile.SourceCompiler.compileFunction;
 import com.iconmaster.source.element.Element;
 import com.iconmaster.source.element.Rule;
 import com.iconmaster.source.exception.SourceDataTypeException;

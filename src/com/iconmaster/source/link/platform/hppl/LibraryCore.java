@@ -611,7 +611,7 @@ public class LibraryCore extends SourcePackage {
 		//map functions
 		TypeDef mkt = new ParamTypeDef("K", 0); //this is K
 		TypeDef mvt = new ParamTypeDef("V", 1); //this is V
-		DataType mkvdt = new DataType(TypeDef.ARRAY); //this is map[K,V]
+		DataType mkvdt = new DataType(TypeDef.MAP); //this is map[K,V]
 		mkvdt.params = new DataType[] {new DataType(mkt),new DataType(mvt)};
 		
 		fn = Function.libraryFunction("map.size", new String[] {"m"}, new Object[] {mkvdt}, TypeDef.INT);
