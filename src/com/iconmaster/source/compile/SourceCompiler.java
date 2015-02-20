@@ -119,7 +119,7 @@ public class SourceCompiler {
 		cd.dirs = fn.getDirectives();
 		for (Field v : fn.getArguments()) {
 			cd.frame.putVariable(v.getName());
-			if (v.getRawType()!=null) {
+			if (v.getType()!=null) {
 				cd.frame.setVarType(v.getName(), v.getType());
 			}
 		}

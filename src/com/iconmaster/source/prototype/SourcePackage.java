@@ -217,6 +217,11 @@ public class SourcePackage implements IDirectable {
 					case FUNC:
 						String fname = name+"."+(String) e.args[0];
 						ArrayList<Field> args = new ArrayList<>();
+						if (!Directives.has(e, "static")) {
+							Field f = new Field("this", null);
+							f.setType(new DataType(td));
+							args.add(f);
+						}
 						Element rets = e.dataType;
 						for (Element e2 : (ArrayList<Element>) e.args[1]) {
 							if (e2.args[0] instanceof ArrayList) {
