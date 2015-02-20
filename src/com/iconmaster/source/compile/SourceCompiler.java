@@ -1,5 +1,6 @@
 package com.iconmaster.source.compile;
 
+import com.iconmaster.source.compile.CompileLookup.LookupFunction;
 import com.iconmaster.source.compile.CompileUtils.CodeTransformer;
 import com.iconmaster.source.compile.Operation.OpType;
 import com.iconmaster.source.element.Element;
@@ -23,7 +24,6 @@ import com.iconmaster.source.util.Directives;
 import com.iconmaster.source.util.IDirectable;
 import com.iconmaster.source.util.StringUtils;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -238,10 +238,10 @@ public class SourceCompiler {
 								if (name2!=null && cd.frame.isInlined(name2)) {
 									cd.frame.putInline(name2, res.get(asni));
 								} else {
-									Expression expr2 = resolveLValue(cd, code, e2);
+									DataType rtype = lexprs.get(asni).type;
+									Expression expr2 = resolveLValue(cd, code, e2, rtype);
 									
 									//check data types
-									DataType rtype = lexprs.get(asni).type;
 									DataType ltype = expr2.type;
 									DataType newType = DataType.getNewType(ltype, rtype);
 									if (!DataType.canCastTo(ltype,rtype)) {
@@ -381,9 +381,9 @@ public class SourceCompiler {
 						if (e.type==Rule.DIV_ASN) {
 							asnType = "_div";
 						}
-						Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0]);
-						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						Expression rexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[1]);
+						Expression lexpr1 = resolveLValue(cd, code, (Element) e.args[0], rexpr.type);
+						Expression lexpr2 = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						
 						ArrayList<DataType> a = new ArrayList<>();
 						a.add(lexpr2.type);
@@ -689,15 +689,11 @@ public class SourceCompiler {
 						expr.addAll(lexpr);
 						DataType rtype = compileDataType(cd, (Element) e.args[1]);
 						String fnName = rtype.type.name+"._cast";
-						ArrayList<DataType> argl = new ArrayList<>();
-						argl.add(lexpr.type);
-						RealFunction rfn = getRealFunction(cd, new FunctionCall(fnName, argl, rtype, e.directives));
-						if (rfn.fn==null) {
-							cd.errs.add(new SourceUndefinedFunctionException(e.range, "No conversion function from type "+lexpr.type+" to type "+rtype+" exists", rtype.type.name+"._cast"));
-						} else {
-							expr.add(new Operation(OpType.CALL, rtype.type, e.range, retVar, rfn.fn.getFullName(), name));
-							expr.type = rtype;
-						}
+						ArrayList<Expression> argl = new ArrayList<>();
+						argl.add(lexpr);
+						Expression rfn = CompileLookup.rvalLookup(cd, retVar, new LookupFunction(fnName, argl, rtype, e.directives));
+						expr.addAll(rfn);
+						expr.type = rtype;
 						break;
 					case RAW_EQ:
 						lexpr = compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
@@ -793,7 +789,7 @@ public class SourceCompiler {
 		return a;
 	}
 	
-	public static Expression resolveLValue(CompileData cd, Expression code, Element e) {
+	public static Expression resolveLValue(CompileData cd, Expression code, Element e, DataType setType) {
 		Expression expr = new Expression();
 		String name;
 		if (e.type instanceof TokenRule) {
@@ -836,7 +832,7 @@ public class SourceCompiler {
 					if (e.type==Rule.ICALL) {
 						Element listE = new Element(e.range, TokenRule.WORD);
 						listE.args[0] = e.args[0];
-						listExpr = resolveLValue(cd, expr, listE);
+						listExpr = resolveLValue(cd, expr, listE, new DataType(TypeDef.UNKNOWN));
 					} else {
 						Expression expr2 = SourceCompiler.compileExpr(cd, cd.frame.newVarName(), (Element) e.args[0]);
 						code.addAll(expr2);
@@ -849,40 +845,21 @@ public class SourceCompiler {
 						listExpr.type = new DataType(true);
 					}
 					
-					ArrayList<DataType> arga = new ArrayList<>();
-					arga.add(listExpr.type);
-					arga.add(new DataType(true)); //TODO: make it so we KNOW this
+					expr.retVar = cd.pkg.nameProvider.getTempName();
+					
+					ArrayList<Expression> arga = new ArrayList<>();
+					arga.add(listExpr);
+					Expression ex = new Expression();
+					ex.type = setType;
+					ex.retVar = expr.retVar;
+					arga.add(ex);
 					for (Expression expr3 : exprs) {
-						arga.add(expr3.type);
+						arga.add(expr3);
 					}
-					RealFunction rfn = getRealFunction(cd, new FunctionCall(listExpr.type.type.name+"._setindex", arga, (DataType) null, e.directives));
-					if (rfn.fn!=null) {
-						int i = 0;
-						if (rfn.fn.getArguments().size()-2!=exprs.size()) {
-							cd.errs.add(new SourceDataTypeException(e.range, "Data type "+listExpr.type+" expected "+(rfn.fn.getArguments().size()-2)+" indices, got "+exprs.size()));
-						} else {
-							for (Expression expr3 : exprs) {
-								if (!DataType.canCastTo(expr3.type, rfn.fn.getArguments().get(i+2).getType())) {
-									cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+" with a value of data type "+expr3.type));
-								}
-								code.addAll(expr3);
-								i++;
-							}
-						}
-						expr.retVar = cd.pkg.nameProvider.getTempName();
-						names.add(0,expr.retVar);
-						names.add(0,listExpr.retVar);
-						names.add(0,rfn.fn.getFullName());
-						names.add(0,cd.frame.newVarName());
-						expr.add(new Operation(OpType.CALL, expr.type.type, e.range, names.toArray(new String[0])));
-						expr.addAll(listExpr);
-					} else {
-						if (rfn.nameFound) {
-							cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type+"; no overload _setindex found"));
-						} else {
-							cd.errs.add(new SourceDataTypeException(e.range, "Cannot index data type "+listExpr.type));
-						}
-					}
+					Expression rfn = CompileLookup.rvalLookup(cd, cd.frame.newVarName(), new LookupFunction(listExpr.type.type.name+"._setindex", arga, null, e.directives));
+					
+					expr.addAll(rfn);
+					expr.addAll(listExpr);
 					break;
 				default:
 					cd.errs.add(new SourceSyntaxException(e.range,"Illegal L-value"));
@@ -905,69 +882,7 @@ public class SourceCompiler {
 		}
 		return name;
 	}
-	
-	public static RealFunction getRealFunction(CompileData cd, FunctionCall call) {
-		String[] subs = call.name.split("\\.");
-		String fnToCall = call.name;
-		for (int i = subs.length-1;i>=0;i--) {
-			String pkgName = "";
-			for (String str : Arrays.copyOfRange(subs, 0, i)) {
-				if (!pkgName.isEmpty()) {
-					pkgName+=".";
-				}
-				pkgName+=str;
-			}
-			String fnName = "";
-			for (String str : Arrays.copyOfRange(subs, i, subs.length)) {
-				if (!fnName.isEmpty()) {
-					fnName+=".";
-				}
-				fnName+=str;
-			}
-			
-			if (cd.frame.isDefined(pkgName) || cd.frame.isInlined(pkgName) || cd.pkg.getField(pkgName)!=null) {
-				DataType type;
-				if (cd.frame.isDefined(pkgName)) {
-					type = cd.frame.getVarType(pkgName);
-					if (type==null) {
-						type = new DataType(true);
-					}
-				} else if (cd.frame.isInlined(pkgName)) {
-					type = cd.frame.getVarType(pkgName);
-					if (type==null) {
-						type = compileExpr(cd,"",cd.frame.getInline(pkgName)).type;
-						if (type==null) {
-							type = new DataType(true);
-						}
-					}
-				} else {
-					type = cd.pkg.getField(pkgName).getType();
-					if (type==null) {
-						type = new DataType(true);
-					}
-				}
-				TypeDef otype = type.type;
-				while (type.type!=null) {
-					fnToCall = type.type.name+"."+fnName;
-					call.args.add(0,type);
-					if (cd.pkg.getFunction(fnToCall,call)!=null) {
-						type.type = otype;
-						return new RealFunction(cd.pkg.getFunction(fnToCall,call),pkgName,true);
-					}
-					call.args.remove(0);
-					type.type = type.type.parent;
-				}
-				type.type = otype;
-			} else {
-				fnToCall = (!pkgName.isEmpty()?(pkgName+"."):"")+fnName;
-				if (cd.pkg.getFunction(fnToCall,call)!=null) {
-					return new RealFunction(cd.pkg.getFunction(fnToCall,call),null,true);
-				}
-			}
-		}
-		return new RealFunction(null,null,cd.pkg.getFunction(fnToCall)!=null);
-	}
-		
+
 	public static CodeTransformer fnInliner = (pkg, work, code) -> {
 		ArrayList<Operation> a = new ArrayList<>();
 		for (int ii=0;ii<code.size();ii++) {
