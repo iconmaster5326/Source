@@ -42,6 +42,11 @@ public enum TokenType {
 	 * @return
 	 */
 	public String getData(String data) {
-		return data;
+		switch (this) {
+			case SPACE:
+				return null;
+			default:
+				return data;
+		}
 	}
 }
