@@ -46,7 +46,7 @@ public class Parser {
 		}
 		if (tokens.size()>1) {
 			Token t = tokens.get(0);
-			return new Result<Token>(new SourceError(SourceError.ErrorType.GENERAL, t.range, "Unexpected token of type "+t.type+": '"+t.data+"'"));
+			return new Result<Token>(new SourceError(SourceError.ErrorType.GENERAL, t.range, "Unknown token pattern: "+tokens));
 		}
 		return new Result<>(tokens.get(0));
 	}
