@@ -10,7 +10,7 @@ public enum TokenType {
 	COMMENT("\\/\\/[^\n]*\n?"),
 	SPACE("[\\s;]+"),
 	STRING("\"(\\\\.|[^\"])*\""),
-	NUMBER("[\\d\\.]+"),
+	NUMBER("[\\d\\.]+(?:[eE][\\+\\-]?\\d+)?"),
 	WORD("[\\w_][\\w\\d_]*"),
 	CHAR("\'(\\\\.|[^\'])\'"),
 	DIRECTIVE("@[\\S]*"),
@@ -44,7 +44,10 @@ public enum TokenType {
 	public String getData(String data) {
 		switch (this) {
 			case SPACE:
+			case COMMENT:
 				return null;
+			case STRING:
+				return data.substring(1, data.length()-1);
 			default:
 				return data;
 		}
