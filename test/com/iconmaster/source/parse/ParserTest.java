@@ -150,6 +150,15 @@ public class ParserTest {
 		assertEquals(true, result.failed);
 		assertEquals(1, result.errors.length);
 		assertEquals(ErrorType.ILLEGAL_PARENS, result.errors[0].type);
+		
+		System.out.println("test 10:");
+		tokens = Tokenizer.tokenize("(unexpected EOF incoming").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(true, result.failed);
+		assertEquals(1, result.errors.length);
+		assertEquals(ErrorType.UNEXPECTED_EOF, result.errors[0].type);
 	}
 	
 }
