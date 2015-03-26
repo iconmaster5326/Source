@@ -11,6 +11,11 @@ import java.util.List;
  */
 public class Token {
 	public static List<TokenType> simples = new ArrayList<>();
+
+	public Token(TokenType type, String data) {
+		this.data = data;
+		this.type = type;
+	}
 	
 	public String data;
 	public TokenType type;

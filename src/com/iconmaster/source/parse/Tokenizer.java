@@ -33,6 +33,9 @@ public class Tokenizer {
 				Matcher m = p.matcher(input);
 				if (m.find()) {
 					found = true;
+					String got = m.group();
+					Token t = new Token(type, got);
+					a.add(t);
 				}
 			}
 			
