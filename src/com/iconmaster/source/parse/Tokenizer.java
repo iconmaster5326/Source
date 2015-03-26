@@ -32,7 +32,9 @@ public class Tokenizer {
 		while (!input.isEmpty()) {
 			boolean found = false;
 			
-			for (TokenType type : Token.simples) {
+			for (TokenType type : TokenType.values()) {
+				if (!type.simple) break;
+				
 				Pattern p = Pattern.compile("^"+type.matches);
 				Matcher m = p.matcher(input);
 				if (m.find()) {
