@@ -25,11 +25,30 @@ public enum TokenType {
 	DOT("\\."),
 	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+"),
 	
+	LINK(new ParseMatcher.BinOpMatcher(TokenType.DOT, ".")),
+	POW(new ParseMatcher.BinOpMatcher("^")),
 	MUL(new ParseMatcher.BinOpMatcher("*")),
 	DIV(new ParseMatcher.BinOpMatcher("/")),
+	MOD(new ParseMatcher.BinOpMatcher("%")),
 	ADD(new ParseMatcher.BinOpMatcher("+")),
-	SUB(new ParseMatcher.BinOpMatcher("-"));
-
+	SUB(new ParseMatcher.BinOpMatcher("-")),
+	SLL(new ParseMatcher.BinOpMatcher("<<")),
+	SRL(new ParseMatcher.BinOpMatcher(">>")),
+	SRA(new ParseMatcher.BinOpMatcher(">>>")),
+	LT(new ParseMatcher.BinOpMatcher("<")),
+	LE(new ParseMatcher.BinOpMatcher("<=")),
+	GT(new ParseMatcher.BinOpMatcher(">")),
+	GE(new ParseMatcher.BinOpMatcher(">=")),
+	EQ(new ParseMatcher.BinOpMatcher("==")),
+	NEQ(new ParseMatcher.BinOpMatcher("==")),
+	BIT_AND(new ParseMatcher.BinOpMatcher("&")),
+	BIT_OR(new ParseMatcher.BinOpMatcher("|")),
+	AND(new ParseMatcher.BinOpMatcher(TokenType.WORD, "and")),
+	OR(new ParseMatcher.BinOpMatcher(TokenType.WORD, "or")),
+	TUPLE(new ParseMatcher.BinOpMatcher(TokenType.COMMA, ",")),
+	ASSIGN(new ParseMatcher.BinOpMatcher("="));
+	
+	
 	public boolean simple;
 	public String matches;
 	public ParseMatcher matcher;
