@@ -1,5 +1,9 @@
 package com.iconmaster.source.parse;
 
+import com.iconmaster.source.util.Range;
+import com.iconmaster.source.util.Result;
+import java.util.List;
+
 /**
  * The list of valid Source tokens. Contains both the tokens used in Tokenizer
  * and the AST elements used in Parser.
@@ -27,13 +31,23 @@ public enum TokenType {
 	
 	LINK(new ParseMatcher.BinOpMatcher(TokenType.DOT, ".")),
 	POW(new ParseMatcher.BinOpMatcher("^")),
+	NEG(new ParseMatcher.UnaryOpMatcher("-")),
 	MUL(new ParseMatcher.BinOpMatcher("*")),
 	DIV(new ParseMatcher.BinOpMatcher("/")),
 	MOD(new ParseMatcher.BinOpMatcher("%")),
 	ADD(new ParseMatcher.BinOpMatcher("+")),
-	SUB(new ParseMatcher.BinOpMatcher("-")),
-	UN_PLUS(new ParseMatcher.UnaryOpMatcher("+")),
-	NEG(new ParseMatcher.UnaryOpMatcher("-")),
+	SUB(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=2 && tokens.get(1).type==TokenType.NEG;
+		}
+
+		@Override
+		public Result<MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(0), tokens.get(1).l), 2));
+		}
+	}),
 	SLL(new ParseMatcher.BinOpMatcher("<<")),
 	SRL(new ParseMatcher.BinOpMatcher(">>")),
 	SRA(new ParseMatcher.BinOpMatcher(">>>")),
@@ -51,8 +65,7 @@ public enum TokenType {
 	OR(new ParseMatcher.BinOpMatcher(TokenType.WORD, "or")),
 	TUPLE(new ParseMatcher.BinOpMatcher(TokenType.COMMA, ",")),
 	ASSIGN(new ParseMatcher.BinOpMatcher("="));
-	
-	
+
 	public boolean simple;
 	public String matches;
 	public ParseMatcher matcher;
@@ -61,7 +74,7 @@ public enum TokenType {
 		simple = true;
 		this.matches = matches;
 	}
-	
+
 	private TokenType(ParseMatcher matcher) {
 		simple = false;
 		this.matcher = matcher;

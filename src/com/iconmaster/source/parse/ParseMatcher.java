@@ -1,6 +1,7 @@
 package com.iconmaster.source.parse;
 
 import com.iconmaster.source.util.Range;
+import com.iconmaster.source.util.Result;
 import java.util.List;
 
 /**
@@ -37,8 +38,8 @@ public interface ParseMatcher {
 		}
 
 		@Override
-		public MatchResult transform(TokenType type, List<Token> tokens) {
-			return new MatchResult(new Token(type, op, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(1), null), 2);
+		public Result<MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new MatchResult(new Token(type, op, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(1), null), 2));
 		}
 	}
 	
@@ -61,11 +62,11 @@ public interface ParseMatcher {
 		}
 
 		@Override
-		public MatchResult transform(TokenType type, List<Token> tokens) {
-			return new MatchResult(new Token(type, op, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(0), tokens.get(2)), 3);
+		public Result<MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new MatchResult(new Token(type, op, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(0), tokens.get(2)), 3));
 		}
 	}
 	
 	public boolean valid(TokenType type, List<Token> tokens);
-	public MatchResult transform(TokenType type, List<Token> tokens);
+	public Result<MatchResult> transform(TokenType type, List<Token> tokens);
 }

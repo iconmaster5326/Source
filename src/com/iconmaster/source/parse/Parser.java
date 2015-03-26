@@ -27,13 +27,17 @@ public class Parser {
 				for (int pos=0;pos<tokens.size();pos++) {
 					List<Token> tl = tokens.subList(pos, tokens.size());
 					if (type.matcher.valid(type, tl)) {
-						ParseMatcher.MatchResult res = type.matcher.transform(type, tl);
+						Result<ParseMatcher.MatchResult> res = type.matcher.transform(type, tl);
 						if (res!=null) {
-							for (int i=0;i<res.replace;i++) {
-								tokens.remove(pos);
-							}
-							if (res.t!=null) {
-								tokens.add(pos,res.t);
+							if (res.failed) {
+								return (Result) res;
+							} else {
+								for (int i=0;i<res.item.replace;i++) {
+									tokens.remove(pos);
+								}
+								if (res.item.t!=null) {
+									tokens.add(pos,res.item.t);
+								}
 							}
 						}
 					}

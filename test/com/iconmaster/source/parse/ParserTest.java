@@ -97,7 +97,7 @@ public class ParserTest {
 		assertEquals("3", result.item.l.data);
 		
 		System.out.println("test 5:");
-		tokens = Tokenizer.tokenize("- 1 - - 2").item;
+		tokens = Tokenizer.tokenize("- 1 - 2").item;
 		System.out.println("\tInput: "+tokens);
 		result = Parser.parse(tokens);
 		System.out.println("\tProduced: "+result);
@@ -106,9 +106,8 @@ public class ParserTest {
 		assertEquals(TokenType.NEG, result.item.l.type);
 		assertEquals(TokenType.NUMBER, result.item.l.l.type);
 		assertEquals("1", result.item.l.l.data);
-		assertEquals(TokenType.NEG, result.item.r.type);
-		assertEquals(TokenType.NUMBER, result.item.r.l.type);
-		assertEquals("2", result.item.r.l.data);
+		assertEquals(TokenType.NUMBER, result.item.r.type);
+		assertEquals("2", result.item.r.data);
 	}
 	
 }
