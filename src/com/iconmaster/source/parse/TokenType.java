@@ -25,7 +25,10 @@ public enum TokenType {
 	DOT("\\."),
 	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+"),
 	
-	ADD(new ParseMatcher.BinOpMatcher("+"));
+	MUL(new ParseMatcher.BinOpMatcher("*")),
+	DIV(new ParseMatcher.BinOpMatcher("/")),
+	ADD(new ParseMatcher.BinOpMatcher("+")),
+	SUB(new ParseMatcher.BinOpMatcher("-"));
 
 	public boolean simple;
 	public String matches;

@@ -42,6 +42,7 @@ public class TokenizerTest {
 	@Test
 	public void testTokenize() {
 		System.out.println("===TOKENIZER===");
+		
 		System.out.println("test 1:");
 		String input = "a b c";
 		System.out.println("\tInput: '"+input+"'");
