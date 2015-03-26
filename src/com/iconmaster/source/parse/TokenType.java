@@ -30,6 +30,8 @@ public enum TokenType {
 	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+"),
 	
 	PAREN(new ParseMatcher.BlockMatcher(LPAREN, RPAREN, false)),
+	INDEX(new ParseMatcher.BlockMatcher(LBRACKET, RBRACKET, false)),
+	CODE(new ParseMatcher.BlockMatcher(LBRACE, RBRACE, true)),
 	LINK(new ParseMatcher.BinOpMatcher(TokenType.DOT, ".")),
 	POW(new ParseMatcher.BinOpMatcher("^")),
 	NEG(new ParseMatcher.UnaryOpMatcher("-")),

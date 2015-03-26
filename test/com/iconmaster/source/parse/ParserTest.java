@@ -159,6 +159,66 @@ public class ParserTest {
 		assertEquals(true, result.failed);
 		assertEquals(1, result.errors.length);
 		assertEquals(ErrorType.UNEXPECTED_EOF, result.errors[0].type);
+		
+		System.out.println("test 11:");
+		tokens = Tokenizer.tokenize("[3]").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.INDEX, result.item.type);
+		assertEquals(TokenType.NUMBER, result.item.l.type);
+		assertEquals("3", result.item.l.data);
+		
+		System.out.println("test 12:");
+		tokens = Tokenizer.tokenize("[]").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.INDEX, result.item.type);
+		assertEquals(null, result.item.l);
+		
+		System.out.println("test 13:");
+		tokens = Tokenizer.tokenize("[1 2]").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(true, result.failed);
+		assertEquals(1, result.errors.length);
+		assertEquals(ErrorType.ILLEGAL_PARENS, result.errors[0].type);
+		
+		System.out.println("test 14:");
+		tokens = Tokenizer.tokenize("{3}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.CODE, result.item.type);
+		assertEquals(TokenType.NUMBER, result.item.l.type);
+		assertEquals("3", result.item.l.data);
+		
+		System.out.println("test 15:");
+		tokens = Tokenizer.tokenize("{}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.CODE, result.item.type);
+		assertEquals(null, result.item.l);
+		
+		System.out.println("test 16:");
+		tokens = Tokenizer.tokenize("{1 2}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.CODE, result.item.type);
+		assertEquals(TokenType.STATEMENT, result.item.l.type);
+		assertEquals(TokenType.NUMBER, result.item.l.l.type);
+		assertEquals("1", result.item.l.l.data);
+		assertEquals(TokenType.NUMBER, result.item.l.r.type);
+		assertEquals("2", result.item.l.r.data);
 	}
 	
 }
