@@ -29,6 +29,7 @@ public enum TokenType {
 	DOT("\\."),
 	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+"),
 	
+	PAREN(new ParseMatcher.BlockMatcher(LPAREN, RPAREN)),
 	LINK(new ParseMatcher.BinOpMatcher(TokenType.DOT, ".")),
 	POW(new ParseMatcher.BinOpMatcher("^")),
 	NEG(new ParseMatcher.UnaryOpMatcher("-")),
@@ -64,7 +65,19 @@ public enum TokenType {
 	AND(new ParseMatcher.BinOpMatcher(TokenType.WORD, "and")),
 	OR(new ParseMatcher.BinOpMatcher(TokenType.WORD, "or")),
 	TUPLE(new ParseMatcher.BinOpMatcher(TokenType.COMMA, ",")),
-	ASSIGN(new ParseMatcher.BinOpMatcher("="));
+	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
+	STATEMENT(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=2;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(0), tokens.get(1)), 2));
+		}
+	});
 
 	public boolean simple;
 	public String matches;

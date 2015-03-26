@@ -2,6 +2,7 @@ package com.iconmaster.source.parse;
 
 import com.iconmaster.source.exception.SourceError;
 import com.iconmaster.source.util.Result;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,6 +23,7 @@ public class Parser {
 	 * @see Token
 	 */
 	public static Result<Token> parse(List<Token> tokens) {
+		tokens = new ArrayList<>(tokens);
 		for (TokenType type : TokenType.values()) {
 			if (!type.simple) {
 				for (int pos=0;pos<tokens.size();pos++) {
@@ -48,7 +50,7 @@ public class Parser {
 		if (tokens.isEmpty()) {
 			return new Result<>((Token)null);
 		}
-		if (tokens.size()>1) {
+		if (tokens.size()>1) { //we should never be here. We will be at some point, hough; I just know it.
 			Token t = tokens.get(0);
 			return new Result<Token>(new SourceError(SourceError.ErrorType.GENERAL, t.range, "Unknown token pattern: "+tokens));
 		}
