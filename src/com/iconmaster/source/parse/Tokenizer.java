@@ -43,11 +43,12 @@ public class Tokenizer {
 					if (got.equals(".")) { //silly hack for NUMBER -> DOT
 						type = TokenType.DOT;
 					}
+					Range rn = new Range(i,i+got.length());
 					i += got.length();
 					input = input.substring(got.length());
 					got = type.getData(got);
 					if (got!=null) {
-						Token t = new Token(type, got);
+						Token t = new Token(type, got, rn);
 						a.add(t);
 					}
 				}

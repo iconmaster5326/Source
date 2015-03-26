@@ -50,10 +50,13 @@ public class TokenizerTest {
 		assertEquals(3, result.item.size());
 		assertEquals("a", result.item.get(0).data);
 		assertEquals(TokenType.WORD, result.item.get(0).type);
+		assertEquals(new Range(0,1), result.item.get(0).range);
 		assertEquals("b", result.item.get(1).data);
 		assertEquals(TokenType.WORD, result.item.get(1).type);
+		assertEquals(new Range(2,3), result.item.get(1).range);
 		assertEquals("c", result.item.get(2).data);
 		assertEquals(TokenType.WORD, result.item.get(2).type);
+		assertEquals(new Range(4,5), result.item.get(2).range);
 		
 		System.out.println("test 2:");
 		input = "->`<-";
@@ -75,12 +78,16 @@ public class TokenizerTest {
 		assertEquals(4, result.item.size());
 		assertEquals("1.2", result.item.get(0).data);
 		assertEquals(TokenType.NUMBER, result.item.get(0).type);
+		assertEquals(new Range(0,3), result.item.get(0).range);
 		assertEquals("a", result.item.get(1).data);
 		assertEquals(TokenType.WORD, result.item.get(1).type);
+		assertEquals(new Range(4,4+1), result.item.get(1).range);
 		assertEquals(".", result.item.get(2).data);
 		assertEquals(TokenType.DOT, result.item.get(2).type);
+		assertEquals(new Range(5,5+1), result.item.get(2).range);
 		assertEquals("b", result.item.get(3).data);
 		assertEquals(TokenType.WORD, result.item.get(3).type);
+		assertEquals(new Range(6,6+1), result.item.get(3).range);
 		
 		System.out.println("test 4:");
 		input = "hello\"hello world\"world";
@@ -91,10 +98,13 @@ public class TokenizerTest {
 		assertEquals(3, result.item.size());
 		assertEquals("hello", result.item.get(0).data);
 		assertEquals(TokenType.WORD, result.item.get(0).type);
+		assertEquals(new Range(0,0+5), result.item.get(0).range);
 		assertEquals("hello world", result.item.get(1).data);
 		assertEquals(TokenType.STRING, result.item.get(1).type);
+		assertEquals(new Range(5,5+13), result.item.get(1).range);
 		assertEquals("world", result.item.get(2).data);
 		assertEquals(TokenType.WORD, result.item.get(2).type);
+		assertEquals(new Range(18,18+5), result.item.get(2).range);
 		
 		System.out.println("test 5:");
 		input = "a\"\"b";
@@ -105,10 +115,13 @@ public class TokenizerTest {
 		assertEquals(3, result.item.size());
 		assertEquals("a", result.item.get(0).data);
 		assertEquals(TokenType.WORD, result.item.get(0).type);
+		assertEquals(new Range(0,0+1), result.item.get(0).range);
 		assertEquals("", result.item.get(1).data);
 		assertEquals(TokenType.STRING, result.item.get(1).type);
+		assertEquals(new Range(1,1+2), result.item.get(1).range);
 		assertEquals("b", result.item.get(2).data);
 		assertEquals(TokenType.WORD, result.item.get(2).type);
+		assertEquals(new Range(3,3+1), result.item.get(2).range);
 		
 		System.out.println("test 6:");
 		input = "((";
@@ -119,8 +132,10 @@ public class TokenizerTest {
 		assertEquals(2, result.item.size());
 		assertEquals("(", result.item.get(0).data);
 		assertEquals(TokenType.LPAREN, result.item.get(0).type);
+		assertEquals(new Range(0,0+1), result.item.get(0).range);
 		assertEquals("(", result.item.get(1).data);
 		assertEquals(TokenType.LPAREN, result.item.get(1).type);
+		assertEquals(new Range(1,1+1), result.item.get(1).range);
 		
 		System.out.println("test 7:");
 		input = "[$$$]";
@@ -131,10 +146,13 @@ public class TokenizerTest {
 		assertEquals(3, result.item.size());
 		assertEquals("[", result.item.get(0).data);
 		assertEquals(TokenType.LBRACKET, result.item.get(0).type);
+		assertEquals(new Range(0,0+1), result.item.get(0).range);
 		assertEquals("$$$", result.item.get(1).data);
 		assertEquals(TokenType.SYMBOL, result.item.get(1).type);
+		assertEquals(new Range(1,1+3), result.item.get(1).range);
 		assertEquals("]", result.item.get(2).data);
 		assertEquals(TokenType.RBRACKET, result.item.get(2).type);
+		assertEquals(new Range(4,4+1), result.item.get(2).range);
 		
 		System.out.println("test 8:");
 		input = ".03 1.2e5 1.7E5 0.3e-7 1.1E+43";

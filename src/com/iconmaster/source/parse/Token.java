@@ -1,5 +1,6 @@
 package com.iconmaster.source.parse;
 
+import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,13 +13,15 @@ import java.util.List;
 public class Token {
 	public static List<TokenType> simples = new ArrayList<>();
 
-	public Token(TokenType type, String data) {
+	public Token(TokenType type, String data, Range range) {
 		this.data = data;
 		this.type = type;
+		this.range = range;
 	}
 	
 	public String data;
 	public TokenType type;
+	public Range range;
 	public Token l;
 	public Token r;
 	
