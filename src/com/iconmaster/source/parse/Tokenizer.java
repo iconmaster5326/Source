@@ -1,5 +1,8 @@
 package com.iconmaster.source.parse;
 
+import com.iconmaster.source.exception.SourceError;
+import com.iconmaster.source.util.Range;
+import com.iconmaster.source.util.Result;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -23,8 +26,9 @@ public class Tokenizer {
 	 * @param input The string input
 	 * @return A flat list of Tokens.
 	 */
-	public static List<Token> tokenize(String input) {
+	public static Result<List<Token>> tokenize(String input) {
 		ArrayList<Token> a = new ArrayList<>();
+		int i = 0;
 		while (!input.isEmpty()) {
 			boolean found = false;
 			
@@ -37,6 +41,7 @@ public class Tokenizer {
 					if (got.equals(".")) { //silly hack for NUMBER -> DOT
 						type = TokenType.DOT;
 					}
+					i += got.length();
 					input = input.substring(got.length());
 					got = type.getData(got);
 					if (got!=null) {
@@ -47,9 +52,9 @@ public class Tokenizer {
 			}
 			
 			if (!found) {
-				//error
+				return new Result<List<Token>>(new SourceError(SourceError.ErrorType.UNKNOWN_SYMBOL, new Range(i,i+1), "Unknown symbol '"+input.charAt(0)+"'"));
 			}
 		}
-		return a;
+		return new Result<>(a);
 	}
 }

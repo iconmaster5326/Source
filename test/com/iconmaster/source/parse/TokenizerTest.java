@@ -1,7 +1,8 @@
 package com.iconmaster.source.parse;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.iconmaster.source.exception.SourceError;
+import com.iconmaster.source.util.Range;
+import com.iconmaster.source.util.Result;
 import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -40,11 +41,28 @@ public class TokenizerTest {
 	 */
 	@Test
 	public void testTokenize() {
-		System.out.println("tokenize");
+		System.out.println("test 1:");
 		String input = "a b c";
-		List<Token> expResult = new ArrayList<>(Arrays.asList(new Token(TokenType.WORD, "a"),new Token(TokenType.WORD, "b"),new Token(TokenType.WORD, "c")));
-		List<Token> result = Tokenizer.tokenize(input);
-		assertEquals(expResult, result);
+		Result<List<Token>> result = Tokenizer.tokenize(input);
+		System.out.println("\tProduced "+result);
+		assertEquals(false, result.failed);
+		assertEquals(3, result.item.size());
+		assertEquals("a", result.item.get(0).data);
+		assertEquals(TokenType.WORD, result.item.get(0).type);
+		assertEquals("b", result.item.get(1).data);
+		assertEquals(TokenType.WORD, result.item.get(1).type);
+		assertEquals("c", result.item.get(2).data);
+		assertEquals(TokenType.WORD, result.item.get(2).type);
+		
+		System.out.println("test 2:");
+		input = "->`<-";
+		result = Tokenizer.tokenize(input);
+		System.out.println("\tProduced "+result);
+		assertEquals(true, result.failed);
+		assertEquals(null, result.item);
+		assertEquals(1, result.errors.length);
+		assertEquals(SourceError.ErrorType.UNKNOWN_SYMBOL, result.errors[0].type);
+		assertEquals(new Range(2,3), result.errors[0].range);
 	}
 	
 }
