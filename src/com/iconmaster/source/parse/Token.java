@@ -43,4 +43,9 @@ public class Token {
 		}
 		return Objects.equals(this.r, other.r);
 	}
+
+	@Override
+	public String toString() {
+		return "Token{" + "data=" + data + ", type=" + type + ", l=" + l + ", r=" + r + '}';
+	}
 }

@@ -21,7 +21,7 @@ public enum TokenType {
 	RBRACE("\\}"),
 	LBRACKET("\\["),
 	RBRACKET("\\]"),
-	DOT("."),
+	DOT("\\."),
 	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+");
 
 	public boolean simple;
