@@ -48,6 +48,8 @@ public enum TokenType {
 				return null;
 			case STRING:
 				return data.substring(1, data.length()-1);
+			case DIRECTIVE:
+				return data.substring(1);
 			default:
 				return data;
 		}

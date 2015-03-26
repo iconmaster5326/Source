@@ -177,6 +177,18 @@ public class TokenizerTest {
 		assertEquals(1, result.item.size());
 		assertEquals("words", result.item.get(0).data);
 		assertEquals(TokenType.WORD, result.item.get(0).type);
+		
+		System.out.println("test 11:");
+		input = "@dir not_so";
+		System.out.println("\tInput: '"+input+"'");
+		result = Tokenizer.tokenize(input);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(2, result.item.size());
+		assertEquals("dir", result.item.get(0).data);
+		assertEquals(TokenType.DIRECTIVE, result.item.get(0).type);
+		assertEquals("not_so", result.item.get(1).data);
+		assertEquals(TokenType.WORD, result.item.get(1).type);
 	}
 	
 }
