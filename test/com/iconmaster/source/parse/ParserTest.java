@@ -1,5 +1,6 @@
 package com.iconmaster.source.parse;
 
+import com.iconmaster.source.exception.SourceError.ErrorType;
 import com.iconmaster.source.util.Result;
 import java.util.List;
 import org.junit.After;
@@ -140,6 +141,15 @@ public class ParserTest {
 		assertEquals("1", result.item.l.l.data);
 		assertEquals(TokenType.NUMBER, result.item.l.r.type);
 		assertEquals("2", result.item.l.r.data);
+		
+		System.out.println("test 9:");
+		tokens = Tokenizer.tokenize("(1 2)").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(true, result.failed);
+		assertEquals(1, result.errors.length);
+		assertEquals(ErrorType.ILLEGAL_PARENS, result.errors[0].type);
 	}
 	
 }

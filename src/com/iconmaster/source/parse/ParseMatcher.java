@@ -77,10 +77,12 @@ public interface ParseMatcher {
 
 		TokenType type1;
 		TokenType type2;
+		boolean allowStatements;
 
-		public BlockMatcher(TokenType type1, TokenType type2) {
+		public BlockMatcher(TokenType type1, TokenType type2, boolean allowStatements) {
 			this.type1 = type1;
 			this.type2 = type2;
+			this.allowStatements = allowStatements;
 		}
 
 		@Override
@@ -103,6 +105,8 @@ public interface ParseMatcher {
 					Result<Token> tr = Parser.parse(ts);
 					if (tr.failed) {
 						return (Result) tr;
+					} else if (!allowStatements && tr.item!=null && tr.item.type==TokenType.STATEMENT) {
+						return new Result<MatchResult>(new SourceError(SourceError.ErrorType.ILLEGAL_PARENS,tr.item.range, "Improper parenthesis format"));
 					} else {
 						return new Result<>(new MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(i).range), tr.item, null), ts.size()+2));
 					}
@@ -110,7 +114,7 @@ public interface ParseMatcher {
 					ts.add(tokens.get(i));
 				}
 			}
-			return new Result<MatchResult>(new SourceError(SourceError.ErrorType.GENERAL, tokens.get(0).range, "Unexpected EOF"));
+			return new Result<MatchResult>(new SourceError(SourceError.ErrorType.UNEXPECTED_EOF, tokens.get(0).range, "Unexpected EOF"));
 		}
 	}
 
