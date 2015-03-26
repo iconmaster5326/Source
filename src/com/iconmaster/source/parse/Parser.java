@@ -1,9 +1,53 @@
 package com.iconmaster.source.parse;
 
+import com.iconmaster.source.exception.SourceError;
+import com.iconmaster.source.util.Result;
+import java.util.List;
+
 /**
+ * This class contains methods for parsing lists of Source tokens.
  *
  * @author iconmaster
  */
 public class Parser {
-	
+
+	/**
+	 * Converts a list of tokens to an abstract syntax tree.
+	 *
+	 * @param tokens A list of tokens, preferably produced by
+	 * Tokenizer.tokenize().
+	 * @return The binary AST representing a Source program.
+	 *
+	 * @see Tokenizer
+	 * @see Token
+	 */
+	public static Result<Token> parse(List<Token> tokens) {
+		for (TokenType type : TokenType.values()) {
+			if (!type.simple) {
+				for (int pos=0;pos<tokens.size();pos++) {
+					List<Token> tl = tokens.subList(pos, tokens.size());
+					if (type.matcher.valid(type, tl)) {
+						ParseMatcher.MatchResult res = type.matcher.transform(type, tl);
+						if (res!=null) {
+							for (int i=0;i<res.replace;i++) {
+								tokens.remove(pos);
+							}
+							if (res.t!=null) {
+								tokens.add(pos,res.t);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if (tokens.isEmpty()) {
+			return new Result<>((Token)null);
+		}
+		if (tokens.size()>1) {
+			Token t = tokens.get(0);
+			return new Result<Token>(new SourceError(SourceError.ErrorType.GENERAL, t.range, "Unexpected token of type "+t.type+": '"+t.data+"'"));
+		}
+		return new Result<>(tokens.get(0));
+	}
 }

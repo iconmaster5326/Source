@@ -1,8 +1,6 @@
 package com.iconmaster.source.parse;
 
 import com.iconmaster.source.util.Range;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A Source token. Forms the Source abstract syntax tree. Created via methods in
@@ -11,8 +9,6 @@ import java.util.List;
  * @author iconmaster
  */
 public class Token {
-	public static List<TokenType> simples = new ArrayList<>();
-
 	public Token(TokenType type, String data, Range range) {
 		this.data = data;
 		this.type = type;
@@ -24,6 +20,12 @@ public class Token {
 	public Range range;
 	public Token l;
 	public Token r;
+
+	Token(TokenType type, String data, Range range, Token l, Token r) {
+		this(type, data, range);
+		this.l = l;
+		this.r = r;
+	}
 	
 	@Override
 	public String toString() {

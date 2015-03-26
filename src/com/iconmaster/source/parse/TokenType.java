@@ -7,6 +7,7 @@ package com.iconmaster.source.parse;
  * @author iconmaster
  */
 public enum TokenType {
+
 	COMMENT("\\/\\/[^\n]*\n?"),
 	SPACE("[\\s;]+"),
 	STRING("\"(\\\\.|[^\"])*\""),
@@ -22,16 +23,22 @@ public enum TokenType {
 	LBRACKET("\\["),
 	RBRACKET("\\]"),
 	DOT("\\."),
-	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+");
+	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+"),
+	
+	ADD(new ParseMatcher.BinOpMatcher("+"));
 
 	public boolean simple;
 	public String matches;
+	public ParseMatcher matcher;
 
-	private TokenType( String matches) {
+	private TokenType(String matches) {
 		simple = true;
 		this.matches = matches;
-		
-		Token.simples.add(this);
+	}
+	
+	private TokenType(ParseMatcher matcher) {
+		simple = false;
+		this.matcher = matcher;
 	}
 
 	/**
@@ -47,7 +54,7 @@ public enum TokenType {
 			case COMMENT:
 				return null;
 			case STRING:
-				return data.substring(1, data.length()-1);
+				return data.substring(1, data.length() - 1);
 			case DIRECTIVE:
 				return data.substring(1);
 			default:
