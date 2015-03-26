@@ -34,6 +34,9 @@ public class Tokenizer {
 				if (m.find()) {
 					found = true;
 					String got = m.group();
+					if (got.equals(".")) { //silly hack for NUMBER -> DOT
+						type = TokenType.DOT;
+					}
 					Token t = new Token(type, got);
 					a.add(t);
 				}

@@ -7,8 +7,22 @@ package com.iconmaster.source.parse;
  * @author iconmaster
  */
 public enum TokenType {
-
-	WORD("\\w+");
+	COMMENT("\\/\\/[^\n]*\n?"),
+	SPACE("[\\s;]+"),
+	STRING("\"(\\\\.|[^\"])*\""),
+	NUMBER("[\\d\\.]+"),
+	WORD("[\\w_][\\w\\d_]*"),
+	CHAR("\'(\\\\.|[^\'])\'"),
+	DIRECTIVE("@[\\S]*"),
+	COMMA(","),
+	LPAREN("\\("),
+	RPAREN("\\)"),
+	LBRACE("\\{"),
+	RBRACE("\\}"),
+	LBRACKET("\\["),
+	RBRACKET("\\]"),
+	DOT("."),
+	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+");
 
 	public boolean simple;
 	public String matches;
