@@ -248,6 +248,42 @@ public class ParserTest {
 		assertEquals("1", result.item.l.r.l.data);
 		assertEquals(TokenType.NUMBER, result.item.l.r.r.type);
 		assertEquals("2", result.item.l.r.r.data);
+		
+		System.out.println("test 19:");
+		tokens = Tokenizer.tokenize("func(arg)").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.FCALL, result.item.type);
+		assertEquals("func", result.item.data);
+		assertEquals(TokenType.WORD, result.item.l.type);
+		assertEquals("arg", result.item.l.data);
+		assertEquals(null, result.item.r);
+		
+		System.out.println("test 20:");
+		tokens = Tokenizer.tokenize("func()").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.FCALL, result.item.type);
+		assertEquals("func", result.item.data);
+		assertEquals(null, result.item.l);
+		assertEquals(null, result.item.r);
+		
+		System.out.println("test 21:");
+		tokens = Tokenizer.tokenize("func[param](arg)").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.FCALL, result.item.type);
+		assertEquals("func", result.item.data);
+		assertEquals(TokenType.WORD, result.item.l.type);
+		assertEquals("arg", result.item.l.data);
+		assertEquals(TokenType.WORD, result.item.r.type);
+		assertEquals("param", result.item.r.data);
 	}
 	
 }

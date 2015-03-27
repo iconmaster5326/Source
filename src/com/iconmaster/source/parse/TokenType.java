@@ -32,6 +32,22 @@ public enum TokenType {
 	PAREN(new ParseMatcher.BlockMatcher(LPAREN, RPAREN, false)),
 	INDEX(new ParseMatcher.BlockMatcher(LBRACKET, RBRACKET, false)),
 	CODE(new ParseMatcher.BlockMatcher(LBRACE, RBRACE, true)),
+	FCALL(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return (tokens.size()>=2 && tokens.get(0).type==TokenType.WORD && tokens.get(1).type==TokenType.PAREN) || (tokens.size()>=3 && tokens.get(0).type==TokenType.WORD && tokens.get(1).type==TokenType.INDEX && tokens.get(2).type==TokenType.PAREN);
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			if (tokens.get(1).type==TokenType.PAREN) {
+				return new Result<>(new ParseMatcher.MatchResult(new Token(type, tokens.get(0).data, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(1).l, null), 2));
+			} else {
+				return new Result<>(new ParseMatcher.MatchResult(new Token(type, tokens.get(0).data, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(2).l, tokens.get(1).l), 3));
+			}
+		}
+	}),
 	LINK(new ParseMatcher.BinOpMatcher(TokenType.DOT, ".")),
 	POW(new ParseMatcher.BinOpMatcher("^")),
 	NEG(new ParseMatcher.UnaryOpMatcher("-")),
@@ -68,18 +84,8 @@ public enum TokenType {
 	OR(new ParseMatcher.BinOpMatcher(TokenType.WORD, "or")),
 	TUPLE(new ParseMatcher.BinOpMatcher(TokenType.COMMA, ",")),
 	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
-	LOCAL(new ParseMatcher() {
-
-		@Override
-		public boolean valid(TokenType type, List<Token> tokens) {
-			return tokens.size()>=2 && tokens.get(0).type==TokenType.WORD && "local".equals(tokens.get(0).data);
-		}
-
-		@Override
-		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
-			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(1), null), 2));
-		}
-	}),
+	LOCAL(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "local")),
+	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
 	STATEMENT(new ParseMatcher() {
 
 		@Override
