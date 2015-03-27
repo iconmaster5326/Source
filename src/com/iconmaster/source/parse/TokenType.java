@@ -68,6 +68,18 @@ public enum TokenType {
 	OR(new ParseMatcher.BinOpMatcher(TokenType.WORD, "or")),
 	TUPLE(new ParseMatcher.BinOpMatcher(TokenType.COMMA, ",")),
 	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
+	LOCAL(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=2 && tokens.get(0).type==TokenType.WORD && "local".equals(tokens.get(0).data);
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(1), null), 2));
+		}
+	}),
 	STATEMENT(new ParseMatcher() {
 
 		@Override

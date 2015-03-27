@@ -219,6 +219,35 @@ public class ParserTest {
 		assertEquals("1", result.item.l.l.data);
 		assertEquals(TokenType.NUMBER, result.item.l.r.type);
 		assertEquals("2", result.item.l.r.data);
+		
+		System.out.println("test 17:");
+		tokens = Tokenizer.tokenize("local x").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.LOCAL, result.item.type);
+		assertEquals(TokenType.WORD, result.item.l.type);
+		assertEquals("x", result.item.l.data);
+		
+		System.out.println("test 18:");
+		tokens = Tokenizer.tokenize("local a,b = 1,2").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.LOCAL, result.item.type);
+		assertEquals(TokenType.ASSIGN, result.item.l.type);
+		assertEquals(TokenType.TUPLE, result.item.l.l.type);
+		assertEquals(TokenType.WORD, result.item.l.l.l.type);
+		assertEquals("a", result.item.l.l.l.data);
+		assertEquals(TokenType.WORD, result.item.l.l.r.type);
+		assertEquals("b", result.item.l.l.r.data);
+		assertEquals(TokenType.TUPLE, result.item.l.r.type);
+		assertEquals(TokenType.NUMBER, result.item.l.r.l.type);
+		assertEquals("1", result.item.l.r.l.data);
+		assertEquals(TokenType.NUMBER, result.item.l.r.r.type);
+		assertEquals("2", result.item.l.r.r.data);
 	}
 	
 }
