@@ -86,6 +86,18 @@ public enum TokenType {
 	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
 	LOCAL(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "local")),
 	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
+	FUNCTION(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=3 && tokens.get(0).type==TokenType.WORD && "function".equals(tokens.get(0).data) && tokens.get(2).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(1), tokens.get(2).l), 3));
+		}
+	}),
 	STATEMENT(new ParseMatcher() {
 
 		@Override

@@ -284,6 +284,20 @@ public class ParserTest {
 		assertEquals("arg", result.item.l.data);
 		assertEquals(TokenType.WORD, result.item.r.type);
 		assertEquals("param", result.item.r.data);
+		
+		System.out.println("test 22:");
+		tokens = Tokenizer.tokenize("function lol(arg) {code}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.FUNCTION, result.item.type);
+		assertEquals(TokenType.FCALL, result.item.l.type);
+		assertEquals("lol", result.item.l.data);
+		assertEquals(TokenType.WORD, result.item.l.l.type);
+		assertEquals("arg", result.item.l.l.data);
+		assertEquals(TokenType.WORD, result.item.r.type);
+		assertEquals("code", result.item.r.data);
 	}
 	
 }
