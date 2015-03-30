@@ -27,8 +27,11 @@ public class SourcePackage {
 	public SourcePackage() {
 		this(null);
 	}
-	
-	public void addFunction(Function fn) {
-		
+
+	public void addSubPackage(SourcePackage pkg) {
+		if (!subPackages.containsKey(pkg.name)) {
+			subPackages.put(pkg.name, new ArrayList<>());
+		}
+		subPackages.get(pkg.name).add(pkg);
 	}
 }

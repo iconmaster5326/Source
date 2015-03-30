@@ -1,7 +1,10 @@
 package com.iconmaster.source.prototype;
 
 import com.iconmaster.source.parse.Token;
+import com.iconmaster.source.parse.TokenType;
+import com.iconmaster.source.util.TokenUtils;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -32,6 +35,18 @@ public class Prototyper {
 				prototype(code.l,ctx);
 				break;
 			case PACKAGE:
+				List<Token> names = TokenUtils.getTokens(code, TokenType.LINK);
+				for (Token t : names) {
+					if (t.type==TokenType.WORD) {
+						SourcePackage oldPkg = ctx.pkg;
+						ctx.pkg = new SourcePackage(oldPkg.range);
+						ctx.pkg.name = t.data;
+						ctx.pkg.parent = oldPkg;
+						oldPkg.addSubPackage(ctx.pkg);
+					} else {
+						//error
+					}
+				}
 				break;
 			case IMPORT:
 				break;
