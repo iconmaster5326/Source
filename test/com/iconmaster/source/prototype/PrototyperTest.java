@@ -42,6 +42,18 @@ public class PrototyperTest {
 	@Test
 	public void testPrototype_Token() {
 		System.out.println("===PROTOTYPER===");
+		
+		Token code;
+		String s;
+		SourcePackage pkg;
+		
+		System.out.println("test 1");
+		s = "package test";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertTrue(pkg.subPackages.containsKey("test"));
 	}
 
 	/**
@@ -76,6 +88,20 @@ public class PrototyperTest {
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+fn);
 		assertEquals("func", fn.name);
+		assertTrue(ctx.pkg.subPackages.containsKey("type"));
+		assertTrue(ctx.pkg.subPackages.get("type").get(0).functions.containsKey("func"));
+		
+		System.out.println("test 3");
+		s = "type.func() as int";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals("int", fn.rawReturnType.data);
 		assertTrue(ctx.pkg.subPackages.containsKey("type"));
 		assertTrue(ctx.pkg.subPackages.get("type").get(0).functions.containsKey("func"));
 	}
