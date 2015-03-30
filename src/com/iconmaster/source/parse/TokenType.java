@@ -88,6 +88,7 @@ public enum TokenType {
 	IN(new ParseMatcher.BinOpMatcher(TokenType.WORD, "in")),
 	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
 	LOCAL(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "local")),
+	FIELD(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "field")),
 	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
 	PACKAGE(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "package")),
 	IMPORT(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "import")),
