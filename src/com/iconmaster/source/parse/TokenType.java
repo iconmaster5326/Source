@@ -16,7 +16,7 @@ public enum TokenType {
 	SPACE("[\\s;]+"),
 	STRING("\"(\\\\.|[^\"])*\""),
 	NUMBER("[\\d\\.]+(?:[eE][\\+\\-]?\\d+)?"),
-	WORD("[\\w_][\\w\\d_]*"),
+	WORD("[\\w_\\?][\\w\\d_\\?]*"),
 	CHAR("\'(\\\\.|[^\'])\'"),
 	DIRECTIVE("@[\\S]*"),
 	COMMA(","),
