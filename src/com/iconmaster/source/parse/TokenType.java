@@ -88,6 +88,8 @@ public enum TokenType {
 	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
 	LOCAL(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "local")),
 	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
+	PACKAGE(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "package")),
+	IMPORT(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "import")),
 	FUNCTION(new ParseMatcher() {
 
 		@Override
