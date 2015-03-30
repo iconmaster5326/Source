@@ -175,6 +175,30 @@ public enum TokenType {
 			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(1), tokens.get(2).l), 3));
 		}
 	}),
+	GLOBAL_DIR(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=1 && tokens.get(0).type==TokenType.DIRECTIVE && tokens.get(0).data.startsWith("@");
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, tokens.get(0).data.substring(1), Range.from(tokens.get(0).range, tokens.get(1).range), null, null), 1));
+		}
+	}),
+	LOCAL_DIR(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=2 && tokens.get(0).type==TokenType.DIRECTIVE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, tokens.get(0).data, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(1), null), 2));
+		}
+	}),
 	STATEMENT(new ParseMatcher() {
 
 		@Override

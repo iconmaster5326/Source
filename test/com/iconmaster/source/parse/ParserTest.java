@@ -367,6 +367,20 @@ public class ParserTest {
 		assertEquals(TokenType.RETURN, result.item.r.type);
 		assertEquals(TokenType.NUMBER, result.item.r.l.type);
 		assertEquals("5", result.item.r.l.data);
+		
+		System.out.println("test 27:");
+		tokens = Tokenizer.tokenize("@@glob @loc x").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.STATEMENT, result.item.type);
+		assertEquals(TokenType.GLOBAL_DIR, result.item.l.type);
+		assertEquals("glob", result.item.l.data);
+		assertEquals(TokenType.LOCAL_DIR, result.item.r.type);
+		assertEquals("loc", result.item.r.data);
+		assertEquals(TokenType.WORD, result.item.r.l.type);
+		assertEquals("x", result.item.r.l.data);
 	}
 	
 }
