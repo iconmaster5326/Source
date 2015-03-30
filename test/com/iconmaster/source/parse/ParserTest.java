@@ -391,11 +391,11 @@ public class ParserTest {
 		assertEquals(TokenType.TUPLE, result.item.type);
 		assertEquals(TokenType.TUPLE, result.item.l.type);
 		assertEquals(TokenType.WORD, result.item.l.l.type);
-		assertEquals("x", result.item.l.l.type);
+		assertEquals("x", result.item.l.l.data);
 		assertEquals(TokenType.WORD, result.item.l.r.type);
-		assertEquals("y", result.item.l.r.type);
+		assertEquals("y", result.item.l.r.data);
 		assertEquals(TokenType.WORD, result.item.r.type);
-		assertEquals("z", result.item.r.type);
+		assertEquals("z", result.item.r.data);
 	}
 	
 }

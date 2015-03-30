@@ -64,7 +64,7 @@ public interface ParseMatcher {
 
 		@Override
 		public boolean valid(TokenType type, List<Token> tokens) {
-			return tokens.size() >= 3 && op.equals(tokens.get(1).data);
+			return tokens.size() >= 3 && tokens.get(1).type == this.type && op.equals(tokens.get(1).data);
 		}
 
 		@Override
