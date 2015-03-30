@@ -49,6 +49,8 @@ public enum TokenType {
 		}
 	}),
 	LINK(new ParseMatcher.BinOpMatcher(TokenType.DOT, ".")),
+	AS(new ParseMatcher.BinOpMatcher(TokenType.WORD, "as")),
+	TO(new ParseMatcher.BinOpMatcher(TokenType.WORD, "to")),
 	POW(new ParseMatcher.BinOpMatcher("^")),
 	NEG(new ParseMatcher.UnaryOpMatcher("-")),
 	MUL(new ParseMatcher.BinOpMatcher("*")),
