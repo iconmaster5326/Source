@@ -21,7 +21,7 @@ public class Token {
 	public Token l;
 	public Token r;
 
-	Token(TokenType type, String data, Range range, Token l, Token r) {
+	public Token(TokenType type, String data, Range range, Token l, Token r) {
 		this(type, data, range);
 		this.l = l;
 		this.r = r;

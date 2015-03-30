@@ -73,9 +73,18 @@ public class Prototyper {
 	
 	public static void prototypeFunction(Token code, Function fn, PrototyperContext ctx) {
 		switch (code.type) {
+			case LINK:
+				SourcePackage oldPkg = ctx.pkg;
+				//add the link here
+				ctx.pkg = oldPkg;
+				break;
 			case FCALL:
+				fn.name = code.data;
+				//parse args, of course
 				break;
 			case AS:
+				fn.rawReturnType = code.r;
+				prototypeFunction(code.l, fn, ctx);
 				break;
 			default:
 				//error
