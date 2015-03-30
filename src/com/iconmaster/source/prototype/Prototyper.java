@@ -83,11 +83,17 @@ public class Prototyper {
 					tokens.remove(last);
 					for (Token t : tokens) {
 						if (t.type==TokenType.WORD) {
-							//add new package
+							SourcePackage newOldPkg = ctx.pkg;
+							ctx.pkg = new SourcePackage(newOldPkg.range);
+							ctx.pkg.name = t.data;
+							ctx.pkg.parent = newOldPkg;
+							newOldPkg.addSubPackage(ctx.pkg);
 						} else {
 							//error
 						}
 					}
+					
+					prototypeFunction(last, fn, ctx);
 				}
 				ctx.pkg = oldPkg;
 				break;

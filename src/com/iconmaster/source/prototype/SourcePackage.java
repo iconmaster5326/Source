@@ -28,6 +28,11 @@ public class SourcePackage {
 		this(null);
 	}
 
+	public SourcePackage(String name, Range range) {
+		this.range = range;
+		this.name = name;
+	}
+
 	public void addSubPackage(SourcePackage pkg) {
 		if (!subPackages.containsKey(pkg.name)) {
 			subPackages.put(pkg.name, new ArrayList<>());
