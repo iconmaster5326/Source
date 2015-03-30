@@ -1,7 +1,9 @@
 package com.iconmaster.source.util;
 
+import com.iconmaster.source.parse.Parser;
 import com.iconmaster.source.parse.Token;
 import com.iconmaster.source.parse.TokenType;
+import com.iconmaster.source.parse.Tokenizer;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
@@ -48,13 +50,36 @@ public class TokenUtilsTest {
 		List<Token> result;
 		
 		System.out.println("test 1");
-		input = new Token(TokenType.WORD, "x", null, null, null);
+		input = Parser.parse(Tokenizer.tokenize("x").item).item;
 		type = TokenType.LINK;
 		System.out.println("\tInput: '"+input+"' and '"+type+"'");
 		result = TokenUtils.getTokens(input, type);
 		System.out.println("\tProduced: "+result);
 		expResult = new ArrayList<>();
 		expResult.add(input);
+		assertEquals(expResult, result);
+		
+		System.out.println("test 2");
+		input = Parser.parse(Tokenizer.tokenize("x.y").item).item;
+		type = TokenType.LINK;
+		System.out.println("\tInput: '"+input+"' and '"+type+"'");
+		result = TokenUtils.getTokens(input, type);
+		System.out.println("\tProduced: "+result);
+		expResult = new ArrayList<>();
+		expResult.add(input.l);
+		expResult.add(input.r);
+		assertEquals(expResult, result);
+		
+		System.out.println("test 3");
+		input = Parser.parse(Tokenizer.tokenize("x,y,z").item).item;
+		type = TokenType.TUPLE;
+		System.out.println("\tInput: '"+input+"' and '"+type+"'");
+		result = TokenUtils.getTokens(input, type);
+		System.out.println("\tProduced: "+result);
+		expResult = new ArrayList<>();
+		expResult.add(input.l.l);
+		expResult.add(input.l.r);
+		expResult.add(input.r);
 		assertEquals(expResult, result);
 	}
 	

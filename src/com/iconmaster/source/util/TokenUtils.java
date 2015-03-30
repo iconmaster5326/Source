@@ -13,12 +13,12 @@ public class TokenUtils {
 	public static List<Token> getTokens(Token input, TokenType type) {
 		ArrayList<Token> a = new ArrayList<>();
 		while (input.type==type) {
-			input = input.l;
 			if (input.r!=null) {
-				a.add(input.r);
+				a.add(0,input.r);
 			}
+			input = input.l;
 		}
-		a.add(input);
+		a.add(0,input);
 		return a;
 	}
 }

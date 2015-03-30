@@ -381,6 +381,21 @@ public class ParserTest {
 		assertEquals("loc", result.item.r.data);
 		assertEquals(TokenType.WORD, result.item.r.l.type);
 		assertEquals("x", result.item.r.l.data);
+		
+		System.out.println("test 28:");
+		tokens = Tokenizer.tokenize("x,y,z").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.TUPLE, result.item.type);
+		assertEquals(TokenType.TUPLE, result.item.l.type);
+		assertEquals(TokenType.WORD, result.item.l.l.type);
+		assertEquals("x", result.item.l.l.type);
+		assertEquals(TokenType.WORD, result.item.l.r.type);
+		assertEquals("y", result.item.l.r.type);
+		assertEquals(TokenType.WORD, result.item.r.type);
+		assertEquals("z", result.item.r.type);
 	}
 	
 }

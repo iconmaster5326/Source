@@ -41,6 +41,7 @@ public class Parser {
 									tokens.add(pos,res.item.t);
 								}
 							}
+							pos = -1;
 						}
 					}
 				}
