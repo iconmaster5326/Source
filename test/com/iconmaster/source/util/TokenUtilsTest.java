@@ -81,6 +81,16 @@ public class TokenUtilsTest {
 		expResult.add(input.l.r);
 		expResult.add(input.r);
 		assertEquals(expResult, result);
+		
+		System.out.println("test 4");
+		input = Parser.parse(Tokenizer.tokenize("x,y,z").item).item;
+		type = TokenType.LINK;
+		System.out.println("\tInput: '"+input+"' and '"+type+"'");
+		result = TokenUtils.getTokens(input, type);
+		System.out.println("\tProduced: "+result);
+		expResult = new ArrayList<>();
+		expResult.add(input);
+		assertEquals(expResult, result);
 	}
 	
 }
