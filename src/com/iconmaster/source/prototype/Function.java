@@ -18,4 +18,12 @@ public class Function {
 		this.name = name;
 		this.rawCode = rawCode;
 	}
+
+	public Function(Token rawCode) {
+		this.rawCode = rawCode;
+	}
+
+	public Function() {
+		
+	}
 }

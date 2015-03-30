@@ -34,4 +34,11 @@ public class SourcePackage {
 		}
 		subPackages.get(pkg.name).add(pkg);
 	}
+	
+	public void addFunction(Function fn) {
+		if (!functions.containsKey(fn.name)) {
+			functions.put(fn.name, new ArrayList<>());
+		}
+		functions.get(fn.name).add(fn);
+	}
 }

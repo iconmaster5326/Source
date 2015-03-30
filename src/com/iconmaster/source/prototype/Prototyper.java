@@ -51,6 +51,9 @@ public class Prototyper {
 			case IMPORT:
 				break;
 			case FUNCTION:
+				Function fn = new Function(code.r);
+				fn.dirs.addAll(ctx.dirs);
+				prototypeFunction(code.l, fn, ctx);
 				ctx.dirs.clear();
 				break;
 			case FIELD:
@@ -65,6 +68,17 @@ public class Prototyper {
 			default:
 				//error
 				break;
+		}
+	}
+	
+	public static void prototypeFunction(Token code, Function fn, PrototyperContext ctx) {
+		switch (code.type) {
+			case FCALL:
+				break;
+			case AS:
+				break;
+			default:
+				//error
 		}
 	}
 }
