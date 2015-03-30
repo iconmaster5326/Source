@@ -79,17 +79,90 @@ public enum TokenType {
 	GT(new ParseMatcher.BinOpMatcher(">")),
 	GE(new ParseMatcher.BinOpMatcher(">=")),
 	EQ(new ParseMatcher.BinOpMatcher("==")),
-	NEQ(new ParseMatcher.BinOpMatcher("==")),
+	NEQ(new ParseMatcher.BinOpMatcher("!=")),
 	BIT_AND(new ParseMatcher.BinOpMatcher("&")),
 	BIT_OR(new ParseMatcher.BinOpMatcher("|")),
 	AND(new ParseMatcher.BinOpMatcher(TokenType.WORD, "and")),
 	OR(new ParseMatcher.BinOpMatcher(TokenType.WORD, "or")),
 	TUPLE(new ParseMatcher.BinOpMatcher(TokenType.COMMA, ",")),
+	IN(new ParseMatcher.BinOpMatcher(TokenType.WORD, "in")),
 	ASSIGN(new ParseMatcher.BinOpMatcher("=")),
 	LOCAL(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "local")),
 	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
 	PACKAGE(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "package")),
 	IMPORT(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "import")),
+	IF(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=3 && tokens.get(0).type==TokenType.WORD && "if".equals(tokens.get(0).data) && tokens.get(2).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(1), tokens.get(2).l), 3));
+		}
+	}),
+	ELSEIF(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=3 && tokens.get(0).type==TokenType.WORD && "elseif".equals(tokens.get(0).data) && tokens.get(2).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(1), tokens.get(2).l), 3));
+		}
+	}),
+	ELSE(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=2 && tokens.get(0).type==TokenType.WORD && "else".equals(tokens.get(0).data) && tokens.get(1).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(1).range), null, tokens.get(1).l), 2));
+		}
+	}),
+	WHILE(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=3 && tokens.get(0).type==TokenType.WORD && "while".equals(tokens.get(0).data) && tokens.get(2).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(1), tokens.get(2).l), 3));
+		}
+	}),
+	REPEAT(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=4 && tokens.get(0).type==TokenType.WORD && "repeat".equals(tokens.get(0).data) && tokens.get(1).type==TokenType.CODE && tokens.get(2).type==TokenType.WORD && "until".equals(tokens.get(2).data);
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(3).range), tokens.get(3), tokens.get(1).l), 4));
+		}
+	}),
+	FOR(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=3 && tokens.get(0).type==TokenType.WORD && "for".equals(tokens.get(0).data) && tokens.get(1).type==TokenType.IN && tokens.get(2).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(2).range), tokens.get(1), tokens.get(2).l), 3));
+		}
+	}),
 	FUNCTION(new ParseMatcher() {
 
 		@Override

@@ -298,6 +298,75 @@ public class ParserTest {
 		assertEquals("arg", result.item.l.l.data);
 		assertEquals(TokenType.WORD, result.item.r.type);
 		assertEquals("code", result.item.r.data);
+		
+		System.out.println("test 23:");
+		tokens = Tokenizer.tokenize("if x==3 {return 5} else {return 7}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.STATEMENT, result.item.type);
+		assertEquals(TokenType.IF, result.item.l.type);
+		assertEquals(TokenType.EQ, result.item.l.l.type);
+		assertEquals(TokenType.WORD, result.item.l.l.l.type);
+		assertEquals("x", result.item.l.l.l.data);
+		assertEquals(TokenType.NUMBER, result.item.l.l.r.type);
+		assertEquals("3", result.item.l.l.r.data);
+		assertEquals(TokenType.RETURN, result.item.l.r.type);
+		assertEquals(TokenType.NUMBER, result.item.l.r.l.type);
+		assertEquals("5", result.item.l.r.l.data);
+		assertEquals(TokenType.ELSE, result.item.r.type);
+		assertEquals(TokenType.RETURN, result.item.r.r.type);
+		assertEquals(TokenType.NUMBER, result.item.r.r.l.type);
+		assertEquals("7", result.item.r.r.l.data);
+		
+		System.out.println("test 24:");
+		tokens = Tokenizer.tokenize("while x==3 {return 5}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.WHILE, result.item.type);
+		assertEquals(TokenType.EQ, result.item.l.type);
+		assertEquals(TokenType.WORD, result.item.l.l.type);
+		assertEquals("x", result.item.l.l.data);
+		assertEquals(TokenType.NUMBER, result.item.l.r.type);
+		assertEquals("3", result.item.l.r.data);
+		assertEquals(TokenType.RETURN, result.item.r.type);
+		assertEquals(TokenType.NUMBER, result.item.r.l.type);
+		assertEquals("5", result.item.r.l.data);
+		
+		System.out.println("test 25:");
+		tokens = Tokenizer.tokenize("for a in b {return 5}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.FOR, result.item.type);
+		assertEquals(TokenType.IN, result.item.l.type);
+		assertEquals(TokenType.WORD, result.item.l.l.type);
+		assertEquals("a", result.item.l.l.data);
+		assertEquals(TokenType.WORD, result.item.l.r.type);
+		assertEquals("b", result.item.l.r.data);
+		assertEquals(TokenType.RETURN, result.item.r.type);
+		assertEquals(TokenType.NUMBER, result.item.r.l.type);
+		assertEquals("5", result.item.r.l.data);
+		
+		System.out.println("test 26:");
+		tokens = Tokenizer.tokenize("repeat {return 5} until x==3").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.REPEAT, result.item.type);
+		assertEquals(TokenType.EQ, result.item.l.type);
+		assertEquals(TokenType.WORD, result.item.l.l.type);
+		assertEquals("x", result.item.l.l.data);
+		assertEquals(TokenType.NUMBER, result.item.l.r.type);
+		assertEquals("3", result.item.l.r.data);
+		assertEquals(TokenType.RETURN, result.item.r.type);
+		assertEquals(TokenType.NUMBER, result.item.r.l.type);
+		assertEquals("5", result.item.r.l.data);
 	}
 	
 }
