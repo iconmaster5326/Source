@@ -12,7 +12,7 @@ public class Field {
 	public String name;
 	public Token rawCode = null;
 	public Token rawDataType = null;
-	public List<Directive> dirs = new ArrayList<>();
+	public List<String> dirs = new ArrayList<>();
 
 	public Field(String name) {
 		this.name = name;

@@ -13,7 +13,8 @@ import java.util.Map;
 public class SourcePackage {
 	public Range range;
 	public String name;
-	public List<Directive> dirs = new ArrayList<>();
+	public List<String> dirs = new ArrayList<>();
+	SourcePackage parent = null;
 	
 	public Map<String, List<SourcePackage>> subPackages = new HashMap<>();
 	public Map<String, List<Function>> functions = new HashMap<>();
