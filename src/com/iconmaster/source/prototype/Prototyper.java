@@ -75,7 +75,20 @@ public class Prototyper {
 		switch (code.type) {
 			case LINK:
 				SourcePackage oldPkg = ctx.pkg;
-				//add the link here
+				List<Token> tokens = TokenUtils.getTokens(code, TokenType.LINK);
+				Token last = tokens.get(tokens.size()-1);
+				if (last.type!=TokenType.FCALL) {
+					//error
+				} else {
+					tokens.remove(last);
+					for (Token t : tokens) {
+						if (t.type==TokenType.WORD) {
+							//add new package
+						} else {
+							//error
+						}
+					}
+				}
 				ctx.pkg = oldPkg;
 				break;
 			case FCALL:
