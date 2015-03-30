@@ -100,6 +100,7 @@ public class Prototyper {
 			case FCALL:
 				fn.name = code.data;
 				//parse args, of course
+				ctx.pkg.addFunction(fn);
 				break;
 			case AS:
 				fn.rawReturnType = code.r;
