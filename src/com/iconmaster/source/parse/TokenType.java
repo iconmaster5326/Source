@@ -74,6 +74,7 @@ public enum TokenType {
 	SRA(new ParseMatcher.BinOpMatcher(">>>")),
 	NOT(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "not")),
 	BIT_NOT(new ParseMatcher.UnaryOpMatcher("!")),
+	CONCAT(new ParseMatcher.BinOpMatcher("~")),
 	LT(new ParseMatcher.BinOpMatcher("<")),
 	LE(new ParseMatcher.BinOpMatcher("<=")),
 	GT(new ParseMatcher.BinOpMatcher(">")),
