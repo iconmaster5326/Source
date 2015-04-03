@@ -120,6 +120,15 @@ public class PrototyperTest {
 		assertEquals(2,pkg.rawImports.get(0).size());
 		assertEquals("lib1",pkg.rawImports.get(0).get(0));
 		assertEquals("lib2",pkg.rawImports.get(0).get(1));
+		
+		System.out.println("test 8");
+		s = "package pkg {field x}";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertTrue(pkg.subPackages.containsKey("pkg"));
+		assertTrue(pkg.subPackages.get("pkg").fields.containsKey("x"));
 	}
 
 	/**

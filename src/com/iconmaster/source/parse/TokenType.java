@@ -91,6 +91,18 @@ public enum TokenType {
 	FIELD(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "field")),
 	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
 	PACKAGE(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "package")),
+	PACKAGE_BLOCK(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=2 && tokens.get(0).type==TokenType.PACKAGE && tokens.get(1).type==TokenType.CODE;
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, Range.from(tokens.get(0).range, tokens.get(1).range), tokens.get(0).l, tokens.get(1).l), 2));
+		}
+	}),
 	IMPORT(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "import")),
 	IF(new ParseMatcher() {
 

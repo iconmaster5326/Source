@@ -45,6 +45,20 @@ public class Prototyper {
 				}
 				ctx.dirs.clear();
 				break;
+			case PACKAGE_BLOCK:
+				names = TokenUtils.getTokens(code.l, TokenType.LINK);
+				SourcePackage oldPkg = ctx.pkg;
+				for (Token t : names) {
+					if (t.type==TokenType.WORD) {
+						ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
+					} else {
+						//error
+					}
+				}
+				prototype(code.r,ctx);
+				ctx.pkg = oldPkg;
+				ctx.dirs.clear();
+				break;
 			case IMPORT: {
 				List<Token> tokens = TokenUtils.getTokens(code.l, TokenType.TUPLE);
 				for (Token t : tokens) {

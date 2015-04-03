@@ -396,6 +396,16 @@ public class ParserTest {
 		assertEquals("y", result.item.l.r.data);
 		assertEquals(TokenType.WORD, result.item.r.type);
 		assertEquals("z", result.item.r.data);
+		
+		System.out.println("test 29:");
+		tokens = Tokenizer.tokenize("package block {5}").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.PACKAGE_BLOCK, result.item.type);
+		assertEquals(TokenType.WORD, result.item.l.type);
+		assertEquals(TokenType.NUMBER, result.item.r.type);
 	}
 	
 }
