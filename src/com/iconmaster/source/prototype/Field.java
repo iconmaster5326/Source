@@ -11,7 +11,6 @@ import java.util.List;
  */
 public class Field {
 	public String name;
-	public Token rawCode = null;
 	public Token rawDataType = null;
 	public List<String> dirs = new ArrayList<>();
 	public Range range;
@@ -26,6 +25,6 @@ public class Field {
 
 	@Override
 	public String toString() {
-		return "Field{" + "name=" + name + ", rawCode=" + rawCode + ", rawDataType=" + rawDataType + ", dirs=" + dirs + '}';
+		return "Field{" + "name=" + name + ", range=" + range + ", rawDataType=" + rawDataType + ", dirs=" + dirs + '}';
 	}
 }
