@@ -17,4 +17,13 @@ public class Field {
 	public Field(String name) {
 		this.name = name;
 	}
+
+	public Field() {
+		
+	}
+
+	@Override
+	public String toString() {
+		return "Field{" + "name=" + name + ", rawCode=" + rawCode + ", rawDataType=" + rawDataType + ", dirs=" + dirs + '}';
+	}
 }

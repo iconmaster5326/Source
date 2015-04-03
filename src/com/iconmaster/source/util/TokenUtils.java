@@ -12,6 +12,9 @@ import java.util.List;
 public class TokenUtils {
 	public static List<Token> getTokens(Token input, TokenType type) {
 		ArrayList<Token> a = new ArrayList<>();
+		if (input==null) {
+			return a;
+		}
 		while (input.type==type) {
 			if (input.r!=null) {
 				a.add(0,input.r);

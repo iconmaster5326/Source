@@ -13,6 +13,7 @@ public class Function {
 	public Token rawCode;
 	public Token rawReturnType = null;
 	public List<String> dirs = new ArrayList<>();
+	public List<Field> rawArgs = new ArrayList<>();
 
 	public Function(String name, Token rawCode) {
 		this.name = name;
@@ -29,6 +30,6 @@ public class Function {
 
 	@Override
 	public String toString() {
-		return "Function{" + "name=" + name + ", rawCode=" + rawCode + ", rawReturnType=" + rawReturnType + ", dirs=" + dirs + '}';
+		return "Function{" + "name=" + name + ", rawCode=" + rawCode + ", rawReturnType=" + rawReturnType + ", dirs=" + dirs + ", rawArgs=" + rawArgs + '}';
 	}
 }

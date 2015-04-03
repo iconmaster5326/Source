@@ -92,12 +92,37 @@ public class Prototyper {
 				break;
 			case FCALL:
 				fn.name = code.data;
-				//parse args, of course
+				
+				List<Token> args = TokenUtils.getTokens(code.l, TokenType.TUPLE);
+				for (Token t : args) {
+					Field arg = new Field();
+					prototypeFuncArg(t, arg, ctx);
+					fn.rawArgs.add(arg);
+				}
+				
 				ctx.pkg.addFunction(fn);
 				break;
 			case AS:
 				fn.rawReturnType = code.r;
 				prototypeFunction(code.l, fn, ctx);
+				break;
+			default:
+				//error
+		}
+	}
+	
+	public static void prototypeFuncArg(Token code, Field f, PrototyperContext ctx) {
+		switch (code.type) {
+			case WORD:
+				f.name = code.data;
+				break;
+			case AS:
+				f.rawDataType = code.r;
+				prototypeFuncArg(code.l, f, ctx);
+				break;
+			case LOCAL_DIR:
+				f.dirs.add(code.data);
+				prototypeFuncArg(code.l, f, ctx);
 				break;
 			default:
 				//error

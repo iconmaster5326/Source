@@ -113,6 +113,79 @@ public class PrototyperTest {
 		assertEquals("int", fn.rawReturnType.data);
 		assertTrue(ctx.pkg.subPackages.containsKey("type"));
 		assertTrue(ctx.pkg.subPackages.get("type").functions.containsKey("func"));
+		
+		System.out.println("test 4");
+		s = "func(a)";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals(1, fn.rawArgs.size());
+		assertEquals("a", fn.rawArgs.get(0).name);
+		
+		System.out.println("test 5");
+		s = "func(a,b,c)";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals(3, fn.rawArgs.size());
+		assertEquals("a", fn.rawArgs.get(0).name);
+		assertEquals("b", fn.rawArgs.get(1).name);
+		assertEquals("c", fn.rawArgs.get(2).name);
+		
+		System.out.println("test 6");
+		s = "func(a as int)";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals(1, fn.rawArgs.size());
+		assertEquals("a", fn.rawArgs.get(0).name);
+		assertEquals("int", fn.rawArgs.get(0).rawDataType.data);
+		
+		System.out.println("test 7");
+		s = "func(a as int,b as real)";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals(2, fn.rawArgs.size());
+		assertEquals("a", fn.rawArgs.get(0).name);
+		assertEquals("int", fn.rawArgs.get(0).rawDataType.data);
+		assertEquals("b", fn.rawArgs.get(1).name);
+		assertEquals("real", fn.rawArgs.get(1).rawDataType.data);
+		
+		System.out.println("test 8");
+		s = "func(@dir a)";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals(1, fn.rawArgs.size());
+		assertEquals("a", fn.rawArgs.get(0).name);
+		assertEquals(1, fn.rawArgs.get(0).dirs.size());
+		assertEquals("dir", fn.rawArgs.get(0).dirs.get(0));
 	}
 	
 }
