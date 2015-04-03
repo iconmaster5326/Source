@@ -186,6 +186,22 @@ public class PrototyperTest {
 		assertEquals("a", fn.rawArgs.get(0).name);
 		assertEquals(1, fn.rawArgs.get(0).dirs.size());
 		assertEquals("dir", fn.rawArgs.get(0).dirs.get(0));
+		
+		System.out.println("test 9");
+		s = "func(@dir1 @dir2 a)";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertEquals(1, fn.rawArgs.size());
+		assertEquals("a", fn.rawArgs.get(0).name);
+		assertEquals(2, fn.rawArgs.get(0).dirs.size());
+		assertEquals("dir1", fn.rawArgs.get(0).dirs.get(0));
+		assertEquals("dir2", fn.rawArgs.get(0).dirs.get(1));
 	}
 	
 }

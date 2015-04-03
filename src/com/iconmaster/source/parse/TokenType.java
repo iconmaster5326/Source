@@ -192,7 +192,7 @@ public enum TokenType {
 
 		@Override
 		public boolean valid(TokenType type, List<Token> tokens) {
-			return tokens.size()>=2 && tokens.get(0).type==TokenType.DIRECTIVE;
+			return tokens.size()>=2 && tokens.get(0).type==TokenType.DIRECTIVE && tokens.get(1).type!=TokenType.DIRECTIVE;
 		}
 
 		@Override
