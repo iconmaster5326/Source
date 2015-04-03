@@ -1,6 +1,7 @@
 package com.iconmaster.source.prototype;
 
 import com.iconmaster.source.parse.Token;
+import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class Function {
 	public Token rawReturnType = null;
 	public List<String> dirs = new ArrayList<>();
 	public List<Field> rawArgs = new ArrayList<>();
+	public Range range;
 
 	public Function(String name, Token rawCode) {
 		this.name = name;

@@ -49,6 +49,7 @@ public class Prototyper {
 				break;
 			case FUNCTION:
 				Function fn = new Function(code.r);
+				fn.range = code.range;
 				fn.dirs.addAll(ctx.dirs);
 				prototypeFunction(code.l, fn, ctx);
 				ctx.dirs.clear();
@@ -64,6 +65,7 @@ public class Prototyper {
 				
 				for (Token t : tokens) {
 					Field f = new Field();
+					f.range = t.range;
 					f.dirs.addAll(ctx.dirs);
 					prototypeField(t, f, ctx);
 				}
@@ -110,6 +112,7 @@ public class Prototyper {
 				List<Token> args = TokenUtils.getTokens(code.l, TokenType.TUPLE);
 				for (Token t : args) {
 					Field arg = new Field();
+					arg.range = t.range;
 					prototypeFuncArg(t, arg, ctx);
 					fn.rawArgs.add(arg);
 				}
