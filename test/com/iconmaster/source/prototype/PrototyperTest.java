@@ -3,6 +3,7 @@ package com.iconmaster.source.prototype;
 import com.iconmaster.source.parse.Parser;
 import com.iconmaster.source.parse.Token;
 import com.iconmaster.source.parse.Tokenizer;
+import com.iconmaster.source.util.Result;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
@@ -45,7 +46,7 @@ public class PrototyperTest {
 		
 		Token code;
 		String s;
-		SourcePackage pkg;
+		Result<SourcePackage> pkg;
 		
 		System.out.println("test 1");
 		s = "package test";
@@ -53,7 +54,8 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertTrue(pkg.subPackages.containsKey("test"));
+		assertTrue(!pkg.failed);
+		assertTrue(pkg.item.subPackages.containsKey("test"));
 		
 		System.out.println("test 2");
 		s = "package test function lol() {}";
@@ -61,8 +63,9 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertTrue(pkg.subPackages.containsKey("test"));
-		assertTrue(pkg.subPackages.get("test").functions.containsKey("lol"));
+		assertTrue(!pkg.failed);
+		assertTrue(pkg.item.subPackages.containsKey("test"));
+		assertTrue(pkg.item.subPackages.get("test").functions.containsKey("lol"));
 		
 		System.out.println("test 3");
 		s = "field x,y,z";
@@ -70,11 +73,12 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertEquals(3,pkg.fields.size());
-		assertTrue(pkg.fields.containsKey("x"));
-		assertTrue(pkg.fields.containsKey("y"));
-		assertTrue(pkg.fields.containsKey("z"));
-		assertEquals(0,pkg.rawFieldValues.size());
+		assertTrue(!pkg.failed);
+		assertEquals(3,pkg.item.fields.size());
+		assertTrue(pkg.item.fields.containsKey("x"));
+		assertTrue(pkg.item.fields.containsKey("y"));
+		assertTrue(pkg.item.fields.containsKey("z"));
+		assertEquals(0,pkg.item.rawFieldValues.size());
 		
 		System.out.println("test 4");
 		s = "field x,y,z = 1,2,3";
@@ -82,11 +86,12 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertEquals(3,pkg.fields.size());
-		assertTrue(pkg.fields.containsKey("x"));
-		assertTrue(pkg.fields.containsKey("y"));
-		assertTrue(pkg.fields.containsKey("z"));
-		assertEquals(1,pkg.rawFieldValues.size());
+		assertTrue(!pkg.failed);
+		assertEquals(3,pkg.item.fields.size());
+		assertTrue(pkg.item.fields.containsKey("x"));
+		assertTrue(pkg.item.fields.containsKey("y"));
+		assertTrue(pkg.item.fields.containsKey("z"));
+		assertEquals(1,pkg.item.rawFieldValues.size());
 		
 		System.out.println("test 5");
 		s = "import lib";
@@ -94,9 +99,10 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertEquals(1,pkg.rawImports.size());
-		assertEquals(1,pkg.rawImports.get(0).size());
-		assertEquals("lib",pkg.rawImports.get(0).get(0));
+		assertTrue(!pkg.failed);
+		assertEquals(1,pkg.item.rawImports.size());
+		assertEquals(1,pkg.item.rawImports.get(0).size());
+		assertEquals("lib",pkg.item.rawImports.get(0).get(0));
 		
 		System.out.println("test 6");
 		s = "import lib1,lib2";
@@ -104,11 +110,12 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertEquals(2,pkg.rawImports.size());
-		assertEquals(1,pkg.rawImports.get(0).size());
-		assertEquals("lib1",pkg.rawImports.get(0).get(0));
-		assertEquals(1,pkg.rawImports.get(1).size());
-		assertEquals("lib2",pkg.rawImports.get(1).get(0));
+		assertTrue(!pkg.failed);
+		assertEquals(2,pkg.item.rawImports.size());
+		assertEquals(1,pkg.item.rawImports.get(0).size());
+		assertEquals("lib1",pkg.item.rawImports.get(0).get(0));
+		assertEquals(1,pkg.item.rawImports.get(1).size());
+		assertEquals("lib2",pkg.item.rawImports.get(1).get(0));
 		
 		System.out.println("test 7");
 		s = "import lib1.lib2";
@@ -116,10 +123,11 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertEquals(1,pkg.rawImports.size());
-		assertEquals(2,pkg.rawImports.get(0).size());
-		assertEquals("lib1",pkg.rawImports.get(0).get(0));
-		assertEquals("lib2",pkg.rawImports.get(0).get(1));
+		assertTrue(!pkg.failed);
+		assertEquals(1,pkg.item.rawImports.size());
+		assertEquals(2,pkg.item.rawImports.get(0).size());
+		assertEquals("lib1",pkg.item.rawImports.get(0).get(0));
+		assertEquals("lib2",pkg.item.rawImports.get(0).get(1));
 		
 		System.out.println("test 8");
 		s = "package pkg {field x}";
@@ -127,8 +135,9 @@ public class PrototyperTest {
 		pkg = Prototyper.prototype(code);
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
-		assertTrue(pkg.subPackages.containsKey("pkg"));
-		assertTrue(pkg.subPackages.get("pkg").fields.containsKey("x"));
+		assertTrue(!pkg.failed);
+		assertTrue(pkg.item.subPackages.containsKey("pkg"));
+		assertTrue(pkg.item.subPackages.get("pkg").fields.containsKey("x"));
 	}
 
 	/**

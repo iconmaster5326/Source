@@ -1,7 +1,9 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.exception.SourceError;
 import com.iconmaster.source.parse.Token;
 import com.iconmaster.source.parse.TokenType;
+import com.iconmaster.source.util.Result;
 import com.iconmaster.source.util.TokenUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ public class Prototyper {
 		public SourcePackage root;
 		public SourcePackage pkg;
 		public ArrayList<String> dirs = new ArrayList<>();
+		public ArrayList<SourceError> errs = new ArrayList<>();
 
 		public PrototyperContext(SourcePackage root) {
 			this.root = root;
@@ -22,10 +25,15 @@ public class Prototyper {
 		}
 	}
 	
-	public static SourcePackage prototype(Token code) {
+	public static Result<SourcePackage> prototype(Token code) {
 		SourcePackage pkg = new SourcePackage(code.range);
-		prototype(code, new PrototyperContext(pkg));
-		return pkg;
+		PrototyperContext ctx = new PrototyperContext(pkg);
+		prototype(code, ctx);
+		if (ctx.errs.isEmpty()) {
+			return new Result<>(pkg);
+		} else {
+			return new Result<>(ctx.errs.toArray(new SourceError[0]));
+		}
 	}
 	
 	public static void prototype(Token code, PrototyperContext ctx) {
@@ -40,7 +48,7 @@ public class Prototyper {
 					if (t.type==TokenType.WORD) {
 						ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
 					} else {
-						//error
+						ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t.range, "Token of type "+t.type+" not allowed in package name"));
 					}
 				}
 				ctx.dirs.clear();
@@ -52,7 +60,7 @@ public class Prototyper {
 					if (t.type==TokenType.WORD) {
 						ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
 					} else {
-						//error
+						ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t.range, "Token of type "+t.type+" not allowed in package name"));
 					}
 				}
 				prototype(code.r,ctx);
@@ -68,7 +76,7 @@ public class Prototyper {
 						if (t2.type==TokenType.WORD) {
 							a.add(t2.data);
 						} else {
-							//error
+							ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t2.range, "Token of type "+t2.type+" not allowed in package name"));
 						}
 					}
 					ctx.pkg.rawImports.add(a);
@@ -106,7 +114,7 @@ public class Prototyper {
 				prototype(code.l,ctx);
 				break;
 			default:
-				//error
+				ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, code.range, "Token of type "+code.type+" not allowed in global scope"));
 				break;
 		}
 	}
@@ -118,14 +126,14 @@ public class Prototyper {
 				List<Token> tokens = TokenUtils.getTokens(code, TokenType.LINK);
 				Token last = tokens.get(tokens.size()-1);
 				if (last.type!=TokenType.FCALL) {
-					//error
+					ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, last.range, "Token of type "+last.type+" is not a function definition"));
 				} else {
 					tokens.remove(last);
 					for (Token t : tokens) {
 						if (t.type==TokenType.WORD) {
 							ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
 						} else {
-							//error
+							ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t.range, "Token of type "+t.type+" not allowed in function name"));
 						}
 					}
 					
@@ -151,7 +159,7 @@ public class Prototyper {
 				prototypeFunction(code.l, fn, ctx);
 				break;
 			default:
-				//error
+				ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, code.range, "Token of type "+code.type+" not allowed in function definition"));
 		}
 	}
 	
@@ -169,7 +177,7 @@ public class Prototyper {
 				prototypeFuncArg(code.l, f, ctx);
 				break;
 			default:
-				//error
+				ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, code.range, "Token of type "+code.type+" not allowed in function definition arguments"));
 		}
 	}
 	
@@ -180,14 +188,14 @@ public class Prototyper {
 				List<Token> tokens = TokenUtils.getTokens(code, TokenType.LINK);
 				Token last = tokens.get(tokens.size()-1);
 				if (last.type!=TokenType.WORD) {
-					//error
+					ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, last.range, "Token of type "+last.type+" not allowed in field name"));
 				} else {
 					tokens.remove(last);
 					for (Token t : tokens) {
 						if (t.type==TokenType.WORD) {
 							ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
 						} else {
-							//error
+							ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t.range, "Token of type "+t.type+" not allowed in field name"));
 						}
 					}
 					
@@ -208,7 +216,7 @@ public class Prototyper {
 				ctx.pkg.addField(f);
 				break;
 			default:
-				//error
+				ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, code.range, "Token of type "+code.type+" not allowed in field definition"));
 		}
 	}
 }
