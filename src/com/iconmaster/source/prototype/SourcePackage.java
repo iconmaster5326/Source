@@ -16,7 +16,7 @@ public class SourcePackage {
 	public List<String> dirs = new ArrayList<>();
 	SourcePackage parent = null;
 	
-	public Map<String, List<SourcePackage>> subPackages = new HashMap<>();
+	public Map<String, SourcePackage> subPackages = new HashMap<>();
 	public Map<String, List<Function>> functions = new HashMap<>();
 	public Map<String, List<Field>> fields = new HashMap<>();
 
@@ -32,12 +32,20 @@ public class SourcePackage {
 		this.range = range;
 		this.name = name;
 	}
+	
+	public SourcePackage getPackage(String name) {
+		return getPackage(name, range);
+	}
 
-	public void addSubPackage(SourcePackage pkg) {
-		if (!subPackages.containsKey(pkg.name)) {
-			subPackages.put(pkg.name, new ArrayList<>());
+	public SourcePackage getPackage(String name, Range rn) {
+		if (subPackages.containsKey(name)) {
+			return subPackages.get(name);
+		} else {
+			SourcePackage pkg = new SourcePackage(name, rn);
+			pkg.parent = this;
+			subPackages.put(name, pkg);
+			return pkg;
 		}
-		subPackages.get(pkg.name).add(pkg);
 	}
 	
 	public void addFunction(Function fn) {
@@ -45,5 +53,10 @@ public class SourcePackage {
 			functions.put(fn.name, new ArrayList<>());
 		}
 		functions.get(fn.name).add(fn);
+	}
+
+	@Override
+	public String toString() {
+		return "SourcePackage{" + "range=" + range + ", name=" + name + ", dirs=" + dirs + ", subPackages=" + subPackages + ", functions=" + functions + ", fields=" + fields + '}';
 	}
 }

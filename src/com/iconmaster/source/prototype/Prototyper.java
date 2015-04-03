@@ -31,22 +31,19 @@ public class Prototyper {
 	public static void prototype(Token code, PrototyperContext ctx) {
 		switch (code.type) {
 			case STATEMENT:
-				prototype(code.r,ctx);
 				prototype(code.l,ctx);
+				prototype(code.r,ctx);
 				break;
 			case PACKAGE:
-				List<Token> names = TokenUtils.getTokens(code, TokenType.LINK);
+				List<Token> names = TokenUtils.getTokens(code.l, TokenType.LINK);
 				for (Token t : names) {
 					if (t.type==TokenType.WORD) {
-						SourcePackage oldPkg = ctx.pkg;
-						ctx.pkg = new SourcePackage(oldPkg.range);
-						ctx.pkg.name = t.data;
-						ctx.pkg.parent = oldPkg;
-						oldPkg.addSubPackage(ctx.pkg);
+						ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
 					} else {
 						//error
 					}
 				}
+				ctx.dirs.clear();
 				break;
 			case IMPORT:
 				break;
@@ -83,11 +80,7 @@ public class Prototyper {
 					tokens.remove(last);
 					for (Token t : tokens) {
 						if (t.type==TokenType.WORD) {
-							SourcePackage newOldPkg = ctx.pkg;
-							ctx.pkg = new SourcePackage(newOldPkg.range);
-							ctx.pkg.name = t.data;
-							ctx.pkg.parent = newOldPkg;
-							newOldPkg.addSubPackage(ctx.pkg);
+							ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
 						} else {
 							//error
 						}

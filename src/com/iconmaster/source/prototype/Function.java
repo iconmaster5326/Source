@@ -26,4 +26,9 @@ public class Function {
 	public Function() {
 		
 	}
+
+	@Override
+	public String toString() {
+		return "Function{" + "name=" + name + ", rawCode=" + rawCode + ", rawReturnType=" + rawReturnType + ", dirs=" + dirs + '}';
+	}
 }

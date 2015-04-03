@@ -54,6 +54,15 @@ public class PrototyperTest {
 		System.out.println("\tInput: '"+s+"'");
 		System.out.println("\tProduced: "+pkg);
 		assertTrue(pkg.subPackages.containsKey("test"));
+		
+		System.out.println("test 2");
+		s = "package test function lol() {}";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertTrue(pkg.subPackages.containsKey("test"));
+		assertTrue(pkg.subPackages.get("test").functions.containsKey("lol"));
 	}
 
 	/**
@@ -89,7 +98,7 @@ public class PrototyperTest {
 		System.out.println("\tProduced: "+fn);
 		assertEquals("func", fn.name);
 		assertTrue(ctx.pkg.subPackages.containsKey("type"));
-		assertTrue(ctx.pkg.subPackages.get("type").get(0).functions.containsKey("func"));
+		assertTrue(ctx.pkg.subPackages.get("type").functions.containsKey("func"));
 		
 		System.out.println("test 3");
 		s = "type.func() as int";
@@ -103,7 +112,7 @@ public class PrototyperTest {
 		assertEquals("func", fn.name);
 		assertEquals("int", fn.rawReturnType.data);
 		assertTrue(ctx.pkg.subPackages.containsKey("type"));
-		assertTrue(ctx.pkg.subPackages.get("type").get(0).functions.containsKey("func"));
+		assertTrue(ctx.pkg.subPackages.get("type").functions.containsKey("func"));
 	}
 	
 }
