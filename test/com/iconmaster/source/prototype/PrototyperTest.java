@@ -87,6 +87,39 @@ public class PrototyperTest {
 		assertTrue(pkg.fields.containsKey("y"));
 		assertTrue(pkg.fields.containsKey("z"));
 		assertEquals(1,pkg.rawFieldValues.size());
+		
+		System.out.println("test 5");
+		s = "import lib";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertEquals(1,pkg.rawImports.size());
+		assertEquals(1,pkg.rawImports.get(0).size());
+		assertEquals("lib",pkg.rawImports.get(0).get(0));
+		
+		System.out.println("test 6");
+		s = "import lib1,lib2";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertEquals(2,pkg.rawImports.size());
+		assertEquals(1,pkg.rawImports.get(0).size());
+		assertEquals("lib1",pkg.rawImports.get(0).get(0));
+		assertEquals(1,pkg.rawImports.get(1).size());
+		assertEquals("lib2",pkg.rawImports.get(1).get(0));
+		
+		System.out.println("test 7");
+		s = "import lib1.lib2";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertEquals(1,pkg.rawImports.size());
+		assertEquals(2,pkg.rawImports.get(0).size());
+		assertEquals("lib1",pkg.rawImports.get(0).get(0));
+		assertEquals("lib2",pkg.rawImports.get(0).get(1));
 	}
 
 	/**

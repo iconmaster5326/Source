@@ -45,9 +45,22 @@ public class Prototyper {
 				}
 				ctx.dirs.clear();
 				break;
-			case IMPORT:
+			case IMPORT: {
+				List<Token> tokens = TokenUtils.getTokens(code.l, TokenType.TUPLE);
+				for (Token t : tokens) {
+					List<Token> tokens2 = TokenUtils.getTokens(t, TokenType.LINK);
+					List<String> a = new ArrayList<>();
+					for (Token t2 : tokens2) {
+						if (t2.type==TokenType.WORD) {
+							a.add(t2.data);
+						} else {
+							//error
+						}
+					}
+					ctx.pkg.rawImports.add(a);
+				}
 				break;
-			case FUNCTION:
+			} case FUNCTION:
 				Function fn = new Function(code.r);
 				fn.range = code.range;
 				fn.dirs.addAll(ctx.dirs);
