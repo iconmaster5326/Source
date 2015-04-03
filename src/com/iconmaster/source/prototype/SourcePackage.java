@@ -1,5 +1,6 @@
 package com.iconmaster.source.prototype;
 
+import com.iconmaster.source.parse.Token;
 import com.iconmaster.source.util.Range;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,7 +19,9 @@ public class SourcePackage {
 	
 	public Map<String, SourcePackage> subPackages = new HashMap<>();
 	public Map<String, List<Function>> functions = new HashMap<>();
-	public Map<String, List<Field>> fields = new HashMap<>();
+	public Map<String, Field> fields = new HashMap<>();
+	public List<String> rawImports = new ArrayList<>();
+	public List<Token> rawFieldValues = new ArrayList<>();
 
 	public SourcePackage(Range range) {
 		this.range = range;
@@ -53,6 +56,10 @@ public class SourcePackage {
 			functions.put(fn.name, new ArrayList<>());
 		}
 		functions.get(fn.name).add(fn);
+	}
+	
+	public void addField(Field f) {
+		fields.put(f.name, f);
 	}
 
 	@Override

@@ -63,6 +63,30 @@ public class PrototyperTest {
 		System.out.println("\tProduced: "+pkg);
 		assertTrue(pkg.subPackages.containsKey("test"));
 		assertTrue(pkg.subPackages.get("test").functions.containsKey("lol"));
+		
+		System.out.println("test 3");
+		s = "field x,y,z";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertEquals(3,pkg.fields.size());
+		assertTrue(pkg.fields.containsKey("x"));
+		assertTrue(pkg.fields.containsKey("y"));
+		assertTrue(pkg.fields.containsKey("z"));
+		assertEquals(0,pkg.rawFieldValues.size());
+		
+		System.out.println("test 4");
+		s = "field x,y,z = 1,2,3";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertEquals(3,pkg.fields.size());
+		assertTrue(pkg.fields.containsKey("x"));
+		assertTrue(pkg.fields.containsKey("y"));
+		assertTrue(pkg.fields.containsKey("z"));
+		assertEquals(1,pkg.rawFieldValues.size());
 	}
 
 	/**
@@ -204,4 +228,62 @@ public class PrototyperTest {
 		assertEquals("dir2", fn.rawArgs.get(0).dirs.get(1));
 	}
 	
+	@Test
+	public void testPrototypeField() {
+		System.out.println("===PROTOTYPER: FIELDS===");
+		
+		Token code;
+		Field f;
+		String s;
+		Prototyper.PrototyperContext ctx;
+		
+		System.out.println("test 1");
+		s = "x";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		f = new Field();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeField(code, f, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+f);
+		assertEquals("x", f.name);
+		
+		System.out.println("test 2");
+		s = "pkg.x";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		f = new Field();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeField(code, f, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+f);
+		assertTrue(ctx.pkg.subPackages.containsKey("pkg"));
+		assertTrue(ctx.pkg.subPackages.get("pkg").fields.containsKey("x"));
+		assertEquals("x", f.name);
+		
+		System.out.println("test 3");
+		s = "x as int";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		f = new Field();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeField(code, f, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+f);
+		assertEquals("x", f.name);
+		assertEquals("int", f.rawDataType.data);
+		
+		System.out.println("test 4");
+		s = "@dir x";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		f = new Field();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeField(code, f, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+f);
+		assertEquals("x", f.name);
+		assertEquals(1, f.dirs.size());
+		assertEquals("dir", f.dirs.get(0));
+	}
 }

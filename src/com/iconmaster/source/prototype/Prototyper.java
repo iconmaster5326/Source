@@ -54,6 +54,20 @@ public class Prototyper {
 				ctx.dirs.clear();
 				break;
 			case FIELD:
+				List<Token> tokens;
+				if (code.l.type==TokenType.ASSIGN) {
+					tokens = TokenUtils.getTokens(code.l.l, TokenType.TUPLE);
+					ctx.pkg.rawFieldValues.add(code.l);
+				} else {
+					tokens = TokenUtils.getTokens(code.l, TokenType.TUPLE);
+				}
+				
+				for (Token t : tokens) {
+					Field f = new Field();
+					f.dirs.addAll(ctx.dirs);
+					prototypeField(t, f, ctx);
+				}
+				ctx.dirs.clear();
 				break;
 			case GLOBAL_DIR:
 				ctx.pkg.dirs.add(code.data);
@@ -123,6 +137,45 @@ public class Prototyper {
 			case LOCAL_DIR:
 				f.dirs.add(code.data);
 				prototypeFuncArg(code.l, f, ctx);
+				break;
+			default:
+				//error
+		}
+	}
+	
+	public static void prototypeField(Token code, Field f, PrototyperContext ctx) {
+		switch (code.type) {
+			case LINK:
+				SourcePackage oldPkg = ctx.pkg;
+				List<Token> tokens = TokenUtils.getTokens(code, TokenType.LINK);
+				Token last = tokens.get(tokens.size()-1);
+				if (last.type!=TokenType.WORD) {
+					//error
+				} else {
+					tokens.remove(last);
+					for (Token t : tokens) {
+						if (t.type==TokenType.WORD) {
+							ctx.pkg = ctx.pkg.getPackage(t.data, code.range);
+						} else {
+							//error
+						}
+					}
+					
+					prototypeField(last, f, ctx);
+				}
+				ctx.pkg = oldPkg;
+				break;
+			case LOCAL_DIR:
+				f.dirs.add(code.data);
+				prototypeField(code.l, f, ctx);
+				break;
+			case AS:
+				f.rawDataType = code.r;
+				prototypeField(code.l, f, ctx);
+				break;
+			case WORD:
+				f.name = code.data;
+				ctx.pkg.addField(f);
 				break;
 			default:
 				//error
