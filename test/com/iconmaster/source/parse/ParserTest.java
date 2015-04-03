@@ -406,6 +406,24 @@ public class ParserTest {
 		assertEquals(TokenType.PACKAGE_BLOCK, result.item.type);
 		assertEquals(TokenType.WORD, result.item.l.type);
 		assertEquals(TokenType.NUMBER, result.item.r.type);
+		
+		System.out.println("test 30:");
+		tokens = Tokenizer.tokenize("/*comment /*lol*/ end*/ x").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.WORD, result.item.type);
+		assertEquals("x", result.item.data);
+		
+		System.out.println("test 31:");
+		tokens = Tokenizer.tokenize("/**comment /*lol*/ end**/ x").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.WORD, result.item.type);
+		assertEquals("x", result.item.data);
 	}
 	
 }

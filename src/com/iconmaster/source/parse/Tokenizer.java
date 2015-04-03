@@ -35,24 +35,24 @@ public class Tokenizer {
 			for (TokenType type : TokenType.values()) {
 				if (!type.simple) break;
 				
-				Pattern p = Pattern.compile("^"+type.matches);
-				Matcher m = p.matcher(input);
-				if (m.find()) {
-					found = true;
-					String got = m.group();
-					if (got.equals(".")) { //silly hack for NUMBER -> DOT
-						type = TokenType.DOT;
-					}
-					Range rn = new Range(i,i+got.length());
-					i += got.length();
-					input = input.substring(got.length());
-					got = type.getData(got);
-					if (got!=null) {
-						Token t = new Token(type, got, rn);
-						a.add(t);
+					Pattern p = Pattern.compile("^"+type.matches);
+					Matcher m = p.matcher(input);
+					if (m.find()) {
+						found = true;
+						String got = m.group();
+						if (got.equals(".")) { //silly hack for NUMBER -> DOT
+							type = TokenType.DOT;
+						}
+						Range rn = new Range(i,i+got.length());
+						i += got.length();
+						input = input.substring(got.length());
+						got = type.getData(got);
+						if (got!=null) {
+							Token t = new Token(type, got, rn);
+							a.add(t);
+						}
 					}
 				}
-			}
 			
 			if (!found) {
 				return new Result<List<Token>>(new SourceError(SourceError.ErrorType.UNKNOWN_SYMBOL, new Range(i,i+1), "Unknown symbol '"+input.charAt(0)+"'"));
