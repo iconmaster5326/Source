@@ -8,7 +8,7 @@ import com.iconmaster.source.util.Range;
  */
 public class SourceError {
 	public static enum ErrorType {
-		GENERAL,UNKNOWN_SYMBOL,UNEXPECTED_EOF,ILLEGAL_PARENS,SYNTAX
+		GENERAL,UNEXPECTED_EOF,ILLEGAL_PARENS,SYNTAX
 	}
 	
 	public Range range;

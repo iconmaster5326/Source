@@ -1,6 +1,5 @@
 package com.iconmaster.source.parse;
 
-import com.iconmaster.source.exception.SourceError;
 import com.iconmaster.source.util.Range;
 import com.iconmaster.source.util.Result;
 import java.util.ArrayList;
@@ -55,7 +54,9 @@ public class Tokenizer {
 				}
 			
 			if (!found) {
-				return new Result<List<Token>>(new SourceError(SourceError.ErrorType.UNKNOWN_SYMBOL, new Range(i,i+1), "Unknown symbol '"+input.charAt(0)+"'"));
+				a.add(new Token(TokenType.UNKNOWN, input.substring(0, 1), new Range(i,i+1)));
+				input = input.substring(1);
+				i++;
 			}
 		}
 		return new Result<>(a);

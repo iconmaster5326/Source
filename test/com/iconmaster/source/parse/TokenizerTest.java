@@ -1,6 +1,5 @@
 package com.iconmaster.source.parse;
 
-import com.iconmaster.source.exception.SourceError;
 import com.iconmaster.source.util.Range;
 import com.iconmaster.source.util.Result;
 import java.util.List;
@@ -65,11 +64,14 @@ public class TokenizerTest {
 		System.out.println("\tInput: '"+input+"'");
 		result = Tokenizer.tokenize(input);
 		System.out.println("\tProduced: "+result);
-		assertEquals(true, result.failed);
-		assertEquals(null, result.item);
-		assertEquals(1, result.errors.length);
-		assertEquals(SourceError.ErrorType.UNKNOWN_SYMBOL, result.errors[0].type);
-		assertEquals(new Range(2,3), result.errors[0].range);
+		assertEquals(false, result.failed);
+		assertEquals(3, result.item.size());
+		assertEquals("->", result.item.get(0).data);
+		assertEquals(TokenType.SYMBOL, result.item.get(0).type);
+		assertEquals("`", result.item.get(1).data);
+		assertEquals(TokenType.UNKNOWN, result.item.get(1).type);
+		assertEquals("<-", result.item.get(2).data);
+		assertEquals(TokenType.SYMBOL, result.item.get(2).type);
 		
 		System.out.println("test 3:");
 		input = "1.2 a.b";

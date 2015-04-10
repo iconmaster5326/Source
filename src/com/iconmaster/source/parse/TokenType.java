@@ -31,6 +31,7 @@ public enum TokenType {
 	L_BLOCK_COMMENT("\\/\\*"),
 	R_BLOCK_COMMENT("\\*\\/"),
 	DOT("\\."),
+	UNKNOWN("\\."),
 	SYMBOL("[\\Q+-*/=<>~:!&|%$^\\E]+"),
 	
 	BLOCK_COMMENT(new ParseMatcher.CommentMatcher(L_BLOCK_COMMENT,R_BLOCK_COMMENT)),
