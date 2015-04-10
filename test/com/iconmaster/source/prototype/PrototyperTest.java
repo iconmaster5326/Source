@@ -360,6 +360,35 @@ public class PrototyperTest {
 		assertEquals(2, fn.rawArgs.get(0).dirs.size());
 		assertEquals("dir1", fn.rawArgs.get(0).dirs.get(0));
 		assertEquals("dir2", fn.rawArgs.get(0).dirs.get(1));
+		
+		System.out.println("test 10");
+		s = "func[T]()";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertTrue(fn.rawArgs.isEmpty());
+		assertEquals(1, fn.rawParams.size());
+		assertEquals("T", fn.rawParams.get(0).data);
+		
+		System.out.println("test 11");
+		s = "func[A,B]()";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		fn = new Function();
+		ctx = new Prototyper.PrototyperContext(new SourcePackage());
+		ctx.pkg.name = "testPkg";
+		Prototyper.prototypeFunction(code, fn, ctx);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+fn);
+		assertEquals("func", fn.name);
+		assertTrue(fn.rawArgs.isEmpty());
+		assertEquals(2, fn.rawParams.size());
+		assertEquals("A", fn.rawParams.get(0).data);
+		assertEquals("B", fn.rawParams.get(1).data);
 	}
 	
 	@Test

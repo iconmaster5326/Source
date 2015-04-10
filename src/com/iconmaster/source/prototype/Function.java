@@ -13,6 +13,7 @@ public class Function {
 	public String name;
 	public Token rawCode;
 	public Token rawReturnType = null;
+	public List<Token> rawParams = null;
 	public List<String> dirs = new ArrayList<>();
 	public List<Field> rawArgs = new ArrayList<>();
 	public Range range;

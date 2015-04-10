@@ -196,6 +196,8 @@ public class Prototyper {
 					fn.rawArgs.add(arg);
 				}
 				
+				fn.rawParams = TokenUtils.getTokens(code.r, TokenType.TUPLE);
+				
 				ctx.pkg.addFunction(fn);
 				break;
 			case AS:
