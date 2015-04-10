@@ -70,8 +70,9 @@ public class Source {
 			input.platformName = cla.get("p");
 		}
 		
+		List<File> platformFiles;
 		if (cla.containsKey("exts")) {
-			input.platformFiles = FileUtils.getAllFiles(new File(cla.get("exts")));
+			platformFiles = FileUtils.getAllFiles(new File(cla.get("exts")));
 		}
 		
 		if (cla.containsKey("libs")) {
