@@ -11,8 +11,11 @@ import com.iconmaster.source.util.Result;
  */
 public class Linker {
 	public static Result<LinkSpace> link(SourceInput si, SourcePackage pkg) {
-		LinkSpace ls = new LinkSpace(si);
+		if (si.platform==null && si.platformName!=null) {
+			si.platform = Platform.plats.get(si.platformName);
+		}
 		
+		LinkSpace ls = new LinkSpace(si);
 		
 		Result res;
 		

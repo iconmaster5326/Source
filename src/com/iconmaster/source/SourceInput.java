@@ -1,5 +1,6 @@
 package com.iconmaster.source;
 
+import com.iconmaster.source.link.Platform;
 import java.io.File;
 import java.util.List;
 
@@ -16,15 +17,16 @@ public class SourceInput {
 		}
 	}
 	
-	File inputFile;
-	File outputFile;
-	List<File> libFiles;
-	File assetsFile;
-	List<File> platformFiles;
-	String code;
-	String platformName = ""; //TODO: set default platform
-	boolean assemble = true;
-	VerboseLevel verbose = VerboseLevel.DEFAULT;
+	public File inputFile;
+	public File outputFile;
+	public List<File> libFiles;
+	public File assetsFile;
+	public List<File> platformFiles;
+	public String code;
+	public String platformName = ""; //TODO: set default platform
+	public Platform platform;
+	public boolean assemble = true;
+	public VerboseLevel verbose = VerboseLevel.DEFAULT;
 	
 	public void println(VerboseLevel level) {
 		if (verbose.shouldPrint(level)) {
