@@ -1,6 +1,9 @@
 package com.iconmaster.source;
 
+import com.iconmaster.source.exception.SourceError;
 import com.iconmaster.source.prototype.SourcePackage;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -8,6 +11,9 @@ import com.iconmaster.source.prototype.SourcePackage;
  */
 public class SourceOutput {
 	public SourceInput input;
+	public boolean failed;
+	public List<SourceError> errors = new ArrayList<>();
+	public List<Exception> exceptions = new ArrayList<>();
 	public SourcePackage pkg;
 	public Object output;
 }

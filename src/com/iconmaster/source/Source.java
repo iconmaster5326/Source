@@ -1,6 +1,7 @@
 package com.iconmaster.source;
 
 import com.iconmaster.source.SourceInput.VerboseLevel;
+import com.iconmaster.source.exception.SourceError;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
 import com.iconmaster.source.util.FileUtils;
@@ -30,6 +31,8 @@ public class Source {
 			System.out.println("\t-exts file: speciify Source compiler extensions folder/file [default: null]");
 			System.out.println("\t-libs file: speciify Source library folder/file [default: null]");
 			System.out.println("\t-assets file: speciify assets folder/file [default: null]");
+			System.out.println("\t-o file: speciify output folder/file [default: null]");
+			System.out.println("\t-show: Displays the output to console if specified");
 			return;
 		}
 		
@@ -74,6 +77,10 @@ public class Source {
 			input.assetsFile = new File(cla.get("assets"));
 		}
 		
+		if (cla.containsKey("o")) {
+			input.outputFile = new File(cla.get("o"));
+		}
+		
 		try {
 			input.println(VerboseLevel.VERBOSE,"Reading input file "+input.inputFile+"...");
 			Scanner in = new Scanner(input.inputFile);
@@ -88,5 +95,39 @@ public class Source {
 		
 		input.println(VerboseLevel.VERBOSE,"Got the following input:");
 		input.println(VerboseLevel.VERBOSE,input.code);
+		
+		input.println(VerboseLevel.MINIMAL,"Compiling "+input.inputFile+"...");
+		SourceOutput so = compile(input);
+		
+		if (so.failed) {
+			if (!so.exceptions.isEmpty()) {
+				input.println(VerboseLevel.MINIMAL,"The following internal errors occured:");
+				for (Exception ex : so.exceptions) {
+					input.printStackTrace(VerboseLevel.MINIMAL, ex);
+					input.println(VerboseLevel.MINIMAL);
+				}
+			}
+			if (!so.errors.isEmpty()) {
+				input.println(VerboseLevel.MINIMAL,"The following errors occured:");
+				for (SourceError ex : so.errors) {
+					input.println(VerboseLevel.MINIMAL, ex);
+				}
+			}
+			input.println(VerboseLevel.MINIMAL,"Compilation could not be completed.");
+		} else {
+			input.println(VerboseLevel.MINIMAL,"Compilation completed sucsessfully!");
+			if (input.outputFile!=null) {
+				input.println(VerboseLevel.MINIMAL,"Wrote output to "+input.outputFile+".");
+			}
+			if (cla.containsKey("show")) {
+				input.println(VerboseLevel.NONE);
+				input.println(VerboseLevel.NONE, "Got the following output:");
+				input.println(VerboseLevel.NONE, so.output);
+			}
+		}
+	}
+	public static SourceOutput compile(SourceInput input) {
+		SourceOutput so = new SourceOutput();
+		return so;
 	}
 }

@@ -43,4 +43,10 @@ public class SourceInput {
 			System.out.print(str);
 		}
 	}
+	
+	public void printStackTrace(VerboseLevel level, Exception ex) {
+		if (verbose.shouldPrint(level)) {
+			ex.printStackTrace();
+		}
+	}
 }

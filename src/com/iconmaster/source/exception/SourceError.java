@@ -28,6 +28,6 @@ public class SourceError {
 
 	@Override
 	public String toString() {
-		return "SourceError{" + "range=" + range + ", msg='" + msg + "', type=" + type + '}';
+		return "["+range+"] "+type+": "+msg;
 	}
 }
