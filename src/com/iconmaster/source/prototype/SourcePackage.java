@@ -20,7 +20,7 @@ public class SourcePackage {
 	public Map<String, SourcePackage> subPackages = new HashMap<>();
 	public Map<String, List<Function>> functions = new HashMap<>();
 	public Map<String, Field> fields = new HashMap<>();
-	public List<List<String>> rawImports = new ArrayList<>();
+	public List<Import> imports = new ArrayList<>();
 	public List<Token> rawFieldValues = new ArrayList<>();
 
 	public SourcePackage(Range range) {

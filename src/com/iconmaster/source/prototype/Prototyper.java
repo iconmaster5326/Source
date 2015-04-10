@@ -70,16 +70,49 @@ public class Prototyper {
 			case IMPORT: {
 				List<Token> tokens = TokenUtils.getTokens(code.l, TokenType.TUPLE);
 				for (Token t : tokens) {
-					List<Token> tokens2 = TokenUtils.getTokens(t, TokenType.LINK);
+					boolean file = false;
+					List<Token> tokens2;
+					if (t.type==TokenType.AS) {
+						tokens2 = TokenUtils.getTokens(t.l, TokenType.LINK);
+					} else {
+						tokens2 = TokenUtils.getTokens(t, TokenType.LINK);
+					}
+					
 					List<String> a = new ArrayList<>();
 					for (Token t2 : tokens2) {
-						if (t2.type==TokenType.WORD) {
+						if (t2.type==TokenType.STRING) {
+							if (tokens2.size()!=1) {
+								ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t.range, "Extra tokens not allowed in file import"));
+							}
+							file = true;
+							a.add(t2.data);
+							break;
+						} else if (t2.type==TokenType.WORD) {
 							a.add(t2.data);
 						} else {
 							ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t2.range, "Token of type "+t2.type+" not allowed in package name"));
 						}
 					}
-					ctx.pkg.rawImports.add(a);
+					
+					Import imp = new Import();
+					imp.name = a;
+					if (t.type==TokenType.AS) {
+						tokens2 = TokenUtils.getTokens(t.r, TokenType.LINK);
+						a = new ArrayList<>();
+						for (Token t2 : tokens2) {
+							if (t2.type==TokenType.WORD) {
+								a.add(t2.data);
+							} else {
+								ctx.errs.add(new SourceError(SourceError.ErrorType.SYNTAX, t2.range, "Token of type "+t2.type+" not allowed in package name"));
+							}
+						}
+						imp.alias = a;
+					}
+					imp.range = code.range;
+					imp.file = file;
+					imp.dirs.addAll(ctx.dirs);
+					ctx.pkg.imports.add(imp);
+					ctx.dirs.clear();
 				}
 				break;
 			} case FUNCTION:
