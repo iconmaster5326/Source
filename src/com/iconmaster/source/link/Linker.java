@@ -1,6 +1,7 @@
 package com.iconmaster.source.link;
 
 import com.iconmaster.source.SourceInput;
+import com.iconmaster.source.SourceInput.VerboseLevel;
 import com.iconmaster.source.prototype.Import;
 import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.Result;
@@ -33,8 +34,10 @@ public class Linker {
 	}
 	
 	public static Result addLibs(LinkSpace ls) {
-		for (Import imp : ls.si.libraries) {
-			ls.addPackage(imp.name, imp.pkg);
+		for (SourcePackage pkg : ls.si.libraries) {
+			ls.si.println(VerboseLevel.DEBUG, "Loading package "+pkg.name+": "+pkg);
+			
+			
 		}
 		
 		return new Result(true);

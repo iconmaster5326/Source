@@ -70,13 +70,41 @@ public class Source {
 			input.platformName = cla.get("p");
 		}
 		
-		List<File> platformFiles;
 		if (cla.containsKey("exts")) {
-			platformFiles = FileUtils.getAllFiles(new File(cla.get("exts")));
+			List<File> platformFiles = FileUtils.getAllFiles(new File(cla.get("exts")));
 		}
 		
 		if (cla.containsKey("libs")) {
-			input.libFiles = FileUtils.getAllFiles(new File(cla.get("libs")));
+			List<File> libFiles = FileUtils.getAllFiles(new File(cla.get("libs")));
+			for (File f : libFiles) {
+				try {
+					input.println(VerboseLevel.VERBOSE, "Compiling library "+f+"...");
+					Scanner in = new Scanner(f);
+					String code = "";
+					while (in.hasNext()) {
+						code += in.nextLine()+"\n";
+					}
+					
+					SourceInput si = new SourceInput();
+					si.verbose = VerboseLevel.NONE;
+					si.inputFile = f;
+					si.code = code;
+					si.platformName = input.platformName;
+					si.assetsFile = input.assetsFile;
+					si.assemble = false;
+					
+					SourceOutput so = getPrototype(si);
+					
+					if (so.failed) {
+						input.println(VerboseLevel.VERBOSE, "Error in compiling "+f+"!");
+						printError(so);
+						return;
+					} else {
+						input.println(VerboseLevel.VERBOSE, "Compiled "+f+" succsessfully.");
+						input.libraries.add(so.pkg);
+					}
+				} catch (FileNotFoundException ex) {}
+			}
 		}
 		
 		if (cla.containsKey("assets")) {
@@ -106,20 +134,7 @@ public class Source {
 		SourceOutput so = compile(input);
 		
 		if (so.failed) {
-			if (!so.exceptions.isEmpty()) {
-				input.println(VerboseLevel.MINIMAL,"The following internal errors occured:");
-				for (Exception ex : so.exceptions) {
-					input.printStackTrace(VerboseLevel.MINIMAL, ex);
-					input.println(VerboseLevel.MINIMAL);
-				}
-			}
-			if (!so.errors.isEmpty()) {
-				input.println(VerboseLevel.MINIMAL,"The following errors occured:");
-				for (SourceError ex : so.errors) {
-					input.println(VerboseLevel.MINIMAL, ex);
-				}
-			}
-			input.println(VerboseLevel.MINIMAL,"Compilation could not be completed.");
+			printError(so);
 		} else {
 			input.println(VerboseLevel.MINIMAL,"Compilation completed sucsessfully!");
 			if (input.outputFile!=null) {
@@ -132,7 +147,12 @@ public class Source {
 			}
 		}
 	}
+	
 	public static SourceOutput compile(SourceInput input) {
+		return getPrototype(input);
+	}
+	
+	public static SourceOutput getPrototype(SourceInput input) {
 		SourceOutput so = new SourceOutput();
 		
 		try {
@@ -163,6 +183,7 @@ public class Source {
 			}
 			input.println(VerboseLevel.DEBUG, "Got "+res3.item);
 			
+			so.pkg = res3.item;
 			
 		} catch (Exception ex) {
 			so.exceptions.add(ex);
@@ -171,5 +192,22 @@ public class Source {
 		}
 		
 		return so;
+	}
+	
+	public static void printError(SourceOutput so) {
+		if (!so.exceptions.isEmpty()) {
+			so.input.println(VerboseLevel.MINIMAL,"The following internal errors occured:");
+			for (Exception ex : so.exceptions) {
+				so.input.printStackTrace(VerboseLevel.MINIMAL, ex);
+				so.input.println(VerboseLevel.MINIMAL);
+			}
+		}
+		if (!so.errors.isEmpty()) {
+			so.input.println(VerboseLevel.MINIMAL,"The following errors occured:");
+			for (SourceError ex : so.errors) {
+				so.input.println(VerboseLevel.MINIMAL, ex);
+			}
+		}
+		so.input.println(VerboseLevel.MINIMAL,"Compilation could not be completed.");
 	}
 }
