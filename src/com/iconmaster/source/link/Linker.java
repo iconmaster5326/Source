@@ -33,6 +33,10 @@ public class Linker {
 	}
 	
 	public static Result addLibs(LinkSpace ls) {
+		for (Import imp : ls.si.libraries) {
+			ls.addPackage(imp.name, imp.pkg);
+		}
+		
 		return new Result(true);
 	}
 	
