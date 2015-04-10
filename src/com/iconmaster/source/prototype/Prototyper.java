@@ -37,12 +37,23 @@ public class Prototyper {
 	}
 	
 	public static void prototype(Token code, PrototyperContext ctx) {
+		if (code==null) {
+			return;
+		}
 		switch (code.type) {
 			case STATEMENT:
 				prototype(code.l,ctx);
 				prototype(code.r,ctx);
 				break;
 			case PACKAGE:
+				if (code.l.type==TokenType.CODE) {
+					SourcePackage oldPkg = ctx.pkg;
+					ctx.pkg = ctx.root;
+					prototype(code.l.l,ctx);
+					ctx.pkg = oldPkg;
+					ctx.dirs.clear();
+					break;
+				}
 				List<Token> names = TokenUtils.getTokens(code.l, TokenType.LINK);
 				for (Token t : names) {
 					if (t.type==TokenType.WORD) {

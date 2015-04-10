@@ -212,6 +212,15 @@ public class PrototyperTest {
 		assertEquals("a1",pkg.item.imports.get(0).alias.get(0));
 		assertEquals("a2",pkg.item.imports.get(0).alias.get(1));
 		assertTrue(!pkg.item.imports.get(0).file);
+		
+		System.out.println("test 14");
+		s = "package {field x}";
+		code = Parser.parse(Tokenizer.tokenize(s).item).item;
+		pkg = Prototyper.prototype(code);
+		System.out.println("\tInput: '"+s+"'");
+		System.out.println("\tProduced: "+pkg);
+		assertTrue(!pkg.failed);
+		assertTrue(pkg.item.fields.containsKey("x"));
 	}
 
 	/**
