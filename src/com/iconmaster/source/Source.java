@@ -68,8 +68,6 @@ public class Source {
 		
 		if (cla.containsKey("p")) {
 			input.platformName = cla.get("p");
-		} else {
-			input.platformName = ""; //TODO: add default platform
 		}
 		
 		if (cla.containsKey("exts")) {

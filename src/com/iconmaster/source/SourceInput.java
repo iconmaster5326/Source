@@ -22,7 +22,7 @@ public class SourceInput {
 	File assetsFile;
 	List<File> platformFiles;
 	String code;
-	String platformName;
+	String platformName = ""; //TODO: set default platform
 	boolean assemble = true;
 	VerboseLevel verbose = VerboseLevel.DEFAULT;
 	
