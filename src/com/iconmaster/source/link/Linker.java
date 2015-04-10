@@ -35,7 +35,7 @@ public class Linker {
 	
 	public static Result addLibs(LinkSpace ls) {
 		for (SourcePackage pkg : ls.si.libraries) {
-			ls.si.println(VerboseLevel.DEBUG, "Loading package "+pkg.name+": "+pkg);
+			ls.si.println(VerboseLevel.DEBUG, "Loading package: "+pkg);
 			
 			
 		}

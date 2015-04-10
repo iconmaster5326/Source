@@ -2,6 +2,8 @@ package com.iconmaster.source;
 
 import com.iconmaster.source.SourceInput.VerboseLevel;
 import com.iconmaster.source.exception.SourceError;
+import com.iconmaster.source.link.LinkSpace;
+import com.iconmaster.source.link.Linker;
 import com.iconmaster.source.parse.Parser;
 import com.iconmaster.source.parse.Token;
 import com.iconmaster.source.parse.Tokenizer;
@@ -149,7 +151,21 @@ public class Source {
 	}
 	
 	public static SourceOutput compile(SourceInput input) {
-		return getPrototype(input);
+		SourceOutput so = getPrototype(input);
+		if (so.failed) {
+			return so;
+		}
+		
+		input.println(VerboseLevel.VERBOSE, "Linking...");
+		Result<LinkSpace> res1 = Linker.link(input, so.pkg);
+		if (res1.failed) {
+			so.addErrors(res1.errors);
+			so.failed = true;
+			return so;
+		}
+		input.println(VerboseLevel.DEBUG, "Got "+res1.item);
+		
+		return so;
 	}
 	
 	public static SourceOutput getPrototype(SourceInput input) {

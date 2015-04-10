@@ -12,13 +12,13 @@ public abstract class Platform {
 	public static Map<String, Platform> plats = new HashMap<>();
 	
 	protected String name;
-	protected Map<String,SourcePackage> libs = new HashMap<>();
+	protected SourcePackage pkg;
 
 	public String name() {
 		return name;
 	}
 	
-	public SourcePackage getLibrary(String name) {
-		return libs.get(name);
+	public SourcePackage packages() {
+		return pkg;
 	}
 }
