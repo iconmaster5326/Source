@@ -24,4 +24,16 @@ public class TokenUtils {
 		a.add(0,input);
 		return a;
 	}
+	
+	public static String condense(List<String> li, String sep) {
+		String ret = "";
+		if (!li.isEmpty()) {
+			for (String s : li) {
+				ret += sep;
+				ret += s;
+			}
+			ret = ret.substring(sep.length());
+		}
+		return ret;
+	}
 }
