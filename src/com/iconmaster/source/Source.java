@@ -139,6 +139,7 @@ public class Source {
 			Result<List<Token>> res1 = Tokenizer.tokenize(input.code);
 			if (res1.failed) {
 				so.addErrors(res1.errors);
+				so.failed = true;
 				return so;
 			}
 			input.println(VerboseLevel.DEBUG, "Got "+res1.item);
@@ -147,6 +148,7 @@ public class Source {
 			Result<Token> res2 = Parser.parse(res1.item);
 			if (res2.failed) {
 				so.addErrors(res2.errors);
+				so.failed = true;
 				return so;
 			}
 			input.println(VerboseLevel.DEBUG, "Got "+res2.item);
@@ -155,6 +157,7 @@ public class Source {
 			Result<SourcePackage> res3 = Prototyper.prototype(res2.item);
 			if (res3.failed) {
 				so.addErrors(res3.errors);
+				so.failed = true;
 				return so;
 			}
 			input.println(VerboseLevel.DEBUG, "Got "+res3.item);
@@ -162,6 +165,7 @@ public class Source {
 			
 		} catch (Exception ex) {
 			so.exceptions.add(ex);
+			so.failed = true;
 			return so;
 		}
 		
