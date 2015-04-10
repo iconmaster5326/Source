@@ -2,11 +2,18 @@ package com.iconmaster.source;
 
 import com.iconmaster.source.SourceInput.VerboseLevel;
 import com.iconmaster.source.exception.SourceError;
+import com.iconmaster.source.parse.Parser;
+import com.iconmaster.source.parse.Token;
+import com.iconmaster.source.parse.Tokenizer;
+import com.iconmaster.source.prototype.Prototyper;
+import com.iconmaster.source.prototype.SourcePackage;
 import com.iconmaster.source.util.CLAHelper;
 import com.iconmaster.source.util.CLAHelper.CLA;
 import com.iconmaster.source.util.FileUtils;
+import com.iconmaster.source.util.Result;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -128,6 +135,38 @@ public class Source {
 	}
 	public static SourceOutput compile(SourceInput input) {
 		SourceOutput so = new SourceOutput();
+		
+		try {
+			input.println(VerboseLevel.VERBOSE, "Tokenizing...");
+			Result<List<Token>> res1 = Tokenizer.tokenize(input.code);
+			if (res1.failed) {
+				so.addErrors(res1.errors);
+				return so;
+			}
+			input.println(VerboseLevel.DEBUG, "Got "+res1.item);
+
+			input.println(VerboseLevel.VERBOSE, "Parsing...");
+			Result<Token> res2 = Parser.parse(res1.item);
+			if (res2.failed) {
+				so.addErrors(res2.errors);
+				return so;
+			}
+			input.println(VerboseLevel.DEBUG, "Got "+res2.item);
+
+			input.println(VerboseLevel.VERBOSE, "Prototyping...");
+			Result<SourcePackage> res3 = Prototyper.prototype(res2.item);
+			if (res3.failed) {
+				so.addErrors(res3.errors);
+				return so;
+			}
+			input.println(VerboseLevel.DEBUG, "Got "+res3.item);
+			
+			
+		} catch (Exception ex) {
+			so.exceptions.add(ex);
+			return so;
+		}
+		
 		return so;
 	}
 }

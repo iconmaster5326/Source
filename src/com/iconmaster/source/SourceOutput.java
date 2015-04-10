@@ -16,4 +16,10 @@ public class SourceOutput {
 	public List<Exception> exceptions = new ArrayList<>();
 	public SourcePackage pkg;
 	public Object output;
+	
+	public void addErrors(SourceError... errs) {
+		for (SourceError err : errs) {
+			errors.add(err);
+		}
+	}
 }
