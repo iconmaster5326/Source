@@ -12,14 +12,14 @@ public class SourceInput {
 		NONE,MINIMAL,DEFAULT,VERBOSE,DEBUG;
 		
 		public boolean shouldPrint(VerboseLevel level) {
-			return this.compareTo(level)<=0;
+			return this.compareTo(level)>=0;
 		}
 	}
 	
 	File inputFile;
 	File outputFile;
 	List<File> libFiles;
-	List<File> assetFiles;
+	File assetsFile;
 	List<File> platformFiles;
 	String code;
 	String platformName;
