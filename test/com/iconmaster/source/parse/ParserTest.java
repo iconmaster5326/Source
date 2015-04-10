@@ -424,6 +424,18 @@ public class ParserTest {
 		assertEquals(false, result.failed);
 		assertEquals(TokenType.WORD, result.item.type);
 		assertEquals("x", result.item.data);
+		
+		System.out.println("test 32:");
+		tokens = Tokenizer.tokenize("return 5 return").item;
+		System.out.println("\tInput: "+tokens);
+		result = Parser.parse(tokens);
+		System.out.println("\tProduced: "+result);
+		assertEquals(false, result.failed);
+		assertEquals(TokenType.STATEMENT, result.item.type);
+		assertEquals(TokenType.RETURN, result.item.l.type);
+		assertEquals(TokenType.NUMBER, result.item.l.l.type);
+		assertEquals("5", result.item.l.l.data);
+		assertEquals(TokenType.RETURN_NULL, result.item.r.type);
 	}
 	
 }

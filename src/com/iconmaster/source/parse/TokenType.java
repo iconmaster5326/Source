@@ -97,6 +97,18 @@ public enum TokenType {
 	LOCAL(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "local")),
 	FIELD(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "field")),
 	RETURN(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "return")),
+	RETURN_NULL(new ParseMatcher() {
+
+		@Override
+		public boolean valid(TokenType type, List<Token> tokens) {
+			return tokens.size()>=1 && tokens.get(0).type==TokenType.WORD && "return".equals(tokens.get(0).data);
+		}
+
+		@Override
+		public Result<ParseMatcher.MatchResult> transform(TokenType type, List<Token> tokens) {
+			return new Result<>(new ParseMatcher.MatchResult(new Token(type, null, tokens.get(0).range), 1));
+		}
+	}),
 	PACKAGE(new ParseMatcher.UnaryOpMatcher(TokenType.WORD, "package")),
 	PACKAGE_BLOCK(new ParseMatcher() {
 
