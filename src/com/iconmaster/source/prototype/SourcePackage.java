@@ -15,7 +15,7 @@ public class SourcePackage {
 	public Range range;
 	public String name;
 	public List<String> dirs = new ArrayList<>();
-	SourcePackage parent = null;
+	public SourcePackage parent = null;
 	
 	public Map<String, SourcePackage> subPackages = new HashMap<>();
 	public Map<String, List<Function>> functions = new HashMap<>();
@@ -65,5 +65,22 @@ public class SourcePackage {
 	@Override
 	public String toString() {
 		return "SourcePackage{" + "range=" + range + ", name=" + name + ", dirs=" + dirs + ", subPackages=" + subPackages + ", functions=" + functions + ", fields=" + fields + '}';
+	}
+	
+	public void mergeWith(SourcePackage other) {
+		this.dirs.addAll(other.dirs);
+		this.subPackages.putAll(other.subPackages);
+		this.functions.putAll(other.functions);
+		this.fields.putAll(other.fields);
+		this.imports.addAll(other.imports);
+		this.rawFieldValues.addAll(other.rawFieldValues);
+	}
+	
+	public static SourcePackage merge(List<SourcePackage> pkgs) {
+		SourcePackage pkg = new SourcePackage();
+		for (SourcePackage pkg2 : pkgs) {
+			pkg.mergeWith(pkg2);
+		}
+		return pkg;
 	}
 }

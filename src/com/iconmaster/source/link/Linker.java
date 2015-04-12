@@ -37,7 +37,7 @@ public class Linker {
 		for (SourcePackage pkg : ls.si.libraries) {
 			ls.si.println(VerboseLevel.DEBUG, "Loading package: "+pkg);
 			
-			
+			ls.addPackage(pkg);
 		}
 		
 		return new Result(true);
@@ -45,7 +45,16 @@ public class Linker {
 	
 	public static Result link(LinkSpace ls, SourcePackage pkg) {
 		for (Import imp : pkg.imports) {
-			
+			if (imp.file) {
+				
+			} else {
+				SourcePackage found = ls.findPackage(imp.name);
+				if (found==null) {
+					//error
+				} else {
+					imp.pkg = found;
+				}
+			}
 		}
 		
 		return new Result(true);

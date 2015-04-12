@@ -2,11 +2,9 @@ package com.iconmaster.source.link;
 
 import com.iconmaster.source.SourceInput;
 import com.iconmaster.source.prototype.SourcePackage;
-import com.iconmaster.source.util.TokenUtils;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -14,26 +12,39 @@ import java.util.Map;
  */
 public class LinkSpace {
 	public SourceInput si;
-	public List<SourcePackage> defaults = new ArrayList<>();
-	public Map<String,SourcePackage> loaded = new HashMap<>();
+	public List<SourcePackage> loaded = new ArrayList<>();
 
 	public LinkSpace(SourceInput si) {
 		this.si = si;
 	}
 	
-	public void addPackage(String name, SourcePackage pkg) {
-		loaded.put(name,pkg);
+	public void addPackage(SourcePackage pkg) {
+		loaded.add(pkg);
 	}
 	
-	public void addPackage(List<String> name, SourcePackage pkg) {
-		loaded.put(TokenUtils.condense(name, "."),pkg);
+	public SourcePackage findPackage(String name) {
+		return findPackage(Arrays.asList(name.split("\\.")));
 	}
 	
-	public SourcePackage getPackage(String name) {
-		return loaded.get(name);
-	}
-	
-	public SourcePackage getPackage(List<String> name) {
-		return loaded.get(TokenUtils.condense(name, "."));
+	public SourcePackage findPackage(List<String> name) {
+		name = new ArrayList<>(name);
+		String called = null;
+		List<SourcePackage> looking = new ArrayList<>(loaded);
+		while (!name.isEmpty()) {
+			called = name.remove(0);
+			List<SourcePackage> newList = new ArrayList<>();
+			for (SourcePackage pkg : looking) {
+				if (pkg.subPackages.containsKey(called)) {
+					newList.add(pkg);
+				}
+			}
+			if (looking.isEmpty()) {
+				return null;
+			}
+			looking = newList;
+		}
+		SourcePackage pkg = SourcePackage.merge(looking);
+		pkg.name = called;
+		return pkg;
 	}
 }
