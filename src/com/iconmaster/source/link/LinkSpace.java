@@ -42,6 +42,10 @@ public class LinkSpace {
 				return null;
 			}
 			looking = newList;
+			
+			if (looking.isEmpty()) {
+				return null;
+			}
 		}
 		SourcePackage pkg = SourcePackage.merge(looking);
 		pkg.name = called;
