@@ -53,4 +53,9 @@ public class SourceInput {
 			ex.printStackTrace();
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "SourceInput{" + "inputFile=" + inputFile + ", outputFile=" + outputFile + ", assetsFile=" + assetsFile + ", code=" + code + ", platformName=" + platformName + ", assemble=" + assemble + ", verbose=" + verbose + ", platform=" + platform + ", libraries=" + libraries + '}';
+	}
 }

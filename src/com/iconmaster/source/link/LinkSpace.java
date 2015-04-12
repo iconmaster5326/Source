@@ -47,4 +47,9 @@ public class LinkSpace {
 		pkg.name = called;
 		return pkg;
 	}
+
+	@Override
+	public String toString() {
+		return "LinkSpace{" + "si=" + si + ", loaded=" + loaded + '}';
+	}
 }

@@ -22,4 +22,9 @@ public class SourceOutput {
 			errors.add(err);
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "SourceOutput{" + "input=" + input + ", failed=" + failed + ", errors=" + errors + ", exceptions=" + exceptions + ", pkg=" + pkg + ", output=" + output + '}';
+	}
 }
