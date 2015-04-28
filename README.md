@@ -7,4 +7,4 @@ Source is a compiled programming language designed to cross-compile. It compiles
 
 [The offical thread for this can be found here.]( http://www.omnimaga.org/hp-prime/hpp-a-wip-alternate-programming-language-for-the-prime/)
 
-UPDATE: 4/28/2015: Source is no longer in development; [Typhon]( https://github.com/iconmaster5326/Typhon) is being dveloped instead, and will be sytactically similar to Source.
+UPDATE: 4/28/2015: Source is no longer in development; [Typhon]( https://github.com/iconmaster5326/Typhon) is being dveloped instead, and will be syntactically similar to Source.
